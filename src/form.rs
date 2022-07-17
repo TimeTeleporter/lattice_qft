@@ -1,49 +1,21 @@
-//! If we consider a discrete euclidean spacetime, we can identify different objects as living on different parts of the lattice.
-//! As an exmaple, consider a 2+1 spacetime lattice. We identify the objects
-//!
-//! 1. Lattice points - zero-forms.
-//! 2. Links between lattice points - one-forms.
-//! 3. Plaquettes - two-forms.
-//! 4. Cubes - three-forms.
-//!
-//! For each of these objects we can define fields.
-//! Further realize, that there are equally as many cubes as lattice points in this case.
-//! We also have three times the amount of links than we have lattice points.
-//! We have the same amount of links as plaquettes.
-//!
-//! Further we can compose the forms to get new ones.
-
-use num::Zero; // This allowes us to use generics that are able to become zero.
-
 /// Generic N-form in D dimensions
+/// See: https://blog.rust-lang.org/inside-rust/2021/09/06/Splitting-const-generics.html
 #[derive(Debug, Clone, Copy)]
 pub struct Form<T, const D: usize, const N: usize>
 where
-    T: Copy,
     [(); binomial_coeff_recursive(D, N)]:,
 {
-    components: [T; binomial_coeff_recursive(D, N)],
+    pub components: [T; binomial_coeff_recursive(D, N)],
 }
 
-impl<T, const D: usize, const N: usize> Default for Form<T, D, N>
+impl<T: Default, const D: usize, const N: usize> Default for Form<T, D, N>
 where
-    T: Default + Copy,
     [(); binomial_coeff_recursive(D, N)]:,
 {
     fn default() -> Self {
         let components = [(); binomial_coeff_recursive(D, N)].map(|_| T::default());
 
         Self { components }
-    }
-}
-
-impl<T, const D: usize, const N: usize> Form<T, D, N>
-where
-    T: Default + Copy,
-    [(); binomial_coeff_recursive(D, N)]:,
-{
-    fn new() -> Self {
-        Self::default()
     }
 }
 
