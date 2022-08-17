@@ -1,4 +1,5 @@
 /// A three dimensional spacetime lattice.
+// This might need reconsideration, as one is able to simplify it to a single array.
 #[derive(Debug)]
 pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
     pub [[[T; MAX_T]; MAX_Y]; MAX_X],
