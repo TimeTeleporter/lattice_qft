@@ -98,31 +98,10 @@ where
 {
 }
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    pub fn get_value_from_coordinates(&self, x: usize, y: usize, t: usize) -> &T {
-        self.get_value(Self::get_index_from_coordinates(x, y, t))
-    }
-
-    pub fn get_value(&self, index: usize) -> &T {
-        &self.0[index]
-    }
-
-    /// Initializes a new 3-dimensional lattice with default values for the given types.
-    pub fn new() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        Lattice3d::<T, MAX_X, MAX_Y, MAX_T>::default()
-    }
-}
-
 #[test]
 fn test_index_coordinates_conversion() {
-    type MyLattice = Lattice3d<i32, 4, 5, 3>;
-    let (x, y, t) = MyLattice::get_coordinates_from_index(29);
-    let index = MyLattice::get_index_from_coordinates(x, y, t);
+    let (x, y, t) = Lattice3d::<i32, 4, 5, 3>::get_coordinates_from_index(29);
+    let index = Lattice3d::<i32, 4, 5, 3>::get_index_from_coordinates(x, y, t);
 
     assert_eq!(x, 1);
     assert_eq!(y, 2);
@@ -210,4 +189,10 @@ where
 
         self.indices.0[index][entry]
     }
+}
+
+#[test]
+fn test_indexed_neighbour() {
+    let lattice = IndexedLattice3d::<i32, 4, 5, 3>::default();
+    assert_eq!(lattice.indices.0[19], [16, 3, 39, 18, 15, 59]);
 }
