@@ -1,9 +1,25 @@
-/// A three dimensional spacetime lattice.
-// This might need reconsideration, as one is able to simplify it to a single array.
+/// A three dimensional spacetime lattice saved to an array.
+///
+/// The x coordinate is periodic from 0 to MAX_X, the same for y and t.
+///
+/// Now consider the example of a 4 by 5 by 3 3-dimensional lattice. We index the entries as follows:
+///
+///  y            t=0      y            t=1      y            t=2
+/// 4 ^  16 17 18 19        ^  36 37 38 39        ^  56 57 58 59  
+/// 3 |  12 13 14 15        |  32 33 34 35        |  52 53 54 55  
+/// 2 |  8  9  10 11        |  28 29 30 31        |  48 49 50 51  
+/// 1 |  4  5  6  7         |  24 25 26 27        |  44 45 46 47  
+/// 0 |  0  1  2  3         |  20 21 22 23        |  40 41 42 43  
+///   .-----------> x       .-----------> x       .-----------> x
+///      0  1  2  3            0  1  2  3            0  1  2  3
+///
+///
 #[derive(Debug)]
 pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    pub [[[T; MAX_T]; MAX_Y]; MAX_X],
-);
+    pub [T; MAX_X * MAX_Y * MAX_T],
+)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:;
 
 /// As many directions as there are dimensions.
 pub enum Direction {
@@ -16,61 +32,101 @@ impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
     for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
 where
     T: Default,
+    [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        let ary = [(); MAX_X].map(|_| [(); MAX_Y].map(|_| [(); MAX_T].map(|_| T::default())));
-        Lattice3d(ary)
+        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
     }
 }
 
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     Lattice3d<T, MAX_X, MAX_Y, MAX_T>
 where
-    T: Default + Copy,
+    T: Default,
+    [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    pub fn prev_neighbour_value(&self, x: usize, y: usize, t: usize, direction: Direction) -> T {
-        let (x, y, t) = match direction {
-            Direction::X => (self.prev_index(x, direction), y, t),
-            Direction::Y => (x, self.prev_index(y, direction), t),
-            Direction::T => (x, y, self.prev_index(t, direction)),
-        };
-        self.value(x, y, t)
-    }
-
-    fn prev_index(&self, index: usize, direction: Direction) -> usize {
-        if index == 0 {
-            self.get_max(direction) - 1
-        } else {
-            index - 1
-        }
-    }
-
-    pub fn next_neighbour_value(&self, x: usize, y: usize, t: usize, direction: Direction) -> T {
-        let (x, y, t) = match direction {
-            Direction::X => (self.next_index(x, direction), y, t),
-            Direction::Y => (x, self.next_index(y, direction), t),
-            Direction::T => (x, y, self.next_index(t, direction)),
-        };
-        self.value(x, y, t)
-    }
-
-    fn next_index(&self, index: usize, direction: Direction) -> usize {
-        (index + 1) % self.get_max(direction)
-    }
-
-    fn get_max(&self, direction: Direction) -> usize {
+    // Might also want to implement a free move neighbour_index fn.
+    const fn prev_neighbour_index(index: usize, direction: Direction) -> usize {
+        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
         match direction {
-            Direction::X => MAX_X,
-            Direction::Y => MAX_Y,
-            Direction::T => MAX_T,
+            Direction::X => x = (x + MAX_X - 1) % MAX_X,
+            Direction::Y => y = (y + MAX_Y - 1) % MAX_Y,
+            Direction::T => t = (t + MAX_T - 1) % MAX_T,
         }
+
+        Self::get_index_from_coordinates(x, y, t)
     }
 
-    pub fn value(&self, x: usize, y: usize, t: usize) -> T {
-        self.0[x % MAX_X][y % MAX_X][t % MAX_T]
+    const fn next_neighbour_index(index: usize, direction: Direction) -> usize {
+        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
+        match direction {
+            Direction::X => x = (x + 1) % MAX_X,
+            Direction::Y => y = (y + 1) % MAX_Y,
+            Direction::T => t = (t + 1) % MAX_T,
+        }
+
+        Self::get_index_from_coordinates(x, y, t)
     }
 
+    const fn get_coordinates_from_index(index: usize) -> (usize, usize, usize) {
+        (
+            Self::get_x_from_index(index),
+            Self::get_y_from_index(index),
+            Self::get_t_from_index(index),
+        )
+    }
+
+    pub fn get_value_from_coordinates(&self, x: usize, y: usize, t: usize) -> &T {
+        self.get_value(Self::get_index_from_coordinates(x, y, t))
+    }
+
+    fn get_value(&self, index: usize) -> &T {
+        &self.0[index]
+    }
+
+    const fn get_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
+        MAX_X * MAX_Y * t + MAX_X * y + x
+    }
+
+    const fn get_x_from_index(index: usize) -> usize {
+        index % MAX_X
+    }
+
+    const fn get_y_from_index(index: usize) -> usize {
+        (index / MAX_X) % MAX_Y
+    }
+
+    const fn get_t_from_index(index: usize) -> usize {
+        index / (MAX_X * MAX_Y)
+    }
+
+    /// Initializes a new 3-dimensional lattice with default values for the given types.
     pub fn new() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
         Lattice3d::<T, MAX_X, MAX_Y, MAX_T>::default()
     }
+}
+
+#[test]
+fn test_index_coordinates_conversion() {
+    type MyLattice = Lattice3d<i32, 4, 5, 3>;
+    let (x, y, t) = MyLattice::get_coordinates_from_index(29);
+    let index = MyLattice::get_index_from_coordinates(x, y, t);
+
+    assert_eq!(x, 1);
+    assert_eq!(y, 2);
+    assert_eq!(t, 1);
+    assert_eq!(index, 29);
+}
+
+#[test]
+fn test_neighbour_index() {
+    type MyLattice = Lattice3d<i32, 4, 5, 3>;
+    let center: usize = 19;
+
+    assert_eq!(MyLattice::next_neighbour_index(center, Direction::X), 16);
+    assert_eq!(MyLattice::next_neighbour_index(center, Direction::Y), 3);
+    assert_eq!(MyLattice::next_neighbour_index(center, Direction::T), 39);
+    assert_eq!(MyLattice::prev_neighbour_index(center, Direction::X), 18);
+    assert_eq!(MyLattice::prev_neighbour_index(center, Direction::Y), 15);
+    assert_eq!(MyLattice::prev_neighbour_index(center, Direction::T), 59);
 }
