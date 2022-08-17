@@ -14,7 +14,7 @@ mod form;
 mod lattice3d;
 
 use form::Form;
-use lattice3d::{Direction, Lattice3d};
+use lattice3d::{Direction, IndexedLattice3d, Lattice3d};
 
 // The type of integer used in the simulation. Standard would be i32, can be increased to i64 or higher if needed.
 type MyInt = i32;
@@ -27,5 +27,7 @@ type TwoForm = Form<MyInt, DIMENSIONS, 2>;
 type ThreeForm = Form<MyInt, DIMENSIONS, 3>;
 
 fn main() {
-    let int: MyInt = MyInt::default();
+    let lattice = IndexedLattice3d::<MyInt, 3, 3, 3>::default();
+
+    println!("{:?}", lattice.indices.0);
 }
