@@ -15,7 +15,55 @@
 //!
 //! This example gets tested in the tests below.
 
-/// Lattice operation trait concerning the conversion between indices and coordinates
+/// As many directions as there are dimensions.
+pub enum Direction {
+    X,
+    Y,
+    T,
+}
+
+// This is the unoptimized lattice datatype. We optimize it further below.
+#[derive(Debug)]
+pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    pub [T; MAX_X * MAX_Y * MAX_T],
+)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:;
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
+    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    T: Default,
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
+        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
+    }
+}
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
+    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+}
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    LatticeValues<T, MAX_X, MAX_Y, MAX_T> for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    T: std::fmt::Debug + std::fmt::Display,
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    fn print_values(&self) {
+        println!("{:?}", self.0);
+    }
+
+    fn get_value(&self, index: usize) -> &T {
+        &self.0[index]
+    }
+}
+
+/// Lattice operation trait concerning the conversion between indices and coordinates, implemented for three dimensions
 pub trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
     fn prev_neighbour_index(&self, index: usize, direction: Direction) -> usize {
         let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
@@ -64,37 +112,35 @@ pub trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
     }
 }
 
-/// As many directions as there are dimensions.
-pub enum Direction {
-    X,
-    Y,
-    T,
-}
-
-// This is the unoptimized lattice datatype. We optimize it further below.
-#[derive(Debug)]
-pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    pub [T; MAX_X * MAX_Y * MAX_T],
-)
+pub trait LatticeValues<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
-    [(); MAX_X * MAX_Y * MAX_T]:;
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
+    T: std::fmt::Display,
+    Self: Lattice<MAX_X, MAX_Y, MAX_T>,
 {
-    fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
+    fn get_value(&self, index: usize) -> &T;
+    fn print_values(&self);
+
+    fn print_values_formated(&self) {
+        for t in 0..MAX_T {
+            println!("t = {}", t);
+            for y in 0..MAX_Y {
+                print!("[");
+                for x in 0..MAX_X {
+                    if x == MAX_X - 1 {
+                        println!(
+                            "{} ]",
+                            self.get_value(Self::get_index_from_coordinates(x, y, t))
+                        );
+                    } else {
+                        print!(
+                            "{}, ",
+                            self.get_value(Self::get_index_from_coordinates(x, y, t))
+                        );
+                    }
+                }
+            }
+        }
     }
-}
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
 }
 
 #[test]
@@ -119,4 +165,10 @@ fn test_neighbour_index() {
     assert_eq!(lattice.prev_neighbour_index(center, Direction::X), 18);
     assert_eq!(lattice.prev_neighbour_index(center, Direction::Y), 15);
     assert_eq!(lattice.prev_neighbour_index(center, Direction::T), 59);
+}
+
+#[test]
+fn test_lattice3d_default() {
+    let lattice = Lattice3d::<i32, 4, 5, 3>::default();
+    assert_eq!(lattice.0, [0_i32; 60]);
 }
