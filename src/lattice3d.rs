@@ -15,8 +15,56 @@
 //!
 //! This example gets tested in the tests below.
 
-/// Lattice operation trait concerning the conversion between indices and coordinates
-trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
+/// As many directions as there are dimensions.
+pub enum Direction {
+    X,
+    Y,
+    T,
+}
+
+// This is the unoptimized lattice datatype. We optimize it further below.
+#[derive(Debug)]
+pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    pub [T; MAX_X * MAX_Y * MAX_T],
+)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:;
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
+    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    T: Default,
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
+        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
+    }
+}
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
+    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+}
+
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    LatticeValues<T, MAX_X, MAX_Y, MAX_T> for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+where
+    T: std::fmt::Debug,
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    fn print_values(&self) {
+        println!("{:?}", self.0);
+    }
+
+    fn get_value(&self, index: usize) -> &T {
+        &self.0[index]
+    }
+}
+
+/// Lattice operation trait concerning the conversion between indices and coordinates, implemented for three dimensions
+pub trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
     fn prev_neighbour_index(&self, index: usize, direction: Direction) -> usize {
         let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
         match direction {
@@ -64,38 +112,46 @@ trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
     }
 }
 
-/// As many directions as there are dimensions.
-pub enum Direction {
-    X,
-    Y,
-    T,
-}
-
-// This is the unoptimized lattice datatype. We optimize it further below.
-#[derive(Debug)]
-pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    pub [T; MAX_X * MAX_Y * MAX_T],
-)
+pub trait LatticeValues<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
-    [(); MAX_X * MAX_Y * MAX_T]:;
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
+    T: std::fmt::Debug,
+    Self: Lattice<MAX_X, MAX_Y, MAX_T>,
 {
-    fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
+    fn prev_neighbour_value(&self, index: usize, direction: Direction) -> &T {
+        let neighbour_index = Self::prev_neighbour_index(&self, index, direction);
+        Self::get_value(&self, neighbour_index)
     }
-}
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
+    fn next_neighbour_value(&self, index: usize, direction: Direction) -> &T {
+        let neighbour_index = Self::next_neighbour_index(&self, index, direction);
+        Self::get_value(&self, neighbour_index)
+    }
+
+    fn get_value(&self, index: usize) -> &T;
+
+    fn print_values(&self);
+
+    fn print_values_formated(&self) {
+        for t in 0..MAX_T {
+            println!("t = {}", t);
+            for y in 0..MAX_Y {
+                print!("[");
+                for x in 0..MAX_X {
+                    if x == MAX_X - 1 {
+                        println!(
+                            "{:?} ]",
+                            self.get_value(Self::get_index_from_coordinates(x, y, t))
+                        );
+                    } else {
+                        print!(
+                            "{:?}, ",
+                            self.get_value(Self::get_index_from_coordinates(x, y, t))
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
 
 #[test]
@@ -122,77 +178,8 @@ fn test_neighbour_index() {
     assert_eq!(lattice.prev_neighbour_index(center, Direction::T), 59);
 }
 
-/// An optimized Lattice3d, where we create a list of neighbouring indices.
-/// As such, we can simplify the calling of neighbouring values.
-/// The neighbours are saved in the 'indices' field as follows:
-///
-///             [1] [5]      y   
-///              | /         |
-///         [3]-[x]-[0]      o - x
-///            / |          /
-///         [2] [4]        t
-///
-#[derive(Debug)]
-pub struct IndexedLattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-where
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    pub values: Lattice3d<T, MAX_X, MAX_Y, MAX_T>,
-    pub indices: Lattice3d<[usize; 6], MAX_X, MAX_Y, MAX_T>,
-}
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
-    for IndexedLattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    fn default() -> IndexedLattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        let values = Lattice3d::<T, MAX_X, MAX_Y, MAX_T>::default();
-        let mut indices = Lattice3d::<[usize; 6], MAX_X, MAX_Y, MAX_T>::default();
-
-        for index in 0..MAX_X * MAX_Y * MAX_T {
-            indices.0[index][0] = values.next_neighbour_index(index, Direction::X);
-            indices.0[index][1] = values.next_neighbour_index(index, Direction::Y);
-            indices.0[index][2] = values.next_neighbour_index(index, Direction::T);
-            indices.0[index][3] = values.prev_neighbour_index(index, Direction::X);
-            indices.0[index][4] = values.prev_neighbour_index(index, Direction::Y);
-            indices.0[index][5] = values.prev_neighbour_index(index, Direction::T);
-        }
-
-        IndexedLattice3d { values, indices }
-    }
-}
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
-    for IndexedLattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    fn prev_neighbour_index(&self, index: usize, direction: Direction) -> usize {
-        let entry: usize = match direction {
-            Direction::X => 3,
-            Direction::Y => 4,
-            Direction::T => 5,
-        };
-
-        self.indices.0[index][entry]
-    }
-
-    fn next_neighbour_index(&self, index: usize, direction: Direction) -> usize {
-        let entry: usize = match direction {
-            Direction::X => 0,
-            Direction::Y => 1,
-            Direction::T => 2,
-        };
-
-        self.indices.0[index][entry]
-    }
-}
-
 #[test]
-fn test_indexed_neighbour() {
-    let lattice = IndexedLattice3d::<i32, 4, 5, 3>::default();
-    assert_eq!(lattice.indices.0[19], [16, 3, 39, 18, 15, 59]);
+fn test_lattice3d_default() {
+    let lattice = Lattice3d::<i32, 4, 5, 3>::default();
+    assert_eq!(lattice.0, [0_i32; 60]);
 }
