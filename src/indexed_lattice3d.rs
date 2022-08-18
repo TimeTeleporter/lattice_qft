@@ -75,7 +75,7 @@ where
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     LatticeValues<T, MAX_X, MAX_Y, MAX_T> for IndexedLattice3d<T, MAX_X, MAX_Y, MAX_T>
 where
-    T: std::fmt::Debug + std::fmt::Display,
+    T: std::fmt::Debug,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn print_values(&self) {

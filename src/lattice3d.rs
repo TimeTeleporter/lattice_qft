@@ -51,7 +51,7 @@ where
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     LatticeValues<T, MAX_X, MAX_Y, MAX_T> for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
 where
-    T: std::fmt::Debug + std::fmt::Display,
+    T: std::fmt::Debug,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn print_values(&self) {
@@ -114,10 +114,21 @@ pub trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
 
 pub trait LatticeValues<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
-    T: std::fmt::Display,
+    T: std::fmt::Debug,
     Self: Lattice<MAX_X, MAX_Y, MAX_T>,
 {
+    fn prev_neighbour_value(&self, index: usize, direction: Direction) -> &T {
+        let neighbour_index = Self::prev_neighbour_index(&self, index, direction);
+        Self::get_value(&self, neighbour_index)
+    }
+
+    fn next_neighbour_value(&self, index: usize, direction: Direction) -> &T {
+        let neighbour_index = Self::next_neighbour_index(&self, index, direction);
+        Self::get_value(&self, neighbour_index)
+    }
+
     fn get_value(&self, index: usize) -> &T;
+
     fn print_values(&self);
 
     fn print_values_formated(&self) {
@@ -128,12 +139,12 @@ where
                 for x in 0..MAX_X {
                     if x == MAX_X - 1 {
                         println!(
-                            "{} ]",
+                            "{:?} ]",
                             self.get_value(Self::get_index_from_coordinates(x, y, t))
                         );
                     } else {
                         print!(
-                            "{}, ",
+                            "{:?}, ",
                             self.get_value(Self::get_index_from_coordinates(x, y, t))
                         );
                     }

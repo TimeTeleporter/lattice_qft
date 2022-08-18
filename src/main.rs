@@ -5,17 +5,27 @@ const MAX_X: usize = 10;
 const MAX_Y: usize = 10;
 const MAX_T: usize = 10;
 
-mod form;
+mod forms3d;
 mod indexed_lattice3d;
 mod lattice3d;
 
-use indexed_lattice3d::IndexedLattice3d;
-use lattice3d::LatticeValues;
+use forms3d::Codifferential;
+
+use crate::{forms3d::ZeroForm, lattice3d::LatticeValues};
 
 fn main() {
-    let lattice = IndexedLattice3d::<i32, MAX_X, MAX_Y, MAX_T>::default();
+    let mut wilson = ZeroForm::<i32, MAX_X, MAX_Y, MAX_T>::default();
 
-    lattice.print_values_formated();
-
+    wilson.print_values_formated();
     //println!("{:?}", lattice.indices.0);
+
+    wilson.values.0[255] = 1;
+
+    wilson.print_values_formated();
+
+    let links = wilson.increase_degree();
+
+    links.print_values_formated();
+
+    //todo!("wilson.insert_wilson_loop()");
 }
