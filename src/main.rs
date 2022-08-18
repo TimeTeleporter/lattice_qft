@@ -12,9 +12,10 @@ pub const MAX_Y: usize = CUBE_SIDE;
 pub const MAX_T: usize = CUBE_SIDE;
 
 mod form;
+mod indexed_lattice3d;
 mod lattice3d;
 
-use lattice3d::IndexedLattice3d;
+use indexed_lattice3d::IndexedLattice3d;
 
 // The type of integer used in the simulation. Standard would be i32, can be increased to i64 or higher if needed.
 type MyInt = i32;
