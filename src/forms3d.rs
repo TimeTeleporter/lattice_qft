@@ -15,7 +15,7 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     pub fn set_value(&mut self, value: T, x: usize, y: usize, t: usize) {
-        let index: usize = self.lattice.get_index_from_coordinates(x, y, t);
+        let index: usize = Lattice3d::<MAX_X, MAX_Y, MAX_T>::get_index_from_coordinates(x, y, t);
         self.values[index] = value;
         //println!("Set to value {:?}", value);
     }
@@ -37,7 +37,7 @@ where
     }
 
     pub fn get_value_from_coordinates(&self, x: usize, y: usize, t: usize) -> T {
-        self.get_value(self.lattice.get_index_from_coordinates(x, y, t))
+        self.get_value(Lattice3d::<MAX_X, MAX_Y, MAX_T>::get_index_from_coordinates(x, y, t))
     }
 
     pub fn get_value(&self, index: usize) -> T {

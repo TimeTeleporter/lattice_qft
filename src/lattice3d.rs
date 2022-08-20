@@ -47,7 +47,7 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     // Methods to get the coordinates for the array index and vice versa.
-    pub fn get_index_from_coordinates(&self, x: usize, y: usize, t: usize) -> usize {
+    pub fn get_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
         MAX_X * MAX_Y * t + MAX_X * y + x
     }
 
@@ -72,7 +72,7 @@ where
     }
 
     // Methods to get the neighbouring indices.
-    pub fn next_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+    pub fn next_neighbour_index(index: usize, direction: Directions) -> usize {
         let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
         match direction {
             Directions::X => x = (x + 1) % MAX_X,
@@ -80,10 +80,10 @@ where
             Directions::T => t = (t + 1) % MAX_T,
         }
 
-        self.get_index_from_coordinates(x, y, t)
+        Self::get_index_from_coordinates(x, y, t)
     }
 
-    pub fn prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+    pub fn prev_neighbour_index(index: usize, direction: Directions) -> usize {
         let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
         match direction {
             Directions::X => x = (x + MAX_X - 1) % MAX_X,
@@ -91,7 +91,7 @@ where
             Directions::T => t = (t + MAX_T - 1) % MAX_T,
         }
 
-        self.get_index_from_coordinates(x, y, t)
+        Self::get_index_from_coordinates(x, y, t)
     }
 
     fn get_neighbour_index_array(self, index: usize) -> [usize; 6] {
