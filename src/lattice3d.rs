@@ -15,13 +15,30 @@
 //!
 //! This example gets tested in the tests below.
 
+#[derive(Debug)]
+pub struct Element3d {
+    pub neighbours: [usize; 6],
+    pub coordinates: (usize, usize, usize),
+}
+
+impl Default for Element3d {
+    fn default() -> Self {
+        Element3d {
+            neighbours: [0_usize; 6],
+            coordinates: (0_usize, 0_usize, 0_usize),
+        }
+    }
+}
+
 /// As many directions as there are dimensions.
+#[derive(Debug, Copy, Clone)]
 pub enum Directions {
     X,
     Y,
     T,
 }
 
+/// Implements the From trait to get the dimension from a usize index.
 impl From<usize> for Directions {
     fn from(u: usize) -> Self {
         match u % 3 {
@@ -33,11 +50,21 @@ impl From<usize> for Directions {
     }
 }
 
+impl Directions {
+    fn into_usize(self) -> usize {
+        match self {
+            Directions::X => 0,
+            Directions::Y => 1,
+            Directions::T => 2,
+        }
+    }
+}
+
 /// The Lattice3d datatype controls lattice indices in order to aid initialize data on the lattice.
 /// For each data entry it has 6 neighbours, which we save in a array.
 #[derive(Debug)]
 pub struct Lattice3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    pub [[usize; 6]; MAX_X * MAX_Y * MAX_T],
+    pub Vec<Element3d>,
 )
 where
     [(); MAX_X * MAX_Y * MAX_T]:;
@@ -46,60 +73,73 @@ impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    // Methods to get the coordinates for the array index and vice versa.
-    pub fn get_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
-        MAX_X * MAX_Y * t + MAX_X * y + x
+    // Methods to utilize the saved data by reference
+    pub fn get_next_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+        self.0[index].neighbours[direction.into_usize()]
     }
 
-    pub fn get_coordinates_from_index(index: usize) -> (usize, usize, usize) {
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub fn get_prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+        self.0[index].neighbours[direction.into_usize() + 3]
+    }
+
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub fn get_coordinates_from_index(&self, index: usize) -> (usize, usize, usize) {
+        self.0[index].coordinates
+    }
+
+    pub fn get_index_from_coordinates(&self, (x, y, t): (usize, usize, usize)) -> usize {
+        Self::calculate_index_from_coordinates(x, y, t)
+    }
+
+    // Methods to calculate the coordinates for the array index and vice versa.
+    pub fn calculate_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
+        MAX_X * MAX_Y * (t % MAX_T) + MAX_X * (y % MAX_Y) + (x % MAX_X)
+    }
+
+    fn calculate_coordinates_from_index(index: usize) -> (usize, usize, usize) {
         (
-            Self::get_x_from_index(index),
-            Self::get_y_from_index(index),
-            Self::get_t_from_index(index),
+            Self::calculate_x_from_index(index),
+            Self::calculate_y_from_index(index),
+            Self::calculate_t_from_index(index),
         )
     }
 
-    fn get_x_from_index(index: usize) -> usize {
+    fn calculate_x_from_index(index: usize) -> usize {
         index % MAX_X
     }
 
-    fn get_y_from_index(index: usize) -> usize {
+    fn calculate_y_from_index(index: usize) -> usize {
         (index / MAX_X) % MAX_Y
     }
 
-    fn get_t_from_index(index: usize) -> usize {
+    fn calculate_t_from_index(index: usize) -> usize {
         index / (MAX_X * MAX_Y) % MAX_T
     }
 
     // Methods to get the neighbouring indices.
-    pub fn next_neighbour_index(index: usize, direction: Directions) -> usize {
-        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
+    fn calculate_next_neighbour_index(index: usize, direction: Directions) -> usize {
+        let (mut x, mut y, mut t) = Self::calculate_coordinates_from_index(index);
         match direction {
             Directions::X => x = (x + 1) % MAX_X,
             Directions::Y => y = (y + 1) % MAX_Y,
             Directions::T => t = (t + 1) % MAX_T,
         }
 
-        Self::get_index_from_coordinates(x, y, t)
+        Self::calculate_index_from_coordinates(x, y, t)
     }
 
-    pub fn prev_neighbour_index(index: usize, direction: Directions) -> usize {
-        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
+    fn calculate_prev_neighbour_index(index: usize, direction: Directions) -> usize {
+        let (mut x, mut y, mut t) = Self::calculate_coordinates_from_index(index);
         match direction {
             Directions::X => x = (x + MAX_X - 1) % MAX_X,
             Directions::Y => y = (y + MAX_Y - 1) % MAX_Y,
             Directions::T => t = (t + MAX_T - 1) % MAX_T,
         }
 
-        Self::get_index_from_coordinates(x, y, t)
-    }
-
-    fn get_neighbour_index_array(self, index: usize) -> [usize; 6] {
-        self.0[index]
-    }
-
-    pub fn print_neighbours(&self) {
-        println!("{:?}", self.0);
+        Self::calculate_index_from_coordinates(x, y, t)
     }
 }
 
@@ -110,23 +150,28 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn default() -> Lattice3d<MAX_X, MAX_Y, MAX_T> {
-        let mut ary = [[0_usize; 6]; MAX_X * MAX_Y * MAX_T];
+        let elements = vec![(); MAX_X * MAX_Y * MAX_T];
 
-        for (index, neighbours) in ary.iter_mut().enumerate() {
+        let mut elements: Vec<Element3d> = elements.iter().map(|_| Element3d::default()).collect();
+
+        for (index, element) in elements.iter_mut().enumerate() {
             for i in 0..3 {
-                neighbours[i] = Self::next_neighbour_index(index, Directions::from(i));
-                neighbours[i + 3] = Self::prev_neighbour_index(index, Directions::from(i));
+                element.neighbours[i] =
+                    Self::calculate_next_neighbour_index(index, Directions::from(i));
+                element.neighbours[i + 3] =
+                    Self::calculate_prev_neighbour_index(index, Directions::from(i));
+                element.coordinates = Self::calculate_coordinates_from_index(index);
             }
         }
 
-        Lattice3d(ary)
+        Lattice3d(elements)
     }
 }
 
 #[test]
 fn test_index_coordinates_conversion() {
-    let (x, y, t) = Lattice3d::<4, 5, 3>::get_coordinates_from_index(29);
-    let index = Lattice3d::<4, 5, 3>::get_index_from_coordinates(x, y, t);
+    let (x, y, t) = Lattice3d::<4, 5, 3>::calculate_coordinates_from_index(29);
+    let index = Lattice3d::<4, 5, 3>::calculate_index_from_coordinates(x, y, t);
 
     assert_eq!((x, y, t), (1, 2, 1));
     assert_eq!(index, 29);
@@ -135,8 +180,8 @@ fn test_index_coordinates_conversion() {
 #[test]
 fn test_neighbour_index_array() {
     let lattice = Lattice3d::<4, 5, 3>::default();
-    let center: usize = 19;
+    let index: usize = 19;
     let test: [usize; 6] = [16, 3, 39, 18, 15, 59];
 
-    assert_eq!(lattice.get_neighbour_index_array(center), test);
+    assert_eq!(lattice.0[index].neighbours, test);
 }
