@@ -1,31 +1,34 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-const MAX_X: usize = 10;
-const MAX_Y: usize = 10;
-const MAX_T: usize = 10;
+use forms3d::{OneForm, ZeroForm};
+use lattice3d::{Directions, Lattice3d};
+
+const MAX_X: usize = 100;
+const MAX_Y: usize = 100;
+const MAX_T: usize = 100;
 
 mod forms3d;
-mod indexed_lattice3d;
 mod lattice3d;
 
-use forms3d::Codifferential;
-
-use crate::{forms3d::ZeroForm, lattice3d::LatticeValues};
-
 fn main() {
-    let mut wilson = ZeroForm::<i32, MAX_X, MAX_Y, MAX_T>::default();
+    let tiny_lattice = Lattice3d::<3, 3, 3>::default();
 
-    wilson.print_values_formated();
-    //println!("{:?}", lattice.indices.0);
+    let tiny_zero_form = ZeroForm::<i32, 3, 3, 3>::from(&tiny_lattice);
 
-    wilson.values.0[255] = 1;
+    tiny_zero_form.print_values_formated();
 
-    wilson.print_values_formated();
+    let lattice = Lattice3d::<MAX_X, MAX_Y, MAX_T>::default();
 
-    let links = wilson.increase_degree();
+    let mut zero_form = ZeroForm::<i32, MAX_X, MAX_Y, MAX_T>::from(&lattice);
 
-    links.print_values_formated();
+    zero_form.set_line_to_value(3, Directions::T, (0, 1, 2), (0, 1, 0));
 
-    //todo!("wilson.insert_wilson_loop()");
+    //zero_form.print_values_formated();
+
+    //println!("Then the one form:");
+
+    let _one_form = OneForm::<i32, MAX_X, MAX_Y, MAX_T>::from(&zero_form);
+
+    //one_form.print_values_formated();
 }

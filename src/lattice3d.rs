@@ -15,171 +15,173 @@
 //!
 //! This example gets tested in the tests below.
 
+#[derive(Debug)]
+pub struct Element3d {
+    pub neighbours: [usize; 6],
+    pub coordinates: (usize, usize, usize),
+}
+
+impl Default for Element3d {
+    fn default() -> Self {
+        Element3d {
+            neighbours: [0_usize; 6],
+            coordinates: (0_usize, 0_usize, 0_usize),
+        }
+    }
+}
+
 /// As many directions as there are dimensions.
-pub enum Direction {
+#[derive(Debug, Copy, Clone)]
+pub enum Directions {
     X,
     Y,
     T,
 }
 
-// This is the unoptimized lattice datatype. We optimize it further below.
+/// Implements the From trait to get the dimension from a usize index.
+impl From<usize> for Directions {
+    fn from(u: usize) -> Self {
+        match u % 3 {
+            0 => Directions::X,
+            1 => Directions::Y,
+            2 => Directions::T,
+            _ => panic!("Tried to acces fourth dimension."),
+        }
+    }
+}
+
+impl Directions {
+    fn into_usize(self) -> usize {
+        match self {
+            Directions::X => 0,
+            Directions::Y => 1,
+            Directions::T => 2,
+        }
+    }
+}
+
+/// The Lattice3d datatype controls lattice indices in order to aid initialize data on the lattice.
+/// For each data entry it has 6 neighbours, which we save in a array.
 #[derive(Debug)]
-pub struct Lattice3d<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    pub [T; MAX_X * MAX_Y * MAX_T],
+pub struct Lattice3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    pub Vec<Element3d>,
 )
 where
     [(); MAX_X * MAX_Y * MAX_T]:;
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    fn default() -> Lattice3d<T, MAX_X, MAX_Y, MAX_T> {
-        Lattice3d([(); MAX_X * MAX_Y * MAX_T].map(|_| T::default()))
-    }
-}
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice<MAX_X, MAX_Y, MAX_T>
-    for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
+impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X, MAX_Y, MAX_T>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-}
-
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    LatticeValues<T, MAX_X, MAX_Y, MAX_T> for Lattice3d<T, MAX_X, MAX_Y, MAX_T>
-where
-    T: std::fmt::Debug,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    fn print_values(&self) {
-        println!("{:?}", self.0);
+    // Methods to utilize the saved data by reference
+    pub fn get_next_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+        self.0[index].neighbours[direction.into_usize()]
     }
 
-    fn get_value(&self, index: usize) -> &T {
-        &self.0[index]
-    }
-}
-
-/// Lattice operation trait concerning the conversion between indices and coordinates, implemented for three dimensions
-pub trait Lattice<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> {
-    fn prev_neighbour_index(&self, index: usize, direction: Direction) -> usize {
-        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
-        match direction {
-            Direction::X => x = (x + MAX_X - 1) % MAX_X,
-            Direction::Y => y = (y + MAX_Y - 1) % MAX_Y,
-            Direction::T => t = (t + MAX_T - 1) % MAX_T,
-        }
-
-        Self::get_index_from_coordinates(x, y, t)
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub fn get_prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
+        self.0[index].neighbours[direction.into_usize() + 3]
     }
 
-    fn next_neighbour_index(&self, index: usize, direction: Direction) -> usize {
-        let (mut x, mut y, mut t) = Self::get_coordinates_from_index(index);
-        match direction {
-            Direction::X => x = (x + 1) % MAX_X,
-            Direction::Y => y = (y + 1) % MAX_Y,
-            Direction::T => t = (t + 1) % MAX_T,
-        }
-
-        Self::get_index_from_coordinates(x, y, t)
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub fn get_coordinates_from_index(&self, index: usize) -> (usize, usize, usize) {
+        self.0[index].coordinates
     }
 
-    fn get_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
-        MAX_X * MAX_Y * t + MAX_X * y + x
+    pub fn get_index_from_coordinates(&self, (x, y, t): (usize, usize, usize)) -> usize {
+        Self::calculate_index_from_coordinates(x, y, t)
     }
 
-    fn get_coordinates_from_index(index: usize) -> (usize, usize, usize) {
+    // Methods to calculate the coordinates for the array index and vice versa.
+    pub fn calculate_index_from_coordinates(x: usize, y: usize, t: usize) -> usize {
+        MAX_X * MAX_Y * (t % MAX_T) + MAX_X * (y % MAX_Y) + (x % MAX_X)
+    }
+
+    fn calculate_coordinates_from_index(index: usize) -> (usize, usize, usize) {
         (
-            Self::get_x_from_index(index),
-            Self::get_y_from_index(index),
-            Self::get_t_from_index(index),
+            Self::calculate_x_from_index(index),
+            Self::calculate_y_from_index(index),
+            Self::calculate_t_from_index(index),
         )
     }
 
-    fn get_x_from_index(index: usize) -> usize {
+    fn calculate_x_from_index(index: usize) -> usize {
         index % MAX_X
     }
 
-    fn get_y_from_index(index: usize) -> usize {
+    fn calculate_y_from_index(index: usize) -> usize {
         (index / MAX_X) % MAX_Y
     }
 
-    fn get_t_from_index(index: usize) -> usize {
+    fn calculate_t_from_index(index: usize) -> usize {
         index / (MAX_X * MAX_Y) % MAX_T
+    }
+
+    // Methods to get the neighbouring indices.
+    fn calculate_next_neighbour_index(index: usize, direction: Directions) -> usize {
+        let (mut x, mut y, mut t) = Self::calculate_coordinates_from_index(index);
+        match direction {
+            Directions::X => x = (x + 1) % MAX_X,
+            Directions::Y => y = (y + 1) % MAX_Y,
+            Directions::T => t = (t + 1) % MAX_T,
+        }
+
+        Self::calculate_index_from_coordinates(x, y, t)
+    }
+
+    fn calculate_prev_neighbour_index(index: usize, direction: Directions) -> usize {
+        let (mut x, mut y, mut t) = Self::calculate_coordinates_from_index(index);
+        match direction {
+            Directions::X => x = (x + MAX_X - 1) % MAX_X,
+            Directions::Y => y = (y + MAX_Y - 1) % MAX_Y,
+            Directions::T => t = (t + MAX_T - 1) % MAX_T,
+        }
+
+        Self::calculate_index_from_coordinates(x, y, t)
     }
 }
 
-pub trait LatticeValues<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+// Implementing the Default trait in order to have a constructor.
+impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Default
+    for Lattice3d<MAX_X, MAX_Y, MAX_T>
 where
-    T: std::fmt::Debug,
-    Self: Lattice<MAX_X, MAX_Y, MAX_T>,
+    [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    fn prev_neighbour_value(&self, index: usize, direction: Direction) -> &T {
-        let neighbour_index = Self::prev_neighbour_index(&self, index, direction);
-        Self::get_value(&self, neighbour_index)
-    }
+    fn default() -> Lattice3d<MAX_X, MAX_Y, MAX_T> {
+        let elements = vec![(); MAX_X * MAX_Y * MAX_T];
 
-    fn next_neighbour_value(&self, index: usize, direction: Direction) -> &T {
-        let neighbour_index = Self::next_neighbour_index(&self, index, direction);
-        Self::get_value(&self, neighbour_index)
-    }
+        let mut elements: Vec<Element3d> = elements.iter().map(|_| Element3d::default()).collect();
 
-    fn get_value(&self, index: usize) -> &T;
-
-    fn print_values(&self);
-
-    fn print_values_formated(&self) {
-        for t in 0..MAX_T {
-            println!("t = {}", t);
-            for y in 0..MAX_Y {
-                print!("[");
-                for x in 0..MAX_X {
-                    if x == MAX_X - 1 {
-                        println!(
-                            "{:?} ]",
-                            self.get_value(Self::get_index_from_coordinates(x, y, t))
-                        );
-                    } else {
-                        print!(
-                            "{:?}, ",
-                            self.get_value(Self::get_index_from_coordinates(x, y, t))
-                        );
-                    }
-                }
+        for (index, element) in elements.iter_mut().enumerate() {
+            for i in 0..3 {
+                element.neighbours[i] =
+                    Self::calculate_next_neighbour_index(index, Directions::from(i));
+                element.neighbours[i + 3] =
+                    Self::calculate_prev_neighbour_index(index, Directions::from(i));
+                element.coordinates = Self::calculate_coordinates_from_index(index);
             }
         }
+
+        Lattice3d(elements)
     }
 }
 
 #[test]
 fn test_index_coordinates_conversion() {
-    let (x, y, t) = Lattice3d::<i32, 4, 5, 3>::get_coordinates_from_index(29);
-    let index = Lattice3d::<i32, 4, 5, 3>::get_index_from_coordinates(x, y, t);
+    let (x, y, t) = Lattice3d::<4, 5, 3>::calculate_coordinates_from_index(29);
+    let index = Lattice3d::<4, 5, 3>::calculate_index_from_coordinates(x, y, t);
 
-    assert_eq!(x, 1);
-    assert_eq!(y, 2);
-    assert_eq!(t, 1);
+    assert_eq!((x, y, t), (1, 2, 1));
     assert_eq!(index, 29);
 }
 
 #[test]
-fn test_neighbour_index() {
-    let lattice = Lattice3d::<i32, 4, 5, 3>::default();
-    let center: usize = 19;
+fn test_neighbour_index_array() {
+    let lattice = Lattice3d::<4, 5, 3>::default();
+    let index: usize = 19;
+    let test: [usize; 6] = [16, 3, 39, 18, 15, 59];
 
-    assert_eq!(lattice.next_neighbour_index(center, Direction::X), 16);
-    assert_eq!(lattice.next_neighbour_index(center, Direction::Y), 3);
-    assert_eq!(lattice.next_neighbour_index(center, Direction::T), 39);
-    assert_eq!(lattice.prev_neighbour_index(center, Direction::X), 18);
-    assert_eq!(lattice.prev_neighbour_index(center, Direction::Y), 15);
-    assert_eq!(lattice.prev_neighbour_index(center, Direction::T), 59);
-}
-
-#[test]
-fn test_lattice3d_default() {
-    let lattice = Lattice3d::<i32, 4, 5, 3>::default();
-    assert_eq!(lattice.0, [0_i32; 60]);
+    assert_eq!(lattice.0[index].neighbours, test);
 }
