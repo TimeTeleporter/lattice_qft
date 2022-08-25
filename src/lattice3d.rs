@@ -31,7 +31,7 @@ impl Default for Element3d {
 }
 
 /// As many directions as there are dimensions.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Directions {
     X,
     Y,
@@ -50,6 +50,7 @@ impl From<usize> for Directions {
     }
 }
 
+#[allow(dead_code)]
 impl Directions {
     fn into_usize(self) -> usize {
         match self {
@@ -82,8 +83,6 @@ where
         self.0[index].neighbours[direction.into_usize() + 3]
     }
 
-    #[cfg(test)]
-    #[allow(dead_code)]
     pub fn get_coordinates_from_index(&self, index: usize) -> (usize, usize, usize) {
         self.0[index].coordinates
     }
@@ -182,4 +181,21 @@ fn test_neighbour_index_array() {
     let test: [usize; 6] = [16, 3, 39, 18, 15, 59];
 
     assert_eq!(lattice.0[index].neighbours, test);
+}
+
+#[test]
+fn test_directions_usize_conversions() {
+    let indices: Vec<usize> = vec![0, 1, 2];
+    let directions: Vec<Directions> = vec![Directions::X, Directions::Y, Directions::T];
+
+    let directions_2: Vec<Directions> = indices.iter().map(|&x| Directions::from(x)).collect();
+
+    assert_eq!(directions, directions_2);
+
+    let indices_2: Vec<usize> = directions
+        .into_iter()
+        .map(|direction| direction.into_usize())
+        .collect();
+
+    assert_eq!(indices, indices_2);
 }
