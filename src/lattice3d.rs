@@ -78,8 +78,6 @@ where
         self.0[index].neighbours[direction.into_usize()]
     }
 
-    #[cfg(test)]
-    #[allow(dead_code)]
     pub fn get_prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
         self.0[index].neighbours[direction.into_usize() + 3]
     }

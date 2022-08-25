@@ -1,18 +1,20 @@
-use std::ops::Sub;
+use std::{
+    iter::Sum,
+    ops::{Add, Mul, Sub},
+};
 
 use crate::lattice3d::{Directions, Lattice3d};
 
-pub struct ZeroForm<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+pub struct Form<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    values: Vec<T>,
-    lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
+    pub values: Vec<T>,
+    pub lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
     updated: Vec<usize>,
 }
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    ZeroForm<'_, T, MAX_X, MAX_Y, MAX_T>
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Form<'_, T, MAX_X, MAX_Y, MAX_T>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
@@ -34,8 +36,7 @@ where
     }
 }
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    ZeroForm<'_, T, MAX_X, MAX_Y, MAX_T>
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Form<'_, T, MAX_X, MAX_Y, MAX_T>
 where
     T: Copy,
     [(); MAX_X * MAX_Y * MAX_T]:,
@@ -62,8 +63,7 @@ where
     }
 }
 
-impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    ZeroForm<'_, T, MAX_X, MAX_Y, MAX_T>
+impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Form<'_, T, MAX_X, MAX_Y, MAX_T>
 where
     T: std::fmt::Debug,
     [(); MAX_X * MAX_Y * MAX_T]:,
@@ -86,17 +86,17 @@ where
 }
 
 impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    From<&'a Lattice3d<MAX_X, MAX_Y, MAX_T>> for ZeroForm<'a, T, MAX_X, MAX_Y, MAX_T>
+    Form<'a, T, MAX_X, MAX_Y, MAX_T>
 where
     T: Default,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    fn from(lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>) -> Self {
+    pub fn from_lattice(lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>) -> Self {
         let values = vec![(); MAX_X * MAX_Y * MAX_T];
 
         let values = values.iter().map(|_| T::default()).collect();
 
-        ZeroForm::<'a, T, MAX_X, MAX_Y, MAX_T> {
+        Form::<'a, T, MAX_X, MAX_Y, MAX_T> {
             values,
             lattice,
             updated: Vec::<usize>::new(),
@@ -117,21 +117,40 @@ where
     }
 }
 
+impl<T> Link<T>
+where
+    T: Copy + Add<Output = T> + Mul<Output = T>,
+{
+    pub fn scalar_prod(&self, other: Link<T>) -> T {
+        let mut prod: T = self.0[0] * other.0[0];
+        for i in 1..3_usize {
+            prod = prod + self.0[i] * other.0[i];
+        }
+        prod
+    }
+
+    pub fn square(&self) -> T {
+        let mut prod: T = self.0[0] * self.0[0];
+        for i in 1..3_usize {
+            prod = prod + self.0[i] * self.0[i];
+        }
+        prod
+    }
+}
+
 /// Datatype to set one 3-array per lattice site.
 pub type OneForm<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> =
-    ZeroForm<'a, Link<T>, MAX_X, MAX_Y, MAX_T>;
+    Form<'a, Link<T>, MAX_X, MAX_Y, MAX_T>;
 
 impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     OneForm<'a, T, MAX_X, MAX_Y, MAX_T>
 where
+    T: Default + Copy + Sub<Output = T>,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     /// Overwrites all entries who or whose coderivatives have changed.
     /// This empties all 'updated' stacks.
-    pub fn differential_update_all(
-        &mut self,
-        zero_form: &mut ZeroForm<'a, T, MAX_X, MAX_Y, MAX_T>,
-    ) {
+    pub fn differential_update_all(&mut self, zero_form: &mut Form<'a, T, MAX_X, MAX_Y, MAX_T>) {
         let mut updated = Vec::<usize>::new();
         while let Some(index) = self.updated.pop() {
             updated.push(index);
@@ -140,22 +159,40 @@ where
             updated.push(index);
         }
         for index in updated.into_iter() {
-            self.differential_update_one(index);
+            for i in 0_usize..3_usize {
+                self.values[index].0[i] = zero_form.values[zero_form
+                    .lattice
+                    .get_next_neighbour_index(index, Directions::from(i))]
+                    - zero_form.values[index];
+            }
         }
     }
 
-    pub fn differential_update_one(&mut self, index: usize) {}
-}
+    #[allow(dead_code)]
+    /// Overwrites the links into and out of the given site index to the values dictated by the differential of the given 0-form.
+    pub fn differential_update_one(
+        &mut self,
+        zero_form: &Form<'a, T, MAX_X, MAX_Y, MAX_T>,
+        index: usize,
+    ) {
+        for i in 0_usize..3_usize {
+            self.values[index].0[i] = zero_form.values[zero_form
+                .lattice
+                .get_next_neighbour_index(index, Directions::from(i))]
+                - zero_form.values[index];
 
-impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    From<&ZeroForm<'a, T, MAX_X, MAX_Y, MAX_T>> for OneForm<'a, T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Default + Copy + Sub<Output = T>,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
+            let neighbour_index = self
+                .lattice
+                .get_prev_neighbour_index(index, Directions::from(i));
+
+            self.values[neighbour_index].0[i] =
+                zero_form.values[index] - zero_form.values[neighbour_index];
+        }
+    }
+
     /// Implements a transformation from a 0-form to a 1-form via the differential.
-    fn from(zero_form: &ZeroForm<'a, T, MAX_X, MAX_Y, MAX_T>) -> Self {
-        let mut one_form = OneForm::<T, MAX_X, MAX_Y, MAX_T>::from(zero_form.lattice);
+    pub fn from_zero_form(zero_form: &Form<'a, T, MAX_X, MAX_Y, MAX_T>) -> Self {
+        let mut one_form = OneForm::<T, MAX_X, MAX_Y, MAX_T>::from_lattice(zero_form.lattice);
 
         for iter in one_form.values.iter_mut().enumerate() {
             let (index, links): (usize, &mut Link<T>) = iter;
@@ -181,7 +218,7 @@ fn test_zero_form() {
 
     let lattice = Lattice3d::<TEST_X, TEST_Y, TEST_T>::default();
 
-    let mut zero_form = ZeroForm::<TestInt, TEST_X, TEST_Y, TEST_T>::from(&lattice);
+    let mut zero_form = Form::<TestInt, TEST_X, TEST_Y, TEST_T>::from_lattice(&lattice);
 
     let value = 3;
 
@@ -199,7 +236,7 @@ fn test_zero_form_line() {
 
     let lattice = Lattice3d::<TEST_X, TEST_Y, TEST_T>::default();
 
-    let mut zero_form = ZeroForm::<TestInt, TEST_X, TEST_Y, TEST_T>::from(&lattice);
+    let mut zero_form = Form::<TestInt, TEST_X, TEST_Y, TEST_T>::from_lattice(&lattice);
 
     let value = 3;
 
@@ -224,9 +261,9 @@ fn test_one_form_from_zero_form() {
 
     let lattice = Lattice3d::<TEST_X, TEST_Y, TEST_T>::default();
 
-    let zero_form = ZeroForm::<TestInt, TEST_X, TEST_Y, TEST_T>::from(&lattice);
+    let zero_form = Form::<TestInt, TEST_X, TEST_Y, TEST_T>::from_lattice(&lattice);
 
-    let mut one_form = OneForm::<TestInt, TEST_X, TEST_Y, TEST_T>::from(&zero_form);
+    let mut one_form = OneForm::<TestInt, TEST_X, TEST_Y, TEST_T>::from_zero_form(&zero_form);
 
     one_form._set_value_from_coordinates(Link([10, 10, 10]), (50, 50, 99))
 }
