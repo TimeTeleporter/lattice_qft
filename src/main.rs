@@ -1,28 +1,44 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+//#![allow(dead_code)]
 
-use forms3d::{Form, OneForm};
-use lattice3d::{Directions, Lattice3d};
-use metropolis::Action;
+use std::time::Instant;
 
-const MAX_X: usize = 10;
-const MAX_Y: usize = 10;
-const MAX_T: usize = 10;
+use field3d::{ConvertField, Field3d};
+use lattice3d::Lattice3d;
+use metropolis::Metropolis;
 
-const E: f64 = 10.0;
-
-mod forms3d;
+mod field3d;
 mod lattice3d;
 mod metropolis;
 
 fn main() {
-    let lattice = Lattice3d::<MAX_X, MAX_Y, MAX_T>::default();
+    const MAX_X: usize = 100;
+    const MAX_Y: usize = 100;
+    const MAX_T: usize = 100;
 
-    let one_form = OneForm::<i32, MAX_X, MAX_Y, MAX_T>::from_lattice(&lattice);
+    let time = Instant::now();
 
-    let action = Action::<MAX_X, MAX_Y, MAX_T>::from_one_form(&one_form, E);
+    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::default();
 
-    action.print_values_formated();
+    let m_field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
 
-    println!("{:?}", action.get_lattice_action());
+    let mut m_field: Field3d<f64, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(m_field);
+
+    m_field.print_values_formated();
+
+    loop {
+        for _ in 0..10 {
+            m_field.metropolis_sweep();
+        }
+
+        println!("{}", m_field.calculate_action());
+    }
+
+    //m_field.print_values_formated();
+
+    println!(
+        "Program duration: {} milliseconds",
+        time.elapsed().as_millis()
+    );
 }
