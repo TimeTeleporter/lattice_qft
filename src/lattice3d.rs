@@ -18,14 +18,12 @@
 #[derive(Debug)]
 pub struct Element3d {
     pub neighbours: [usize; 6],
-    pub coordinates: (usize, usize, usize),
 }
 
 impl Default for Element3d {
     fn default() -> Self {
         Element3d {
             neighbours: [0_usize; 6],
-            coordinates: (0_usize, 0_usize, 0_usize),
         }
     }
 }
@@ -85,10 +83,6 @@ where
 
     pub fn get_prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
         self.0[index].neighbours[direction.into_usize() + 3]
-    }
-
-    pub fn get_coordinates_from_index(&self, index: usize) -> (usize, usize, usize) {
-        self.0[index].coordinates
     }
 
     pub fn get_index_from_coordinates(&self, (x, y, t): (usize, usize, usize)) -> usize {
@@ -161,7 +155,6 @@ where
                     Self::calculate_next_neighbour_index(index, Directions::from(i));
                 element.neighbours[i + 3] =
                     Self::calculate_prev_neighbour_index(index, Directions::from(i));
-                element.coordinates = Self::calculate_coordinates_from_index(index);
             }
         }
 

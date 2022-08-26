@@ -94,6 +94,7 @@ where
     Standard: Distribution<T>,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
+    #[allow(dead_code)]
     /// Constructor for a new field on the lattice initialized to be random everywhere.
     pub fn random(lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>) -> Self {
         let values: Vec<()> = vec![(); MAX_X * MAX_Y * MAX_T];
