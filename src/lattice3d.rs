@@ -59,6 +59,10 @@ impl Directions {
             Directions::T => 2,
         }
     }
+
+    pub fn as_array() -> [Directions; 3] {
+        [Self::X, Self::Y, Self::T]
+    }
 }
 
 /// The Lattice3d datatype controls lattice indices in order to aid initialize data on the lattice.
