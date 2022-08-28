@@ -76,15 +76,6 @@ impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    // Methods to utilize the saved data by reference
-    pub fn get_next_neighbour_index(&self, index: usize, direction: Directions) -> usize {
-        self.0[index].neighbours[direction.into_usize()]
-    }
-
-    pub fn get_prev_neighbour_index(&self, index: usize, direction: Directions) -> usize {
-        self.0[index].neighbours[direction.into_usize() + 3]
-    }
-
     pub fn get_index_from_coordinates(&self, (x, y, t): (usize, usize, usize)) -> usize {
         Self::calculate_index_from_coordinates(x, y, t)
     }

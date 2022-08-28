@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use field3d::{ConvertField, Field3d};
 use lattice3d::Lattice3d;
-use metropolis::Metropolis;
+use metropolis::Metropolis3d;
 
 mod field3d;
 mod lattice3d;
@@ -23,20 +23,40 @@ fn main() {
 
     let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
 
-    let mut field: Field3d<i64, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
+    let mut field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
 
-    field.print_values_formated();
+    loop {
+        field.print_values_formated();
 
-    println!("Time since startup: {}", time.elapsed().as_millis());
+        println!(
+            "Action: {}, Time since startup: {}",
+            field.calculate_action(),
+            time.elapsed().as_millis()
+        );
 
-    for _ in 0..1 {
-        field.metropolis_sweep();
-        println!("Action: {}", field.calculate_action());
+        pause();
+
+        for _ in 0..1 {
+            for _ in 0..1 {
+                field.metropolis_sweep();
+            }
+        }
     }
 
-    field.print_values_formated();
+    //field.print_values_formated();
+}
 
-    println!("Time since startup: {}", time.elapsed().as_millis());
+use std::io;
+use std::io::prelude::*;
 
-    println!("Action: {}", field.calculate_action());
+fn pause() {
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
+
+    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
+    write!(stdout, "Press any key to continue...").unwrap();
+    stdout.flush().unwrap();
+
+    // Read a single byte and discard
+    let _ = stdin.read(&mut [0u8]).unwrap();
 }
