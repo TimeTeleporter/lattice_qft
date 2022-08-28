@@ -1,122 +1,125 @@
 use std::ops::{Add, Mul, Sub};
 
-use rand::{random, Rng};
+use rand::prelude::*;
 
-use crate::{field3d::Field3d, lattice3d::Directions};
+use crate::field3d::Field3d;
 
-pub trait Metropolis<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+const VERBOSE: bool = false;
+
+pub trait Metropolis3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    type Input: Add<Output = Self::Input>
+    type FieldType: Add<Output = Self::FieldType>
         + Default
-        + Sub<Output = Self::Input>
+        + Sub<Output = Self::FieldType>
         + From<i8>
         + Copy
-        + Mul<Output = Self::Input>;
+        + Mul<Output = Self::FieldType>;
 
-    fn metropolis_sweep(&mut self)
-    where
-        f64: From<<Self as Metropolis<MAX_X, MAX_Y, MAX_T>>::Input>;
+    const TEMP: f64;
 
-    fn calculate_action(&self) -> Self::Input;
-}
+    fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng);
 
-impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    Metropolis<MAX_X, MAX_Y, MAX_T> for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
-where
-    T: Copy
-        + Mul<Output = T>
-        + From<i8>
-        + Sub<Output = T>
-        + Sub<Output = T>
-        + Default
-        + Add<Output = T>,
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
-    type Input = T;
+    fn metropolis_random(&mut self) {
+        let mut rng = ThreadRng::default();
+        let index: usize = rng.gen_range(0..(MAX_X * MAX_Y * MAX_T));
+        self.metropolis_single(index, &mut rng);
+    }
 
-    fn metropolis_sweep(&mut self)
-    where
-        f64: From<<Self as Metropolis<MAX_X, MAX_Y, MAX_T>>::Input>,
-    {
-        let mut rng = rand::thread_rng();
-
-        for (index, _) in self.lattice.0.iter().enumerate() {
-            let value = self.values[index].clone();
-            let coin: bool = random();
-            let new_value: Self::Input = match coin {
-                true => value + 1_i8.into(),
-                false => value - 1_i8.into(),
-            };
-
-            let mut sum_differenced: Self::Input = Self::Input::default();
-            let mut new_sum_differenced: Self::Input = Self::Input::default();
-
-            for direction in Directions::as_array() {
-                let next_neighbour = (self.get_next_neighbour_value(index, direction)).clone();
-                let prev_neighbour = (self.get_prev_neighbour_value(index, direction)).clone();
-                calculate_single_direction_action(
-                    &mut sum_differenced,
-                    next_neighbour,
-                    value,
-                    prev_neighbour,
-                );
-                calculate_single_direction_action(
-                    &mut new_sum_differenced,
-                    next_neighbour,
-                    value,
-                    prev_neighbour,
-                );
-            }
-
-            let difference = sum_differenced - new_sum_differenced;
-
-            let exponent: f64 = f64::exp(difference.into());
-
-            let rng: f64 = rng.gen_range(0.0..1.0);
-
-            if rng <= exponent {
-                self.set_value(new_value, index);
-            }
+    fn metropolis_sweep(&mut self) {
+        let mut rng = ThreadRng::default();
+        for index in 0..(MAX_X * MAX_Y * MAX_T) {
+            self.metropolis_single(index, &mut rng);
         }
     }
 
-    fn calculate_action(&self) -> T {
-        let mut action: T = T::default();
-        for (index, &value) in self.values.iter().enumerate() {
-            for direction in Directions::as_array() {
-                let next_neighbour = (self.get_next_neighbour_value(index, direction)).clone();
-                let prev_neighbour = (self.get_prev_neighbour_value(index, direction)).clone();
-                calculate_single_direction_action(
-                    &mut action,
-                    next_neighbour,
-                    value,
-                    prev_neighbour,
+    fn calculate_action(&self) -> i64;
+
+    fn calculate_link_action(site: Self::FieldType, neighbour: Self::FieldType) -> Self::FieldType {
+        site * site - site * neighbour * 2_i8.into() + neighbour * neighbour
+    }
+}
+
+// Central place to change the implemented type.
+type Int = i32;
+
+impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    Metropolis3d<MAX_X, MAX_Y, MAX_T> for Field3d<'a, Int, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    type FieldType = Int;
+
+    const TEMP: f64 = 0.01;
+
+    fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng) {
+        // Initialize the actions to be comapred
+        let value = self.get_value(index).clone();
+        let coin: bool = rng.gen();
+        let new_value = match coin {
+            true => value.clone() + 1_i8 as Self::FieldType,
+            false => value.clone() - 1_i8 as Self::FieldType,
+        };
+
+        // Calculate the actions
+        let mut action = Self::FieldType::default();
+        let mut new_action = Self::FieldType::default();
+        for neighbour in self.lattice.0[index].neighbours {
+            let neighbour = self.get_value(neighbour).clone();
+            action = action + Self::calculate_link_action(value, neighbour);
+            new_action = new_action + Self::calculate_link_action(new_value, neighbour);
+        }
+
+        // Accept the new action if its lower than the previous.
+        // Else accept it with a proportional probability.
+        let draw: f64 = rng.gen_range(0.0..1.0);
+        let prob: f64 = (f64::from(action - new_action) * Self::TEMP).exp();
+        if draw <= prob {
+            self.values[index] = new_value;
+            if VERBOSE {
+                println!(
+                    "Accepted: prob: {:.4}, draw: {:.4}, action: {}, new_action: {}",
+                    prob, draw, action, new_action
                 );
+            }
+        } else if VERBOSE {
+            println!(
+                "Declined: prob: {:.4}, draw: {:.4}, action: {}, new_action: {}",
+                prob, draw, action, new_action
+            );
+        }
+    }
+
+    fn calculate_action(&self) -> i64 {
+        let mut action: i64 = 0;
+        for index in 0..(MAX_X * MAX_Y * MAX_T) {
+            let value = self.values[index];
+            for neighbour in self.lattice.0[index].neighbours {
+                let neighbour = self.values[neighbour];
+                action = action + Self::calculate_link_action(value, neighbour) as i64;
             }
         }
         action
     }
 }
 
-fn calculate_single_direction_action<T>(
-    sum_differenced: &mut T,
-    next_neighbour: T,
-    value: T,
-    prev_neighbour: T,
-) where
-    T: Copy + Mul<Output = T> + From<i8> + Sub<Output = T> + Sub<Output = T> + Add<Output = T>,
-{
-    *sum_differenced = *sum_differenced
-        + next_neighbour * next_neighbour
-        + value * 2_i8.into() * (value - next_neighbour - prev_neighbour)
-        + prev_neighbour * prev_neighbour;
-}
-
 #[test]
-fn test_calculate_single_direction_action() {
-    let mut target = 0;
-    calculate_single_direction_action::<i32>(&mut target, 100, 3, -200);
-    assert_eq!(target, 50618);
+fn test_action_add_one() {
+    use crate::lattice3d::Lattice3d;
+
+    const TEST_X: usize = 10;
+    const TEST_Y: usize = 10;
+    const TEST_T: usize = 10;
+
+    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::default();
+    let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
+
+    let action = field.calculate_action();
+
+    for value in field.values.iter_mut() {
+        *value = *value + 1;
+    }
+
+    assert_eq!(action, field.calculate_action());
 }
