@@ -1,6 +1,6 @@
 use rand::{distributions::Standard, prelude::Distribution, random};
 
-use crate::lattice3d::Lattice3d;
+use crate::{lattice::LatticeCoords, lattice3d::Lattice3d};
 
 pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
@@ -8,7 +8,6 @@ where
 {
     pub values: Vec<T>,
     pub lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
-    //updated: Vec<usize>,
 }
 
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
@@ -16,8 +15,8 @@ impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    pub fn get_value_from_coordinates(&self, coordinates: (usize, usize, usize)) -> &T {
-        self.get_value(self.lattice.get_index_from_coordinates(coordinates))
+    pub fn get_value_from_coords(&self, coords: LatticeCoords<3>) -> &T {
+        self.get_value(self.lattice.calc_index_from_coords(coords))
     }
 
     pub fn get_value(&self, index: usize) -> &T {
@@ -39,9 +38,15 @@ where
                 print!("[");
                 for x in 0..MAX_X {
                     if x == MAX_X - 1 {
-                        println!("{:?} ]", self.get_value_from_coordinates((x, y, t)));
+                        println!(
+                            "{:?} ]",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
                     } else {
-                        print!("{:?}, ", self.get_value_from_coordinates((x, y, t)));
+                        print!(
+                            "{:?}, ",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
                     }
                 }
             }
@@ -61,11 +66,7 @@ where
         let values: Vec<()> = vec![(); MAX_X * MAX_Y * MAX_T];
         let values: Vec<T> = values.iter().map(|_| T::default()).collect();
 
-        Field3d::<'a, T, MAX_X, MAX_Y, MAX_T> {
-            values,
-            lattice,
-            //updated: Vec::<usize>::new(),
-        }
+        Field3d::<'a, T, MAX_X, MAX_Y, MAX_T> { values, lattice }
     }
 }
 
@@ -81,11 +82,7 @@ where
         let values: Vec<()> = vec![(); MAX_X * MAX_Y * MAX_T];
         let values: Vec<T> = values.iter().map(|_| random()).collect();
 
-        Field3d::<'a, T, MAX_X, MAX_Y, MAX_T> {
-            values,
-            lattice,
-            //updated: Vec::<usize>::new(),
-        }
+        Field3d::<'a, T, MAX_X, MAX_Y, MAX_T> { values, lattice }
     }
 }
 
@@ -94,6 +91,7 @@ where
     U: From<T>,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
+    /// Convert a field of one type into a field of a different type losslessly.
     fn from_field(field: Field3d<'a, T, MAX_X, MAX_Y, MAX_T>) -> Self;
 }
 
@@ -119,7 +117,7 @@ fn test_field_conversion() {
     const TEST_Y: usize = 2;
     const TEST_T: usize = 2;
 
-    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::default();
+    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
     let field8: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
 
