@@ -102,7 +102,7 @@ fn test_index_coordinates_conv() {
     let lattice: Lattice<3> = Lattice::new(SIZE);
     let index: usize = 29;
     let coords = lattice.calc_coords_from_index(index);
-    assert_eq!(coords.0, [1, 2, 1]);
+    assert_eq!(coords.to_array(), [1, 2, 1]);
     assert_eq!(lattice.calc_index_from_coords(coords), index);
 }
 

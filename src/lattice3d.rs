@@ -39,14 +39,3 @@ impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X
         self.0.calc_coords_from_index(index)
     }
 }
-
-#[test]
-/// This tests the <4,5,3> example for the correct neighbours.
-fn test_index_coordinates_conversion() {
-    let lattice: Lattice3d<4, 5, 3> = Lattice3d::new();
-    let coords: LatticeCoords<3> = lattice.calc_coords_from_index(29);
-    let index: usize = lattice.calc_index_from_coords(coords);
-
-    assert_eq!(coords.to_array(), [1, 2, 1]);
-    assert_eq!(index, 29);
-}
