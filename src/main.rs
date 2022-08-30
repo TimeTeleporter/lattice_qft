@@ -13,42 +13,57 @@ mod lattice3d;
 mod metropolis;
 
 fn main() {
+    // The dimensions of the lattice
     const MAX_X: usize = 10;
     const MAX_Y: usize = 10;
     const MAX_T: usize = 3;
 
     let time = Instant::now();
 
+    // Initialize a lattice with the given dimensions
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::default();
 
+    // Set a field on the lattice points with random values form -128 to 127
     let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
 
+    // Transform it to a field that can have i32 values (-2_147_483_648 to 2_147_483_647)
     let mut field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
 
+    // The simulation loop
     loop {
+        // Print the values of the field
         field.print_values_formated();
 
+        // Calculate the action and the time that program has run
         println!(
             "Action: {}, Time since startup: {}",
             field.calculate_action(),
             time.elapsed().as_millis()
         );
 
+        // Expect input to look at the data
         pause();
 
+        // Run a nuber of sweeps
         for _ in 0..1 {
             for _ in 0..1 {
                 field.metropolis_sweep();
             }
+            /*
+            println!(
+                "Action: {}, Time since startup: {}",
+                field.calculate_action(),
+                time.elapsed().as_millis()
+            );
+            */
         }
     }
-
-    //field.print_values_formated();
 }
 
 use std::io;
 use std::io::prelude::*;
 
+/// Pauses the program until a key is pressed.
 fn pause() {
     let mut stdin = io::stdin();
     let mut stdout = io::stdout();
