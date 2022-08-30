@@ -1,6 +1,6 @@
 use rand::{distributions::Standard, prelude::Distribution, random};
 
-use crate::{lattice::LatticeCoords, lattice3d::Lattice3d};
+use crate::{lattice3d::Lattice3d, lattice3d::LatticeCoords};
 
 pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
 where

@@ -9,7 +9,6 @@ use lattice3d::Lattice3d;
 use metropolis::Metropolis3d;
 
 mod field3d;
-mod lattice;
 mod lattice3d;
 mod metropolis;
 
