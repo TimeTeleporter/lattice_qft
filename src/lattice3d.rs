@@ -14,7 +14,10 @@
 //!              0  1  2  3            0  1  2  3            0  1  2  3
 //!
 
+use std::ops::Deref;
+
 #[derive(Debug, Clone, Copy)]
+/// D-Dimensional coordinate array to simplify the conversation to and from index.
 pub struct LatticeCoords<const D: usize>([usize; D]);
 
 impl<const D: usize> LatticeCoords<D> {
@@ -51,7 +54,8 @@ impl<const D: usize> LatticeCoords<D> {
 }
 
 #[derive(Debug)]
-/// An implementation of a n-dimensional periodic euclidean spacetime lattice.
+/// The Lattice datatype controls lattice indices in order to aid initialize data on the lattice.
+/// It saves for each lattice point index the indices of its neighbours.
 pub struct Lattice<const D: usize>
 where
     [(); D * 2_usize]:,
@@ -83,6 +87,10 @@ where
         Lattice { size, values }
     }
 
+    pub fn get_neighbours_array(&self, index: usize) -> [usize; D * 2_usize] {
+        self.values[index]
+    }
+
     pub fn calc_index_from_coords(&self, coords: LatticeCoords<D>) -> usize {
         let coords = coords.cleanup(self.size);
         let mut sum: usize = 0_usize;
@@ -111,27 +119,25 @@ where
     }
 }
 
-/// The Lattice datatype controls lattice indices in order to aid initialize data on the lattice.
+/// The Lattice3d datatype controls lattice indices in order to aid initialize data on the lattice.
 /// For each data entry it has 6 neighbours, which we save in a array.
 pub struct Lattice3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(Lattice<3>);
 
 impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X, MAX_Y, MAX_T> {
-    pub fn get_neighbours_array(&self, index: usize) -> [usize; 3 * 2_usize] {
-        self.0.values[index]
-    }
-
     pub fn new() -> Self {
         Lattice3d(Lattice::<3>::new([MAX_X, MAX_Y, MAX_T]))
     }
+}
 
-    pub fn calc_index_from_coords(&self, coords: LatticeCoords<3>) -> usize {
-        self.0.calc_index_from_coords(coords)
-    }
+// By implementing deref we can utilize all the functions of the tuple element
+// without implementing it ourselves.
+impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Deref
+    for Lattice3d<MAX_X, MAX_Y, MAX_T>
+{
+    type Target = Lattice<3>;
 
-    #[cfg(test)]
-    #[allow(dead_code)]
-    pub fn calc_coords_from_index(&self, index: usize) -> LatticeCoords<3> {
-        self.0.calc_coords_from_index(index)
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

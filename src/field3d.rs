@@ -91,7 +91,6 @@ where
     U: From<T>,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    /// Convert a field of one type into a field of a different type losslessly.
     fn from_field(field: Field3d<'a, T, MAX_X, MAX_Y, MAX_T>) -> Self;
 }
 
@@ -101,6 +100,7 @@ where
     U: From<T>,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
+    /// Convert a field of one type into a field of a different type losslessly.
     fn from_field(field: Field3d<'a, T, MAX_X, MAX_Y, MAX_T>) -> Self {
         let values = field.values.into_iter().map(|x| U::from(x)).collect();
 
