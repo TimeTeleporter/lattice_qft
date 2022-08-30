@@ -65,7 +65,7 @@ where
         // Calculate the actions
         let mut action = Self::FieldType::default();
         let mut new_action = Self::FieldType::default();
-        for neighbour in self.lattice.0[index].neighbours {
+        for neighbour in self.lattice.get_neighbours_array(index) {
             let neighbour = self.get_value(neighbour).clone();
             action = action + Self::calculate_link_action(value, neighbour);
             new_action = new_action + Self::calculate_link_action(new_value, neighbour);
@@ -95,7 +95,7 @@ where
         let mut action: i64 = 0;
         for index in 0..(MAX_X * MAX_Y * MAX_T) {
             let value = self.values[index];
-            for neighbour in self.lattice.0[index].neighbours {
+            for neighbour in self.lattice.get_neighbours_array(index) {
                 let neighbour = self.values[neighbour];
                 action = action + Self::calculate_link_action(value, neighbour) as i64;
             }
@@ -112,7 +112,7 @@ fn test_action_add_one() {
     const TEST_Y: usize = 10;
     const TEST_T: usize = 10;
 
-    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::default();
+    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
     let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
 
     let action = field.calculate_action();

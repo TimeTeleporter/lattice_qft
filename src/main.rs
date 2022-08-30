@@ -9,6 +9,7 @@ use lattice3d::Lattice3d;
 use metropolis::Metropolis3d;
 
 mod field3d;
+mod lattice;
 mod lattice3d;
 mod metropolis;
 
@@ -16,12 +17,11 @@ fn main() {
     // The dimensions of the lattice
     const MAX_X: usize = 10;
     const MAX_Y: usize = 10;
-    const MAX_T: usize = 3;
+    const MAX_T: usize = 10;
 
     let time = Instant::now();
-
     // Initialize a lattice with the given dimensions
-    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::default();
+    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
     // Set a field on the lattice points with random values form -128 to 127
     let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
