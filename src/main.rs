@@ -45,7 +45,7 @@ fn main() {
 
         // Run a nuber of sweeps
         for _ in 0..1 {
-            for _ in 0..1 {
+            for _ in 0..10 {
                 field.metropolis_sweep();
             }
             /*

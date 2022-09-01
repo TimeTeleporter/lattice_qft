@@ -6,16 +6,16 @@ use crate::field3d::Field3d;
 
 const VERBOSE: bool = false;
 
-pub trait Metropolis3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-where
-    [(); MAX_X * MAX_Y * MAX_T]:,
-{
+pub trait Metropolis3d {
     type FieldType: Add<Output = Self::FieldType>
         + Default
         + Sub<Output = Self::FieldType>
         + From<i8>
         + Copy
         + Mul<Output = Self::FieldType>;
+    
+    /// Counts the number of lattice points, depends on the implementation;s
+    const LATTICEPOINTS: usize;
 
     const TEMP: f64;
 
@@ -23,13 +23,13 @@ where
 
     fn metropolis_random(&mut self) {
         let mut rng = ThreadRng::default();
-        let index: usize = rng.gen_range(0..(MAX_X * MAX_Y * MAX_T));
+        let index: usize = rng.gen_range(0..Self::LATTICEPOINTS);
         self.metropolis_single(index, &mut rng);
     }
 
     fn metropolis_sweep(&mut self) {
         let mut rng = ThreadRng::default();
-        for index in 0..(MAX_X * MAX_Y * MAX_T) {
+        for index in 0..Self::LATTICEPOINTS {
             self.metropolis_single(index, &mut rng);
         }
     }
@@ -41,15 +41,17 @@ where
     }
 }
 
-// Central place to change the implemented type.
+/// Central place to change the implemented type.
 type Int = i32;
 
 impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    Metropolis3d<MAX_X, MAX_Y, MAX_T> for Field3d<'a, Int, MAX_X, MAX_Y, MAX_T>
+    Metropolis3d for Field3d<'a, Int, MAX_X, MAX_Y, MAX_T>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type FieldType = Int;
+
+    const LATTICEPOINTS: usize = MAX_X * MAX_Y * MAX_T;
 
     const TEMP: f64 = 0.01;
 
@@ -93,7 +95,7 @@ where
 
     fn calculate_action(&self) -> i64 {
         let mut action: i64 = 0;
-        for index in 0..(MAX_X * MAX_Y * MAX_T) {
+        for index in 0..Self::LATTICEPOINTS {
             let value = self.values[index];
             for neighbour in self.lattice.get_neighbours_array(index) {
                 let neighbour = self.values[neighbour];
