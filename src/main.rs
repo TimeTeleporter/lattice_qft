@@ -4,7 +4,7 @@
 
 use std::time::Instant;
 
-use field3d::{ConvertField, Field3d};
+use field3d::Field3d;
 use lattice3d::Lattice3d;
 use metropolis::Metropolis3d;
 

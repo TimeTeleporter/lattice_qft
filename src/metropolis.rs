@@ -13,7 +13,7 @@ pub trait Metropolis3d {
         + From<i8>
         + Copy
         + Mul<Output = Self::FieldType>;
-    
+
     /// Counts the number of lattice points, depends on the implementation;s
     const LATTICEPOINTS: usize;
 
@@ -44,8 +44,8 @@ pub trait Metropolis3d {
 /// Central place to change the implemented type.
 type Int = i32;
 
-impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
-    Metropolis3d for Field3d<'a, Int, MAX_X, MAX_Y, MAX_T>
+impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Metropolis3d
+    for Field3d<'a, Int, MAX_X, MAX_Y, MAX_T>
 where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
