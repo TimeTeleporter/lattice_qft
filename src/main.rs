@@ -1,17 +1,20 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
 //#![allow(dead_code)]
 
 use std::time::Instant;
 
 use field3d::Field3d;
 use lattice3d::Lattice3d;
-use metropolis::Metropolis3d;
+use metropolis::Metropolis;
+use observable::Action;
 
 mod cluster;
 mod field3d;
 mod lattice3d;
 mod metropolis;
+mod observable;
 
 fn main() {
     // The dimensions of the lattice

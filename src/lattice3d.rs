@@ -56,7 +56,7 @@ impl<const D: usize> LatticeCoords<D> {
 #[derive(Debug)]
 /// The Lattice datatype controls lattice indices in order to aid initialize data on the lattice.
 /// It saves for each lattice point index the indices of its neighbours.
-pub struct Lattice<const D: usize>
+pub struct Lattice<const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
 {
@@ -64,17 +64,15 @@ where
     pub values: Vec<[usize; D * 2_usize]>,
 }
 
-impl<const D: usize> Lattice<D>
+impl<const D: usize, const SIZE: usize> Lattice<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
     pub fn new(size: [usize; D]) -> Self {
-        let num_indices: usize = size.iter().product();
+        let values = vec![[0; D * 2_usize]; SIZE];
+        let empty_lattice: Lattice<D, SIZE> = Lattice { size, values };
 
-        let values = vec![[0; D * 2_usize]; num_indices];
-        let empty_lattice: Lattice<D> = Lattice { size, values };
-
-        let mut values = vec![[0; D * 2_usize]; num_indices];
+        let mut values = vec![[0; D * 2_usize]; SIZE];
 
         for (index, neighbours) in values.iter_mut().enumerate() {
             let coords = empty_lattice.calc_coords_from_index(index);
@@ -121,11 +119,20 @@ where
 
 /// The Lattice3d datatype controls lattice indices in order to aid initialize data on the lattice.
 /// For each data entry it has 6 neighbours, which we save in a array.
-pub struct Lattice3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(Lattice<3>);
+pub struct Lattice3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    Lattice<3, { MAX_X * MAX_Y * MAX_T }>,
+)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:;
 
-impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X, MAX_Y, MAX_T> {
+impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
     pub fn new() -> Self {
-        Lattice3d(Lattice::<3>::new([MAX_X, MAX_Y, MAX_T]))
+        Lattice3d(Lattice::<3, { MAX_X * MAX_Y * MAX_T }>::new([
+            MAX_X, MAX_Y, MAX_T,
+        ]))
     }
 }
 
@@ -133,8 +140,10 @@ impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Lattice3d<MAX_X
 // without implementing it ourselves.
 impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Deref
     for Lattice3d<MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    type Target = Lattice<3>;
+    type Target = Lattice<3, { MAX_X * MAX_Y * MAX_T }>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -144,7 +153,7 @@ impl<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Deref
 #[test]
 fn test_index_coordinates_conv() {
     const SIZE: [usize; 3] = [4, 5, 3];
-    let lattice: Lattice<3> = Lattice::new(SIZE);
+    let lattice: Lattice<3, { 4 * 5 * 3 }> = Lattice::new(SIZE);
     let index: usize = 29;
     let coords = lattice.calc_coords_from_index(index);
     assert_eq!(coords.to_array(), [1, 2, 1]);
@@ -153,7 +162,7 @@ fn test_index_coordinates_conv() {
 
 #[test]
 fn test_neighbour_index_array() {
-    let lattice: Lattice<3> = Lattice::new([4, 5, 3]);
+    let lattice: Lattice<3, { 4 * 5 * 3 }> = Lattice::new([4, 5, 3]);
     let index: usize = 19;
     let test: [usize; 6] = [16, 3, 39, 18, 15, 59];
 
