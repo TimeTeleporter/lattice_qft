@@ -8,6 +8,7 @@ use field3d::Field3d;
 use lattice3d::Lattice3d;
 use metropolis::Metropolis3d;
 
+mod cluster;
 mod field3d;
 mod lattice3d;
 mod metropolis;
