@@ -28,6 +28,7 @@ impl<const D: usize> LatticeCoords<D> {
         self
     }
 
+    /// Change the coordinates in one direction by one.
     fn move_one(mut self, size: [usize; D], direction: usize) -> Self {
         let mut is_forward: bool = false;
         if direction < D {

@@ -1,4 +1,4 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, Sub};
 
 use rand::{distributions::Standard, prelude::Distribution, random};
 
@@ -25,6 +25,19 @@ where
     }
 }
 
+impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
+where
+    T: Copy + Sub<Output = T>,
+    [(); D * 2_usize]:,
+{
+    /// Subtracts a shift from all values of the field.
+    pub fn shift_values(&mut self, shift: T) {
+        for value in self.values.iter_mut() {
+            *value = *value - shift;
+        }
+    }
+}
+
 impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
 where
     T: Default,
@@ -37,6 +50,32 @@ where
         let values: Vec<T> = values.iter().map(|_| T::default()).collect();
 
         Field::<'a, T, D, SIZE> { values, lattice }
+    }
+}
+
+impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
+where
+    T: Default + PartialOrd + Copy,
+    [(); D * 2_usize]:,
+{
+    pub fn get_max(&self) -> (usize, T) {
+        let mut result: (usize, T) = (usize::default(), T::default());
+        for (index, &item) in self.values.iter().enumerate() {
+            if item > result.1 {
+                result = (index, item);
+            }
+        }
+        result
+    }
+
+    pub fn get_min(&self) -> (usize, T) {
+        let mut result: (usize, T) = (usize::default(), T::default());
+        for (index, &item) in self.values.iter().enumerate() {
+            if item < result.1 {
+                result = (index, item);
+            }
+        }
+        result
     }
 }
 
@@ -70,6 +109,7 @@ where
     }
 }
 
+/// Implements a filed of given Type T on a 3-dimensional lattice of size MAX_X * MAX_Y * MAX_T.
 pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
     Field<'a, T, 3, { MAX_X * MAX_Y * MAX_T }>,
 )
@@ -185,4 +225,15 @@ fn test_field_conversion() {
     let field: Field<i16, 3, 8> = Field::from_field(field8);
 
     assert_eq!(field16.values, field.values);
+}
+
+#[test]
+fn test_field_shift() {
+    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
+
+    let mut field: Field<i8, 4, 81> = Field::new(&lattice);
+
+    field.shift_values(3);
+
+    assert_eq!(field.values[80], -3);
 }

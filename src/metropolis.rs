@@ -54,24 +54,3 @@ where
         }
     }
 }
-
-#[test]
-fn test_action_add_one() {
-    use crate::field3d::Field3d;
-    use crate::lattice3d::Lattice3d;
-
-    const TEST_X: usize = 10;
-    const TEST_Y: usize = 10;
-    const TEST_T: usize = 10;
-
-    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
-    let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
-
-    let action = field.calculate_action();
-
-    for value in field.values.iter_mut() {
-        *value = *value + 1;
-    }
-
-    assert_eq!(action, field.calculate_action());
-}
