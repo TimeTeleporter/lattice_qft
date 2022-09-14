@@ -47,7 +47,7 @@ fn main() {
         // Calculate the action and the time that program has run
         println!(
             "Action: {}, Time since startup: {}",
-            field.calculate_action(),
+            field.action_observable(),
             time.elapsed().as_millis()
         );
 
