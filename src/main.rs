@@ -1,16 +1,27 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
 //#![allow(dead_code)]
 
+use std::io;
+use std::io::prelude::*;
 use std::time::Instant;
 
 use field3d::Field3d;
 use lattice3d::Lattice3d;
-use metropolis::Metropolis3d;
+use observable::Action;
 
+#[allow(unused_imports)]
+use metropolis::Metropolis;
+
+#[allow(unused_imports)]
+use cluster::Cluster;
+
+mod cluster;
 mod field3d;
 mod lattice3d;
 mod metropolis;
+mod observable;
 
 fn main() {
     // The dimensions of the lattice
@@ -47,20 +58,11 @@ fn main() {
         for _ in 0..1 {
             for _ in 0..10 {
                 field.metropolis_sweep();
+                field.normalize_random();
             }
-            /*
-            println!(
-                "Action: {}, Time since startup: {}",
-                field.calculate_action(),
-                time.elapsed().as_millis()
-            );
-            */
         }
     }
 }
-
-use std::io;
-use std::io::prelude::*;
 
 /// Pauses the program until a key is pressed.
 fn pause() {
