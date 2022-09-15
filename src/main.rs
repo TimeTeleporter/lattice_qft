@@ -3,6 +3,10 @@
 #![feature(generic_arg_infer)]
 //#![allow(dead_code)]
 
+use std::io;
+use std::io::prelude::*;
+use std::time::Instant;
+
 use field3d::Field3d;
 use lattice3d::Lattice3d;
 use observable::Action;
@@ -10,7 +14,6 @@ use observable::Action;
 #[allow(unused_imports)]
 use metropolis::Metropolis;
 
-#[allow(unused_imports)]
 use cluster::Cluster;
 
 mod cluster;
@@ -19,69 +22,58 @@ mod lattice3d;
 mod metropolis;
 mod observable;
 
-/// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
-/// with values from 0 to 8 are known. Then we run a metropolis simulation
-/// in order to test that it converges to the desired distribution.
 fn main() {
-    const TEST_X: usize = 2;
-    const TEST_Y: usize = 2;
-    const TEST_T: usize = 2;
+    // The dimensions of the lattice
+    const MAX_X: usize = 10;
+    const MAX_Y: usize = 10;
+    const MAX_T: usize = 10;
 
-    const TEST_RANGE: usize = 8;
-    const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
+    let time = Instant::now();
+    // Initialize a lattice with the given dimensions
+    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32); // 8 ^ 8 = 16_777_216
+    // Set a field on the lattice points with random values form -128 to 127
+    let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
 
-    const MAXTRIES: usize = 1_000_000_000;
-    const EPSILON: f64 = 0.001;
+    // Transform it to a field that can have i32 values (-2_147_483_648 to 2_147_483_647)
+    let mut field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
 
-    // Initialize the lattice
-    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
+    // The simulation loop
+    let mut sweeps: usize = 0;
+    loop {
+        // Print the values of the field
+        field.print_values_formated();
 
-    // Saving all possible configurations
-    let mut configurations: Vec<Field3d<i8, TEST_X, TEST_Y, TEST_T>> = Vec::new();
-    let mut field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
-    configurations.push(field.clone());
+        // Calculate the action and the time that program has run
+        println!(
+            "Action: {}, Sweeps: {}, Time since startup: {}",
+            field.action_observable(),
+            sweeps,
+            time.elapsed().as_millis(),
+        );
 
-    for _ in 0..PERMUTATIONS {
-        'updateconfig: for index in 0..SIZE {
-            match field.values[index] {
-                0 | 1 | 2 | 3 | 4 | 5 | 6 => {
-                    field.values[index] = field.values[index] + 1;
-                    break 'updateconfig;
-                }
-                7 => {
-                    field.values[index] = 0;
-                }
-                _ => {
-                    panic!("config entry out of bounds.");
-                }
-            }
-        }
-        configurations.push(field.clone());
-    }
+        // Expect input to look at the data
+        pause();
 
-    let mut partfn: f64 = 0.0;
-    for field in configurations.into_iter() {
-        partfn = partfn + (-field.action_observable()).exp();
-    }
-    let partfn = partfn / PERMUTATIONS as f64;
-
-    // Initialize a field to compare against
-    let field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::random(&lattice);
-    field.print_values_formated();
-    let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field);
-
-    let mut test: f64 = 0.0;
-    for sweeps in 0..MAXTRIES {
-        field.metropolis_sweep();
-        test = test + field.action_observable();
-        if sweeps % 1000 == 0 {
-            println!("Z: {}, <Z>: {}", partfn, test / sweeps as f64);
-        }
-        if ((test / sweeps as f64) - partfn).abs() < EPSILON {
-            return;
+        // Run a nuber of sweeps
+        // This gets inaccurate for below 3 sweeps, as pause() cannot be isntantly triggered again.
+        for _ in 0..5 {
+            field.cluster_sweep();
+            sweeps += 1;
+            field.normalize_random();
         }
     }
-    panic!("Didnt achieve equilibrium");
+}
+
+/// Pauses the program until a key is pressed.
+fn pause() {
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
+
+    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
+    write!(stdout, "Press any key to continue...").unwrap();
+    stdout.flush().unwrap();
+
+    // Read a single byte and discard
+    let _ = stdin.read(&mut [0u8]).unwrap();
 }
