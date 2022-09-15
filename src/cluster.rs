@@ -46,7 +46,10 @@ where
                     let reflected_action = Self::calculate_link_action(reflected, neighbour);
                     // If they are, set the link as true with a chance of ´P_{bond} = 1 - exp(-(S' - S))´
                     let draw: f64 = rng.gen_range(0.0..1.0);
-                    let prob: f64 = 1.0 - (f64::from(action - reflected_action) * Self::TEMP).exp();
+                    let prob: f64 = 1.0
+                        - (f64::from(action - reflected_action)
+                            * <Field<'a, i32, D, SIZE> as Action>::TEMP)
+                            .exp();
                     println!("{}: draw: {}, prob: {}", index, draw, prob);
                     if draw <= prob {
                         bonds[index][direction] = true;

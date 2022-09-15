@@ -4,6 +4,7 @@ use rand::{distributions::Standard, prelude::Distribution, random};
 
 use crate::lattice3d::{Lattice, Lattice3d, LatticeCoords};
 
+#[derive(Debug, Clone)]
 pub struct Field<'a, T, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
@@ -110,6 +111,7 @@ where
 }
 
 /// Implements a filed of given Type T on a 3-dimensional lattice of size MAX_X * MAX_Y * MAX_T.
+#[derive(Debug, Clone)]
 pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
     Field<'a, T, 3, { MAX_X * MAX_Y * MAX_T }>,
 )
