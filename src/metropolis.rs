@@ -4,8 +4,6 @@ use crate::{field3d::Field3d, observable::Action};
 use rand::prelude::*;
 
 pub trait Metropolis: Action {
-    const TEMP: f64;
-
     fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng);
 
     fn metropolis_random(&mut self) {
@@ -38,8 +36,6 @@ where
         + Copy,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    const TEMP: f64 = 0.01;
-
     fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng) {
         // Initialize the actions to be comapred
         let value = self.get_value(index).clone();
@@ -84,7 +80,7 @@ fn test_all_configurations() {
 
     const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32); // 8 ^ 8 = 16_777_216
 
-    const MAXTRIES: usize = 10000000;
+    const MAXTRIES: usize = 1_000_000_000;
     const EPSILON: f64 = 0.001;
 
     // Initialize the lattice
@@ -115,10 +111,7 @@ fn test_all_configurations() {
 
     let mut partfn: f64 = 0.0;
     for field in configurations.into_iter() {
-        partfn = partfn
-            + (-<Field3d<i8, TEST_X, TEST_Y, TEST_T> as Metropolis>::TEMP
-                * field.action_observable())
-            .exp();
+        partfn = partfn + (-field.action_observable()).exp();
     }
     let partfn = partfn / PERMUTATIONS as f64;
 
@@ -130,7 +123,9 @@ fn test_all_configurations() {
     for sweeps in 0..MAXTRIES {
         field.metropolis_sweep();
         test = test + field.action_observable();
-        println!("Z: {}, <Z>: {}", partfn, test / sweeps as f64);
+        if sweeps % 1000 == 0 {
+            println!("Z: {}, <Z>: {}", partfn, test / sweeps as f64);
+        }
         if ((test / sweeps as f64) - partfn).abs() < EPSILON {
             return;
         }

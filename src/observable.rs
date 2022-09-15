@@ -14,6 +14,7 @@ pub trait Action {
         + From<i8>;
 
     const SIZE: usize;
+    const TEMP: f64 = 1.0;
 
     fn action_observable(&self) -> f64;
 
@@ -50,7 +51,7 @@ where
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
         }
-        action as f64 / Self::SIZE as f64
+        (action as f64 / Self::SIZE as f64) * Self::TEMP
     }
 
     fn normalize(&mut self) {
@@ -91,7 +92,7 @@ where
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
         }
-        action as f64 / Self::SIZE as f64
+        (action as f64 / Self::SIZE as f64) * Self::TEMP
     }
 
     fn normalize(&mut self) {
