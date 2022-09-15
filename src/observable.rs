@@ -121,6 +121,16 @@ fn test_action_non_negative() {
 }
 
 #[test]
+fn test_action_new_zero() {
+    use crate::lattice3d::Lattice;
+
+    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
+    let field: Field<i8, 4, 81> = Field::new(&lattice);
+
+    assert_eq!(field.action_observable(), 0.0);
+}
+
+#[test]
 fn test_action_add_one() {
     use crate::lattice3d::Lattice3d;
 

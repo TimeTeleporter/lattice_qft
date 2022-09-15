@@ -32,7 +32,8 @@ fn main() {
 
     const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32); // 8 ^ 8 = 16_777_216
 
-    const MAXTRIES: usize = 1_000_000_000;
+    const EQUIL: usize = 100_000; // Number of sweeps until it starts counting.
+    const MAX_TRIES: usize = 1_000_000_000;
     const EPSILON: f64 = 0.001;
 
     // Initialize the lattice
@@ -66,14 +67,21 @@ fn main() {
         partfn = partfn + (-field.action_observable()).exp();
     }
     let partfn = partfn / PERMUTATIONS as f64;
+    println!("Calculated all configurations.");
 
     // Initialize a field to compare against
     let field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::random(&lattice);
     field.print_values_formated();
     let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field);
 
+    // Sweeps to achieve equilibrium
+    println!("Started equilibrium phase.");
+    for _ in 0..EQUIL {
+        field.metropolis_sweep();
+    }
+
     let mut test: f64 = 0.0;
-    for sweeps in 0..MAXTRIES {
+    for sweeps in 0..MAX_TRIES {
         field.metropolis_sweep();
         test = test + field.action_observable();
         if sweeps % 1000 == 0 {
