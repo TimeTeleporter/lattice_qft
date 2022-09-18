@@ -1,3 +1,8 @@
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
+#![feature(split_array)]
+
 use std::{io, io::prelude::*, time::Instant};
 
 use lattice_qft::{cluster::Cluster, field3d::Field3d, lattice3d::Lattice3d, observable::Action};

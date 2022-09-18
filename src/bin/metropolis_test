@@ -1,4 +1,7 @@
+#![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
+#![feature(split_array)]
 
 use lattice_qft::{
     field3d::Field3d, lattice3d::Lattice3d, metropolis::Metropolis, observable::Action,
