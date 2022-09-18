@@ -16,8 +16,13 @@ pub trait Action {
     const SIZE: usize;
     const TEMP: f64 = 1.0;
 
-    fn action_observable(&self) -> f64;
+    fn action_observable(&self) -> i64;
 
+    fn lattice_action(&self) -> f64 {
+        (self.action_observable() as f64) * Self::TEMP
+    }
+
+    /// Calculates ```(x - y)^2``` for two values.
     fn calculate_link_action(site: Self::FieldType, neighbour: Self::FieldType) -> Self::FieldType {
         site * site - site * neighbour * 2_i8.into() + neighbour * neighbour
     }
@@ -42,7 +47,7 @@ where
     type FieldType = T;
     const SIZE: usize = SIZE;
 
-    fn action_observable(&self) -> f64 {
+    fn action_observable(&self) -> i64 {
         let mut action: i64 = 0;
         for index in 0..Self::SIZE {
             let value = self.get_value(index).clone();
@@ -51,7 +56,7 @@ where
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
         }
-        (action as f64 / Self::SIZE as f64) * Self::TEMP
+        action
     }
 
     fn normalize(&mut self) {
@@ -83,16 +88,17 @@ where
     type FieldType = T;
     const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
-    fn action_observable(&self) -> f64 {
+    /// Sums up all link actions of the lattice.
+    fn action_observable(&self) -> i64 {
         let mut action: i64 = 0;
         for index in 0..Self::SIZE {
             let value = self.get_value(index).clone();
-            for neighbour in self.lattice.get_neighbours_array(index) {
+            for neighbour in self.lattice.pos_neighbours_array(index) {
                 let neighbour = self.get_value(neighbour).clone();
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
         }
-        (action as f64 / Self::SIZE as f64) * Self::TEMP
+        action
     }
 
     fn normalize(&mut self) {
@@ -117,7 +123,29 @@ fn test_action_non_negative() {
 
     let field: Field3d<i32, 9, 9, 9> = Field3d::from_field(field);
 
-    assert!(field.action_observable() >= 0.0);
+    assert!(field.action_observable() >= 0);
+}
+
+#[test]
+fn test_action_new_zero() {
+    use crate::lattice3d::Lattice;
+
+    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
+    let field: Field<i8, 4, 81> = Field::new(&lattice);
+
+    assert_eq!(field.action_observable(), 0);
+}
+
+#[test]
+fn test_action_given_field() {
+    use crate::lattice3d::Lattice3d;
+
+    let lattice: Lattice3d<3, 3, 3> = Lattice3d::new();
+    let mut field: Field3d<i8, 3, 3, 3> = Field3d::new(&lattice);
+
+    field.values[13] = 1;
+
+    assert_eq!(field.action_observable(), 6);
 }
 
 #[test]
