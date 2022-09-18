@@ -2,6 +2,8 @@ use rand::{rngs::ThreadRng, Rng};
 
 use crate::{field3d::Field, observable::Action};
 
+const VERBOSE: bool = false;
+
 pub trait Cluster: Action {
     const TEMP: f64;
 
@@ -26,7 +28,9 @@ where
             true => 1,
             false => -1,
         };
-        println!("Reflection plane: {}", height);
+        if VERBOSE {
+            println!("Reflection plane: {}", height);
+        }
 
         // Activate the bonds, that lie on the same side of the plane.
         for (index, neighbours) in self.lattice.values.iter().enumerate() {
@@ -35,12 +39,14 @@ where
                 let neighbour: i32 = self.values[neighbours[direction]];
                 // Check if they are both on the same side:
                 if (self.values[index] - neighbour).abs() < (reflected - neighbour) {
-                    println!(
-                        "Ok: site: {}, neighbour: {}, height + mod: {}",
-                        self.values[index],
-                        neighbour,
-                        height + modifier
-                    );
+                    if VERBOSE {
+                        println!(
+                            "Ok: site: {}, neighbour: {}, height + mod: {}",
+                            self.values[index],
+                            neighbour,
+                            height + modifier
+                        );
+                    }
                     // calculate the action
                     let action = Self::calculate_link_action(self.values[index], neighbour);
                     let reflected_action = Self::calculate_link_action(reflected, neighbour);
@@ -50,7 +56,9 @@ where
                         - (f64::from(action - reflected_action)
                             * <Field<'a, i32, D, SIZE> as Action>::TEMP)
                             .exp();
-                    println!("{}: draw: {}, prob: {}", index, draw, prob);
+                    if VERBOSE {
+                        println!("{}: draw: {}, prob: {}", index, draw, prob);
+                    }
                     if draw <= prob {
                         bonds[index][direction] = true;
                         bonds[neighbours[direction]][direction + D] = true;
