@@ -1,6 +1,6 @@
-use rand::{rngs::ThreadRng, Rng};
-
 use crate::{field3d::Field, observable::Action};
+
+use rand::{rngs::ThreadRng, Rng};
 
 pub trait Cluster: Action {
     const TEMP: f64;

@@ -1,24 +1,8 @@
-#![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
-#![feature(generic_arg_infer)]
-#![feature(split_array)]
-//#![allow(dead_code)]
 
-use field3d::Field3d;
-use lattice3d::Lattice3d;
-use observable::Action;
-
-#[allow(unused_imports)]
-use metropolis::Metropolis;
-
-#[allow(unused_imports)]
-use cluster::Cluster;
-
-mod cluster;
-mod field3d;
-mod lattice3d;
-mod metropolis;
-mod observable;
+use lattice_qft::{
+    field3d::Field3d, lattice3d::Lattice3d, metropolis::Metropolis, observable::Action,
+};
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
