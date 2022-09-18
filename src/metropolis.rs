@@ -1,7 +1,6 @@
-use std::ops::{Add, Div, Mul, Sub};
-
 use crate::{field3d::Field3d, observable::Action};
 use rand::prelude::*;
+use std::ops::{Add, Div, Mul, Sub};
 
 pub trait Metropolis: Action {
     fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng);

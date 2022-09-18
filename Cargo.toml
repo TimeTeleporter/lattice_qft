@@ -1,5 +1,5 @@
 [package]
-name = "metropolis"
+name = "lattice_qft"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,3 +11,7 @@ rand = "0.8.5"
 
 [profile.dev]
 opt-level = 3
+
+[[bin]]
+name = "metropolis-test"
+path = "src/bin/metropolis_test"
