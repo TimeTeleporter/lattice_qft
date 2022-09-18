@@ -1,23 +1,11 @@
 //! A three dimensional spacetime lattice saved to an array.
 //!
 //! The x coordinate is periodic from 0 to MAX_X, the same for y and t.
-//!
-//! Now consider the example of a <4,5,3> 3-dimensional lattice. We index the entries as follows:
-//!
-//!           y            t=0      y            t=1      y            t=2
-//!         4 ^  16 17 18 19        ^  36 37 38 39        ^  56 57 58 59  
-//!         3 |  12 13 14 15        |  32 33 34 35        |  52 53 54 55  
-//!         2 |  8  9  10 11        |  28 29 30 31        |  48 49 50 51  
-//!         1 |  4  5  6  7         |  24 25 26 27        |  44 45 46 47  
-//!         0 |  0  1  2  3         |  20 21 22 23        |  40 41 42 43  
-//!           .-----------> x       .-----------> x       .-----------> x
-//!              0  1  2  3            0  1  2  3            0  1  2  3
-//!
 
 use std::ops::Deref;
 
-#[derive(Debug, Clone, Copy)]
 /// D-Dimensional coordinate array to simplify the conversation to and from index.
+#[derive(Debug, Clone, Copy)]
 pub struct LatticeCoords<const D: usize>([usize; D]);
 
 impl<const D: usize> LatticeCoords<D> {
@@ -54,9 +42,14 @@ impl<const D: usize> LatticeCoords<D> {
     }
 }
 
+/// The Lattice datatype controls lattice indices in order to aid initialize
+/// data on the lattice. It saves for each lattice point index the indices of
+/// its neighbours.
+///
+/// The first ```i < D``` entries of ```self.values``` are the neighbours in
+/// positive coordinate direction, the entries ```D <= i < D * 2_usize``` are
+/// the neighbours in negative coordinate direction.
 #[derive(Debug)]
-/// The Lattice datatype controls lattice indices in order to aid initialize data on the lattice.
-/// It saves for each lattice point index the indices of its neighbours.
 pub struct Lattice<const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
@@ -86,8 +79,15 @@ where
         Lattice { size, values }
     }
 
+    /// Returns all neighbours of the given index.
     pub fn get_neighbours_array(&self, index: usize) -> [usize; D * 2_usize] {
         self.values[index]
+    }
+
+    /// Returns all neighbours in coordinate direction of the given index.
+    pub fn pos_neighbours_array(&self, index: usize) -> [usize; D] {
+        let (&ary, _) = self.get_neighbours_array(index).split_array_ref::<D>();
+        ary
     }
 
     pub fn calc_index_from_coords(&self, coords: LatticeCoords<D>) -> usize {
@@ -153,14 +153,26 @@ where
 
 #[test]
 fn test_index_coordinates_conv() {
-    const SIZE: [usize; 3] = [4, 5, 3];
-    let lattice: Lattice<3, { 4 * 5 * 3 }> = Lattice::new(SIZE);
+    const MEASURES: [usize; 3] = [4, 5, 3];
+    const SIZE: usize = MEASURES[0] * MEASURES[1] * MEASURES[2];
+    let lattice: Lattice<3, SIZE> = Lattice::new(MEASURES);
     let index: usize = 29;
     let coords = lattice.calc_coords_from_index(index);
     assert_eq!(coords.to_array(), [1, 2, 1]);
     assert_eq!(lattice.calc_index_from_coords(coords), index);
 }
 
+/// Now consider the example of a <4,5,3> 3-dimensional lattice. We index the entries as follows:
+///
+///           y            t=0      y            t=1      y            t=2
+///         4 ^  16 17 18 19        ^  36 37 38 39        ^  56 57 58 59  
+///         3 |  12 13 14 15        |  32 33 34 35        |  52 53 54 55  
+///         2 |  8  9  10 11        |  28 29 30 31        |  48 49 50 51  
+///         1 |  4  5  6  7         |  24 25 26 27        |  44 45 46 47  
+///         0 |  0  1  2  3         |  20 21 22 23        |  40 41 42 43  
+///           .-----------> x       .-----------> x       .-----------> x
+///              0  1  2  3            0  1  2  3            0  1  2  3
+///
 #[test]
 fn test_neighbour_index_array() {
     let lattice: Lattice<3, { 4 * 5 * 3 }> = Lattice::new([4, 5, 3]);

@@ -45,7 +45,7 @@ where
             false => value.clone() - Self::FieldType::from(1_i8),
         };
 
-        // Calculate the actions
+        // Calculate the action of both possibilities
         let mut action = Self::FieldType::default();
         let mut new_action = Self::FieldType::default();
         for neighbour in self.lattice.get_neighbours_array(index) {
