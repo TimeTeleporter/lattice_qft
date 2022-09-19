@@ -84,7 +84,7 @@ where
         self.values[index]
     }
 
-    /// Returns all neighbours in coordinate direction of the given index.
+    /// Returns all neighbours of the given index in coordinate direction.
     pub fn pos_neighbours_array(&self, index: usize) -> [usize; D] {
         let (&ary, _) = self.get_neighbours_array(index).split_array_ref::<D>();
         ary

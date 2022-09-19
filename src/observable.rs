@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Deref, DerefMut, Div, Mul, Sub};
 
 use rand::prelude::*;
 
@@ -51,7 +51,7 @@ where
         let mut action: i64 = 0;
         for index in 0..Self::SIZE {
             let value = self.get_value(index).clone();
-            for neighbour in self.lattice.get_neighbours_array(index) {
+            for neighbour in self.lattice.pos_neighbours_array(index) {
                 let neighbour = self.get_value(neighbour).clone();
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
@@ -90,26 +90,15 @@ where
 
     /// Sums up all link actions of the lattice.
     fn action_observable(&self) -> i64 {
-        let mut action: i64 = 0;
-        for index in 0..Self::SIZE {
-            let value = self.get_value(index).clone();
-            for neighbour in self.lattice.pos_neighbours_array(index) {
-                let neighbour = self.get_value(neighbour).clone();
-                action = action + Self::calculate_link_action(value, neighbour).into();
-            }
-        }
-        action
+        self.deref().action_observable()
     }
 
     fn normalize(&mut self) {
-        let shift = (self.get_max().1 + self.get_min().1) / 2_i8.into();
-        self.shift_values(shift);
+        self.deref_mut().normalize()
     }
 
     fn normalize_random(&mut self) {
-        let mut rng = ThreadRng::default();
-        let &shift = self.values.choose(&mut rng).unwrap();
-        self.shift_values(shift);
+        self.deref_mut().normalize_random()
     }
 }
 

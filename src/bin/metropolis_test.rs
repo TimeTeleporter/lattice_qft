@@ -18,24 +18,27 @@ fn main() {
     const TEST_RANGE: usize = 16;
     const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-    const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32 - 1); // 8 ^ 7 = 16_777_216
+    const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32 - 1); // 16 ^ 7 = 268’435’456
 
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
     // Saving all possible configurations
-    let mut configurations: Vec<Field3d<i8, TEST_X, TEST_Y, TEST_T>> = Vec::new();
+    let mut configurations: Vec<Field3d<i8, TEST_X, TEST_Y, TEST_T>> =
+        Vec::with_capacity(PERMUTATIONS);
     let mut field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
     configurations.push(field.clone());
+
+    const BOUDARY: i8 = TEST_RANGE as i8 - 1;
 
     for _ in 0..PERMUTATIONS {
         'updateconfig: for index in 0..SIZE {
             match field.values[index] {
-                0 | 1 | 2 | 3 | 4 | 5 | 6 => {
+                x if x < BOUDARY => {
                     field.values[index] = field.values[index] + 1;
                     break 'updateconfig;
                 }
-                7 => {
+                x if x == BOUDARY => {
                     field.values[index] = 0;
                 }
                 _ => {
@@ -47,19 +50,25 @@ fn main() {
     }
     println!("All possible permutations are saved!");
 
-    // Calculate the partition function
-    let mut partfn: f64 = 0.0;
-    for field in configurations.iter() {
-        partfn = partfn + (-field.lattice_action()).exp();
-    }
-    println!("Partition function is calculated!");
+    let mut test_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
+    let mut part_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
 
-    // Calculate the action observable from all possible configurations
-    let mut test: f64 = 0.0;
+    // Calculate the weihghts of all configurations
     for field in configurations.into_iter() {
-        test = test + (field.lattice_action()) * (-field.lattice_action()).exp();
+        let field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field);
+        let bolz: f64 = (-field.lattice_action()).exp();
+        test_ary.push(field.lattice_action() * bolz);
+        part_ary.push(bolz);
     }
-    let test = test / partfn;
+
+    // The partition function is the sum over all Bolzmann weihgts
+    let partfn: f64 = part_ary.into_iter().sum();
+
+    // The observable is the sum over all weights (Bolzmann times observable),
+    // devided by the partition function.
+    let test: f64 = test_ary.into_iter().sum();
+    let test: f64 = test / partfn;
+
     std::mem::drop(partfn);
     println!("Observable is calculated!");
 
