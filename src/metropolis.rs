@@ -36,6 +36,29 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng) {
+        // Initialize the change to be measured
+        let mut new_field = self.clone();
+        let coin: bool = rng.gen();
+        new_field.values[index] = match coin {
+            true => new_field.values[index] + Self::FieldType::from(1_i8),
+            false => new_field.values[index] - Self::FieldType::from(1_i8),
+        };
+
+        // Calculate the action of both possibilities
+        let action = self.lattice_action();
+        let new_action = new_field.lattice_action();
+
+        // Accept the new action if its lower than the previous.
+        // Else accept it with a proportional probability.
+        let draw: f64 = rng.gen_range(0.0..1.0);
+        let prob: f64 = (action - new_action).exp();
+        if draw <= prob {
+            *self = new_field;
+        }
+    }
+}
+
+/*
         // Initialize the actions to be comapred
         let value = self.get_value(index).clone();
         let coin: bool = rng.gen();
@@ -60,5 +83,4 @@ where
         if draw <= prob {
             self.values[index] = new_value;
         }
-    }
-}
+*/

@@ -3,9 +3,57 @@
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
 
+use std::{error::Error, fs::File};
+
 use lattice_qft::{
     field3d::Field3d, lattice3d::Lattice3d, metropolis::Metropolis, observable::Action,
 };
+
+use serde::{Deserialize, Serialize};
+
+const VERBOSE: bool = false;
+
+/// Datatype to save and read simulation output.
+#[derive(Debug, Serialize, Deserialize)]
+struct TestData {
+    max_x: usize,
+    max_y: usize,
+    max_t: usize,
+    test_range: usize,
+    temp: f64,
+    test_observable: f64,
+    sim_observable: f64,
+}
+
+impl TestData {
+    fn write_to_csv(self) -> Result<(), Box<dyn Error>> {
+        const PATH: &str = "data/test_data16.csv";
+
+        // Initialize data storage
+        let mut storage: Vec<TestData> = Vec::new();
+
+        // Open the file and append it to the storage
+        let file = File::open(PATH)?;
+        let mut rdr = csv::Reader::from_reader(file);
+        for result in rdr.deserialize() {
+            let test_data: TestData = result?;
+            storage.push(test_data);
+        }
+
+        // Append the new entry
+        storage.push(self);
+
+        // Write to the file
+        let mut wtr = csv::Writer::from_path(PATH)?;
+        for data in storage {
+            wtr.serialize(data)?;
+        }
+
+        wtr.flush()?;
+
+        Ok(())
+    }
+}
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -20,84 +68,103 @@ fn main() {
 
     const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32 - 1); // 16 ^ 7 = 268’435’456
 
+    const BOUDARY: i8 = TEST_RANGE as i8 - 1;
+
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
-    // Saving all possible configurations
-    let mut configurations: Vec<Field3d<i8, TEST_X, TEST_Y, TEST_T>> =
-        Vec::with_capacity(PERMUTATIONS);
-    let mut field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
-    configurations.push(field.clone());
+    let test_observable: f64 = {
+        let mut field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
 
-    const BOUDARY: i8 = TEST_RANGE as i8 - 1;
+        let mut test_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
+        let mut bolz_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
 
-    for _ in 0..PERMUTATIONS {
-        'updateconfig: for index in 0..SIZE {
-            match field.values[index] {
-                x if x < BOUDARY => {
-                    field.values[index] = field.values[index] + 1;
-                    break 'updateconfig;
-                }
-                x if x == BOUDARY => {
-                    field.values[index] = 0;
-                }
-                _ => {
-                    panic!("config entry out of bounds.");
+        for _ in 0..PERMUTATIONS {
+            'updateconfig: for index in 0..SIZE {
+                match field.values[index] {
+                    x if x < BOUDARY => {
+                        field.values[index] = field.values[index] + 1;
+                        break 'updateconfig;
+                    }
+                    x if x == BOUDARY => {
+                        field.values[index] = 0;
+                    }
+                    _ => {
+                        panic!("config entry out of bounds.");
+                    }
                 }
             }
+            let field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field.clone());
+            //field.print_values_formated();
+            let bolz: f64 = (-field.lattice_action()).exp();
+            test_ary.push(field.lattice_action() * bolz);
+            bolz_ary.push(bolz);
         }
-        configurations.push(field.clone());
+        if VERBOSE {
+            println!("All possible permutations are saved!");
+        }
+
+        // The partition function is the sum over all Bolzmann weights
+        let partfn: f64 = bolz_ary.into_iter().sum();
+
+        // The observable is the sum over all weights (Bolzmann times observable),
+        // devided by the partition function.
+        let test: f64 = test_ary.into_iter().sum();
+        test / partfn
+    };
+    if VERBOSE {
+        println!("Observable is calculated!");
     }
-    println!("All possible permutations are saved!");
-
-    let mut test_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
-    let mut part_ary: Vec<f64> = Vec::with_capacity(PERMUTATIONS);
-
-    // Calculate the weihghts of all configurations
-    for field in configurations.into_iter() {
-        let field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field);
-        let bolz: f64 = (-field.lattice_action()).exp();
-        test_ary.push(field.lattice_action() * bolz);
-        part_ary.push(bolz);
-    }
-
-    // The partition function is the sum over all Bolzmann weihgts
-    let partfn: f64 = part_ary.into_iter().sum();
-
-    // The observable is the sum over all weights (Bolzmann times observable),
-    // devided by the partition function.
-    let test: f64 = test_ary.into_iter().sum();
-    let test: f64 = test / partfn;
-
-    std::mem::drop(partfn);
-    println!("Observable is calculated!");
 
     // Initialize a field to compare against
     let field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::random(&lattice);
-    field.print_values_formated();
+    //field.print_values_formated();
     let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::from_field(field);
-    println!("Markov chain initialized!");
+    if VERBOSE {
+        println!("Markov chain initialized!");
+    }
 
-    const BURNIN: usize = 2500; // Number of sweeps until it starts counting.
+    const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
     const MAX_TRIES: usize = 1_000_000;
 
     // Sweeps to achieve equilibrium
     for _ in 0..BURNIN {
         field.metropolis_sweep();
     }
-    println!("Burned in!");
+    if VERBOSE {
+        println!("Burned in!");
+    }
 
     // After having reached equilibrium, for each consecutive field configuration
     // that is generated by the markov chain, we calculate the observable and average it.
-    let mut sim: f64 = 0.0;
-    for sweeps in 0..MAX_TRIES {
+    let mut sim_observable: f64 = 0.0;
+    for _sweeps in 0..MAX_TRIES {
         field.metropolis_sweep();
-        sim = sim + field.lattice_action();
+        //field.print_values_formated();
+        sim_observable = sim_observable + field.lattice_action();
+        /*
         println!(
-            "Action: {}, Test: {}, Sim: {}",
-            field.action_observable(),
-            test,
-            sim / sweeps as f64
+            "Test: {}, Sim: {}",
+            test_observable,
+            sim_observable / _sweeps as f64
         );
+        */
     }
+    let sim_observable: f64 = sim_observable / MAX_TRIES as f64;
+
+    println!("test: {}, sim: {}", test_observable, sim_observable);
+
+    let data: TestData = TestData {
+        max_x: TEST_X,
+        max_y: TEST_Y,
+        max_t: TEST_T,
+        test_range: TEST_RANGE,
+        temp: <Field3d<i32, TEST_X, TEST_Y, TEST_T> as Action>::TEMP,
+        test_observable,
+        sim_observable,
+    };
+
+    if let Err(err) = data.write_to_csv() {
+        eprint!("{}", err);
+    };
 }

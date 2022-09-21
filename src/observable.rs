@@ -14,10 +14,11 @@ pub trait Action {
         + From<i8>;
 
     const SIZE: usize;
-    const TEMP: f64 = 1.0;
+    const TEMP: f64 = 400.0;
 
     fn action_observable(&self) -> i64;
 
+    /// Calculates the action of the lattice with the coupling constant.
     fn lattice_action(&self) -> f64 {
         (self.action_observable() as f64) * Self::TEMP
     }
@@ -132,9 +133,17 @@ fn test_action_given_field() {
     let lattice: Lattice3d<3, 3, 3> = Lattice3d::new();
     let mut field: Field3d<i8, 3, 3, 3> = Field3d::new(&lattice);
 
-    field.values[13] = 1;
+    field.values[0] = 1;
 
     assert_eq!(field.action_observable(), 6);
+
+    field.values[4] = 1;
+
+    assert_eq!(field.action_observable(), 12);
+
+    field.values[1] = 2;
+
+    assert_eq!(field.action_observable(), 28)
 }
 
 #[test]
@@ -167,5 +176,5 @@ fn test_random_normalize() {
 
     field.normalize_random();
 
-    assert_eq!(field.values.iter().find(|&&x| x == 0).is_some(), true);
+    assert!(field.values.iter().find(|&&x| x == 0).is_some());
 }
