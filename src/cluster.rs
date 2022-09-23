@@ -3,18 +3,14 @@ use crate::{field3d::Field, observable::Action};
 use rand::{rngs::ThreadRng, Rng};
 
 pub trait Cluster: Action {
-    const TEMP: f64;
-
-    fn cluster_sweep(&mut self);
+    fn cluster_sweep(&mut self, temp: f64);
 }
 
 impl<'a, const D: usize, const SIZE: usize> Cluster for Field<'a, i32, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    const TEMP: f64 = 1.0;
-
-    fn cluster_sweep(&mut self) {
+    fn cluster_sweep(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
 
         // Initialize the bonds to be activated
@@ -46,10 +42,7 @@ where
                     let reflected_action = Self::calculate_link_action(reflected, neighbour);
                     // If they are, set the link as true with a chance of ´P_{bond} = 1 - exp(-(S' - S))´
                     let draw: f64 = rng.gen_range(0.0..1.0);
-                    let prob: f64 = 1.0
-                        - (f64::from(action - reflected_action)
-                            * <Field<'a, i32, D, SIZE> as Action>::TEMP)
-                            .exp();
+                    let prob: f64 = 1.0 - (f64::from(action - reflected_action) * temp).exp();
                     println!("{}: draw: {}, prob: {}", index, draw, prob);
                     if draw <= prob {
                         bonds[index][direction] = true;

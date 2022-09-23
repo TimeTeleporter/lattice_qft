@@ -3,18 +3,18 @@ use rand::prelude::*;
 use std::ops::{Add, Div, Mul, Sub};
 
 pub trait Metropolis: Action {
-    fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng);
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng);
 
-    fn metropolis_random(&mut self) {
+    fn metropolis_random(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
         let index: usize = rng.gen_range(0..Self::SIZE);
-        self.metropolis_single(index, &mut rng);
+        self.metropolis_single(index, temp, &mut rng);
     }
 
-    fn metropolis_sweep(&mut self) {
+    fn metropolis_sweep(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
         for index in 0..Self::SIZE {
-            self.metropolis_single(index, &mut rng);
+            self.metropolis_single(index, temp, &mut rng);
         }
     }
 }
@@ -35,7 +35,7 @@ where
         + Copy,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    fn metropolis_single(&mut self, index: usize, rng: &mut ThreadRng) {
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
         // Initialize the change to be measured
         let mut new_field = self.clone();
         let coin: bool = rng.gen();
@@ -45,8 +45,8 @@ where
         };
 
         // Calculate the action of both possibilities
-        let action = self.lattice_action();
-        let new_action = new_field.lattice_action();
+        let action = self.lattice_action(temp);
+        let new_action = new_field.lattice_action(temp);
 
         // Accept the new action if its lower than the previous.
         // Else accept it with a proportional probability.

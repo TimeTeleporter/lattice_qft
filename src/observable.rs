@@ -14,13 +14,12 @@ pub trait Action {
         + From<i8>;
 
     const SIZE: usize;
-    const TEMP: f64 = 400.0;
 
     fn action_observable(&self) -> i64;
 
     /// Calculates the action of the lattice with the coupling constant.
-    fn lattice_action(&self) -> f64 {
-        (self.action_observable() as f64) * Self::TEMP
+    fn lattice_action(&self, temp: f64) -> f64 {
+        (self.action_observable() as f64) * temp
     }
 
     /// Calculates ```(x - y)^2``` for two values.
