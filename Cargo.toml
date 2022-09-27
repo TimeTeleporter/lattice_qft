@@ -22,3 +22,7 @@ path = "src/bin/metropolis_test.rs"
 [[bin]]
 name = "cluster-sim"
 path = "src/bin/cluster_sim.rs"
+
+[[bin]]
+name = "metropolis-sim"
+path = "src/bin/metropolis_sim.rs"
