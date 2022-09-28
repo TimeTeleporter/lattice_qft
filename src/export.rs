@@ -62,3 +62,9 @@ where
         storage.push(test_data);
     })
 }
+
+pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
+    let storage: Vec<()> = Vec::new();
+    write_to_csv(path, storage)?;
+    Ok(())
+}

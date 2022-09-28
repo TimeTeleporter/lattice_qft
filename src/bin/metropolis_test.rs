@@ -13,7 +13,11 @@ const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-const TEST_PATH: &str = "data/test_data16.csv";
+const TEST_PATH: &str = "data/test_data32.csv";
+
+const TEST_RANGE: usize = 16;
+const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32 - 1); // 16 ^ 7 = 268’435’456
+const BOUDARY: i8 = TEST_RANGE as i8 - 1;
 
 /// Datatype to save and read simulation output.
 #[derive(Debug, Serialize, Deserialize)]
@@ -54,9 +58,9 @@ impl TestData {
         lattice: &Lattice3d<TEST_X, TEST_Y, TEST_T>,
         temp: f64,
     ) -> TestData {
-        const TEST_RANGE: usize = 16;
-        const PERMUTATIONS: usize = TEST_RANGE.pow(SIZE as u32 - 1); // 16 ^ 7 = 268’435’456
-        const BOUDARY: i8 = TEST_RANGE as i8 - 1;
+        print!("Started to calculate the observable over the range");
+        println!(" -{} to +{}.", TEST_RANGE / 2, TEST_RANGE / 2);
+        println!("Those are {} field configurations.", PERMUTATIONS);
 
         let mut field: Field3d<i8, TEST_X, TEST_Y, TEST_T> = Field3d::new(lattice);
 
