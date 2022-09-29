@@ -57,30 +57,3 @@ where
         }
     }
 }
-
-/*
-        // Initialize the actions to be comapred
-        let value = self.get_value(index).clone();
-        let coin: bool = rng.gen();
-        let new_value = match coin {
-            true => value.clone() + Self::FieldType::from(1_i8),
-            false => value.clone() - Self::FieldType::from(1_i8),
-        };
-
-        // Calculate the action of both possibilities
-        let mut action = Self::FieldType::default();
-        let mut new_action = Self::FieldType::default();
-        for neighbour in self.lattice.get_neighbours_array(index) {
-            let neighbour = self.get_value(neighbour).clone();
-            action = action + Self::calculate_link_action(value, neighbour);
-            new_action = new_action + Self::calculate_link_action(new_value, neighbour);
-        }
-
-        // Accept the new action if its lower than the previous.
-        // Else accept it with a proportional probability.
-        let draw: f64 = rng.gen_range(0.0..1.0);
-        let prob: f64 = (Self::TEMP * f64::from(action - new_action)).exp();
-        if draw <= prob {
-            self.values[index] = new_value;
-        }
-*/
