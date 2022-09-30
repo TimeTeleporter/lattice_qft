@@ -1,6 +1,6 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
-#![feature(generic_arg_infer)]
+#![feature(adt_const_params)]
 #![feature(split_array)]
 
 pub mod cluster;

@@ -9,7 +9,9 @@ default-run = "cluster-sim"
 [dependencies]
 csv = "1.1.6"
 num = "0.4.0"
+ordered-float = { version = "3.1", features = ["rand", "serde"] }
 rand = "0.8.5"
+rayon = "1.5.3"
 serde = { version = "1.0.144", features = ["derive"] }
 
 [profile.dev]
