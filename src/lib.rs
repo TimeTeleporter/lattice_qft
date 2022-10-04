@@ -3,9 +3,9 @@
 #![feature(adt_const_params)]
 #![feature(split_array)]
 
+pub mod action;
 pub mod cluster;
 pub mod export;
-pub mod field3d;
-pub mod lattice3d;
+pub mod field;
+pub mod lattice;
 pub mod metropolis;
-pub mod observable;

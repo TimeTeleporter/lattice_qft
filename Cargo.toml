@@ -28,3 +28,7 @@ path = "src/bin/cluster_sim.rs"
 [[bin]]
 name = "metropolis-sim"
 path = "src/bin/metropolis_sim.rs"
+
+[[bin]]
+name = "line-sim"
+path = "src/bin/line_sim.rs"

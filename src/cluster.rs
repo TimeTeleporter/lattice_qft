@@ -1,4 +1,4 @@
-use crate::{field3d::Field, observable::Action};
+use crate::{action::Action, field::Field};
 
 use rand::{rngs::ThreadRng, Rng};
 

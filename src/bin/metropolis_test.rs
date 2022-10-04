@@ -7,10 +7,10 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde::{Deserialize, Serialize};
 
 use lattice_qft::{
+    action::Action,
     export::{clean_csv, CsvData},
-    field3d::Field3d,
-    lattice3d::Lattice3d,
-    observable::Action,
+    field::Field3d,
+    lattice::Lattice3d,
 };
 
 const TEST_X: usize = 2;

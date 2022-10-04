@@ -7,11 +7,11 @@
 use std::error::Error;
 
 use lattice_qft::{
+    action::Action,
     export::{clean_csv, CsvData},
-    field3d::Field3d,
-    lattice3d::Lattice3d,
+    field::Field3d,
+    lattice::Lattice3d,
     metropolis::Metropolis,
-    observable::Action,
 };
 
 use serde::{Deserialize, Serialize};

@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut, Sub};
 
 use rand::{distributions::Standard, prelude::Distribution, random};
 
-use crate::lattice3d::{Lattice, Lattice3d, LatticeCoords};
+use crate::lattice::{Lattice, Lattice3d, LatticeCoords};
 
 #[derive(Debug, Clone)]
 pub struct Field<'a, T, const D: usize, const SIZE: usize>

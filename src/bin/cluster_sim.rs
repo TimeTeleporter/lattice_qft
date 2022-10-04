@@ -5,7 +5,7 @@
 
 use std::{io, io::prelude::*, time::Instant};
 
-use lattice_qft::{cluster::Cluster, field3d::Field3d, lattice3d::Lattice3d, observable::Action};
+use lattice_qft::{action::Action, cluster::Cluster, field::Field3d, lattice::Lattice3d};
 
 fn main() {
     // The dimensions of the lattice

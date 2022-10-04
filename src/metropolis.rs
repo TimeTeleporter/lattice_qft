@@ -1,6 +1,9 @@
-use crate::{field3d::Field3d, observable::Action};
+use crate::{
+    action::Action,
+    field::{Field, Field3d},
+};
 use rand::prelude::*;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, DerefMut, Div, Mul, Sub};
 
 pub trait Metropolis: Action {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng);
@@ -19,8 +22,7 @@ pub trait Metropolis: Action {
     }
 }
 
-impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Metropolis
-    for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
+impl<'a, T, const D: usize, const SIZE: usize> Metropolis for Field<'a, T, D, SIZE>
 where
     f64: From<T>,
     T: Add<Output = T>
@@ -33,7 +35,7 @@ where
         + Into<f64>
         + PartialOrd
         + Copy,
-    [(); MAX_X * MAX_Y * MAX_T]:,
+    [(); D * 2_usize]:,
 {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
         // Initialize the change to be measured
@@ -55,5 +57,26 @@ where
         if draw <= prob {
             *self = new_field;
         }
+    }
+}
+
+impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Metropolis
+    for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
+where
+    f64: From<T>,
+    T: Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Div<Output = T>
+        + Default
+        + From<i8>
+        + Into<i64>
+        + Into<f64>
+        + PartialOrd
+        + Copy,
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
+        self.deref_mut().metropolis_single(index, temp, rng)
     }
 }

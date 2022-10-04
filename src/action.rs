@@ -2,7 +2,7 @@ use std::ops::{Add, Deref, DerefMut, Div, Mul, Sub};
 
 use rand::prelude::*;
 
-use crate::field3d::{Field, Field3d};
+use crate::field::{Field, Field3d};
 
 pub trait Action {
     type FieldType: Copy
@@ -104,7 +104,7 @@ where
 
 #[test]
 fn test_action_non_negative() {
-    use crate::lattice3d::Lattice3d;
+    use crate::lattice::Lattice3d;
 
     let lattice: Lattice3d<9, 9, 9> = Lattice3d::new();
 
@@ -117,7 +117,7 @@ fn test_action_non_negative() {
 
 #[test]
 fn test_action_new_zero() {
-    use crate::lattice3d::Lattice;
+    use crate::lattice::Lattice;
 
     let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
     let field: Field<i8, 4, 81> = Field::new(&lattice);
@@ -127,7 +127,7 @@ fn test_action_new_zero() {
 
 #[test]
 fn test_action_given_field() {
-    use crate::lattice3d::Lattice3d;
+    use crate::lattice::Lattice3d;
 
     let lattice: Lattice3d<3, 3, 3> = Lattice3d::new();
     let mut field: Field3d<i8, 3, 3, 3> = Field3d::new(&lattice);
@@ -147,7 +147,7 @@ fn test_action_given_field() {
 
 #[test]
 fn test_action_add_one() {
-    use crate::lattice3d::Lattice3d;
+    use crate::lattice::Lattice3d;
 
     const TEST_X: usize = 10;
     const TEST_Y: usize = 10;
@@ -167,7 +167,7 @@ fn test_action_add_one() {
 
 #[test]
 fn test_random_normalize() {
-    use crate::lattice3d::Lattice3d;
+    use crate::lattice::Lattice3d;
 
     let lattice: Lattice3d<2, 2, 2> = Lattice3d::new();
     let field: Field3d<i8, 2, 2, 2> = Field3d::random(&lattice);
