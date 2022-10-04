@@ -8,9 +8,9 @@ const DIM: usize = 1;
 const SIZE_ARY: [usize; DIM] = [2];
 const SIZE: usize = SIZE_ARY[0];
 
-const TEMP: f64 = 0.1;
+const TEMP: f64 = 1.0;
 const BURNIN: usize = 100_000;
-const ITERATIONS: usize = 100_000_000;
+const ITERATIONS: usize = 1_000_000_000;
 
 const PATH: &str = "data/line_sim/line_sim.csv";
 
