@@ -32,3 +32,7 @@ path = "src/bin/metropolis_sim.rs"
 [[bin]]
 name = "line-sim"
 path = "src/bin/line_sim.rs"
+
+[[bin]]
+name = "metropolis-binning"
+path = "src/bin/metropolis_binning.rs"
