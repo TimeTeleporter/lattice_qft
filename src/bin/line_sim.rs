@@ -4,7 +4,7 @@ use lattice_qft::{
     export::CsvData,
     lattice::Lattice,
     metropolis::{metropolis_simulation, MetropolisSimResult},
-    TEMP_ARY,
+    LONG_TEMP_ARY,
 };
 
 const DIM: usize = 1;
@@ -21,7 +21,7 @@ fn main() {
 
     println!("{:?}", lattice);
 
-    let results: Vec<MetropolisSimResult> = TEMP_ARY
+    let results: Vec<MetropolisSimResult> = LONG_TEMP_ARY
         .par_iter()
         .map(|&temp| {
             let (result, _) = metropolis_simulation(&lattice, temp, BURNIN, ITERATIONS);
