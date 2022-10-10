@@ -7,7 +7,7 @@
 use lattice_qft::{
     export::CsvData,
     lattice::Lattice3d,
-    metropolis::{metropolis_simulation, MetropolisSimResult},
+    metropolis::{metropolis_simulation3d, MetropolisSimResult},
     TEMP_ARY,
 };
 
@@ -32,7 +32,7 @@ fn main() {
     let results: Vec<MetropolisSimResult> = TEMP_ARY
         .par_iter()
         .map(|&temp| {
-            let (result, _) = metropolis_simulation(&lattice, temp, BURNIN, ITERATIONS);
+            let (result, _) = metropolis_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
             result
         })
         .collect();

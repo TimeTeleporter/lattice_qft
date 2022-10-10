@@ -1,7 +1,7 @@
 use crate::{
     action::Action,
     field::{Field, Field3d},
-    lattice::Lattice3d,
+    lattice::{Lattice, Lattice3d},
 };
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -134,18 +134,18 @@ impl Deref for MarkovChain {
     }
 }
 
-pub fn metropolis_simulation<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
-    lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>,
+pub fn metropolis_simulation<const D: usize, const SIZE: usize>(
+    lattice: &Lattice<D, SIZE>,
     temp: f64,
     burnin: usize,
     iterations: usize,
 ) -> (MetropolisSimResult, MarkovChain)
 where
-    [(); MAX_X * MAX_Y * MAX_T]:,
+    [(); D * 2_usize]:,
 {
     // Initialize a field to compare against
-    let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
-    let mut field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
+    let field: Field<i8, D, SIZE> = Field::random(&lattice);
+    let mut field: Field<i32, D, SIZE> = Field::from_field(field);
 
     // Sweeps to achieve equilibrium
     for _ in 0..burnin {
@@ -175,4 +175,17 @@ where
     println!("{:?}", results);
 
     (results, data)
+}
+
+pub fn metropolis_simulation3d<const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>,
+    temp: f64,
+    burnin: usize,
+    iterations: usize,
+) -> (MetropolisSimResult, MarkovChain)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    let lattice = lattice.deref();
+    metropolis_simulation(lattice, temp, burnin, iterations)
 }

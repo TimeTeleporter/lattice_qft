@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use lattice_qft::{
     export::{clean_csv, CsvData},
     lattice::Lattice3d,
-    metropolis::{metropolis_simulation, MarkovChain, MetropolisSimResult},
+    metropolis::{metropolis_simulation3d, MarkovChain, MetropolisSimResult},
 };
 
 const TEST_X: usize = 2;
@@ -46,7 +46,7 @@ fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
-    let (result, data) = metropolis_simulation(&lattice, TEMP, BURNIN, ITERATIONS);
+    let (result, data) = metropolis_simulation3d(&lattice, TEMP, BURNIN, ITERATIONS);
 
     if let Err(err) = metropolis_output(data, result, TEMP) {
         eprint!("{}", err);
