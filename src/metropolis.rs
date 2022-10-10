@@ -49,13 +49,13 @@ where
         };
 
         // Calculate the action of both possibilities
-        let action = self.lattice_action(temp);
-        let new_action = new_field.lattice_action(temp);
+        let action = self.action_observable();
+        let new_action = new_field.action_observable();
 
         // Accept the new action if its lower than the previous.
         // Else accept it with a proportional probability.
         let draw: f64 = rng.gen_range(0.0..1.0);
-        let prob: f64 = (action - new_action).exp();
+        let prob: f64 = (((action - new_action) as f64) * temp).exp();
         if draw <= prob {
             *self = new_field;
         }

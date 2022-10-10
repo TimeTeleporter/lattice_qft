@@ -1,4 +1,4 @@
-use std::ops::{Deref, DerefMut, Sub};
+use std::ops::{Add, Deref, DerefMut, Mul, Sub};
 
 use rand::{distributions::Standard, prelude::Distribution, random};
 
@@ -13,6 +13,7 @@ where
     pub lattice: &'a Lattice<D, SIZE>,
 }
 
+// Implementing getting values
 impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
 where
     [(); D * 2_usize]:,
@@ -26,6 +27,7 @@ where
     }
 }
 
+// Implementing shift
 impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
 where
     T: Copy + Sub<Output = T>,
@@ -35,6 +37,20 @@ where
     pub fn shift_values(&mut self, shift: T) {
         for value in self.values.iter_mut() {
             *value = *value - shift;
+        }
+    }
+}
+
+// Implementing mirroring
+impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
+where
+    T: Copy + From<i8> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    [(); D * 2_usize]:,
+{
+    /// Mirrors all field values on a plane with a modifier
+    pub fn mirror_values(&mut self, plane: T, modifier: T) {
+        for value in self.values.iter_mut() {
+            *value = <i8 as Into<T>>::into(2_i8) * plane + modifier - *value;
         }
     }
 }
@@ -238,4 +254,18 @@ fn test_field_shift() {
     field.shift_values(3);
 
     assert_eq!(field.values[80], -3);
+}
+
+#[test]
+fn test_field_mirror() {
+    use crate::action::Action;
+    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
+    let field: Field<i8, 4, 81> = Field::random(&lattice);
+    let mut field: Field<i32, 4, 81> = Field::from_field(field);
+
+    let old_action: i64 = field.action_observable();
+
+    field.mirror_values(29);
+
+    assert_eq!(old_action, field.action_observable());
 }
