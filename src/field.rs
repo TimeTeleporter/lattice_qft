@@ -126,7 +126,63 @@ where
     }
 }
 
-/// Implements a filed of given Type T on a 3-dimensional lattice of size MAX_X * MAX_Y * MAX_T.
+impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 3]) {
+        for t in 0..size[2] {
+            println!("t = {}", t);
+            for y in 0..size[1] {
+                print!("[");
+                for x in 0..size[0] {
+                    if x == size[0] - 1 {
+                        println!(
+                            "{:?} ]",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
+                    } else {
+                        print!(
+                            "{:?}, ",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 2]) {
+        for y in 0..size[1] {
+            print!("[");
+            for x in 0..size[0] {
+                if x == size[0] - 1 {
+                    println!(
+                        "{:?} ]",
+                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                    );
+                } else {
+                    print!(
+                        "{:?}, ",
+                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                    );
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+/// Implements a filed of given Type T on a 3-dimensional lattice of size
+/// MAX_X * MAX_Y * MAX_T.
 #[derive(Debug, Clone)]
 pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
     Field<'a, T, 3, { MAX_X * MAX_Y * MAX_T }>,
@@ -165,27 +221,9 @@ where
     T: std::fmt::Debug,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    /// Prints the value in a intuitive way.
+    /// Prints the value in a intuitive way
     pub fn print_values_formated(&self) {
-        for t in 0..MAX_T {
-            println!("t = {}", t);
-            for y in 0..MAX_Y {
-                print!("[");
-                for x in 0..MAX_X {
-                    if x == MAX_X - 1 {
-                        println!(
-                            "{:?} ]",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    } else {
-                        print!(
-                            "{:?}, ",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    }
-                }
-            }
-        }
+        self.0.print_values_formated([MAX_X, MAX_Y, MAX_T]);
     }
 }
 
@@ -265,7 +303,7 @@ fn test_field_mirror() {
 
     let old_action: i64 = field.action_observable();
 
-    field.mirror_values(29);
+    field.mirror_values(29, 0);
 
     assert_eq!(old_action, field.action_observable());
 }

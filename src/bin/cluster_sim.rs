@@ -46,7 +46,7 @@ fn main() {
         // Run a nuber of sweeps
         // This gets inaccurate for below 3 sweeps, as pause() cannot be isntantly triggered again.
         for _ in 0..5 {
-            //field.cluster_sweep(TEMP);
+            field.cluster_sweep(TEMP);
             sweeps += 1;
             field.normalize_random();
         }

@@ -54,7 +54,7 @@ where
 
         // Accept the new action if its lower than the previous.
         // Else accept it with a proportional probability.
-        let draw: f64 = rng.gen_range(0.0..1.0);
+        let draw: f64 = rng.gen_range(0.0..=1.0);
         let prob: f64 = (((action - new_action) as f64) * temp).exp();
         if draw <= prob {
             *self = new_field;

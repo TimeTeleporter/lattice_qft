@@ -33,7 +33,7 @@ impl<const D: usize> LatticeCoords<D> {
 
     #[cfg(test)]
     #[allow(dead_code)]
-    pub fn to_array(self) -> [usize; D] {
+    pub fn into_array(self) -> [usize; D] {
         self.0
     }
 
@@ -158,7 +158,7 @@ fn test_index_coordinates_conv() {
     let lattice: Lattice<3, SIZE> = Lattice::new(MEASURES);
     let index: usize = 29;
     let coords = lattice.calc_coords_from_index(index);
-    assert_eq!(coords.to_array(), [1, 2, 1]);
+    assert_eq!(coords.into_array(), [1, 2, 1]);
     assert_eq!(lattice.calc_index_from_coords(coords), index);
 }
 
