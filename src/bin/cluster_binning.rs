@@ -10,22 +10,22 @@
 use std::error::Error;
 
 use lattice_qft::{
+    cluster::cluster_simulation3d,
     export::{clean_csv, CsvData, MarkovChain, SimResult},
     lattice::Lattice3d,
-    metropolis::metropolis_simulation3d,
 };
 
 const TEST_X: usize = 2;
 const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
 
-const BINS_PATH: &str = "data/metropolis_binning/bins1_58.csv";
-const RESULTS_PATH: &str = "data/metropolis_binning/binning_sim_results.csv";
+const BINS_PATH: &str = "data/cluster_binning/bins2.csv";
+const RESULTS_PATH: &str = "data/cluster_binning/binning_sim_results.csv";
 
 const BURNIN: usize = 100_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 10_000_000;
 
-const TEMP: f64 = 1.58; // Make sure that the path corresponds to the temp
+const TEMP: f64 = 2.0; // Make sure that the path corresponds to the temp
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -34,20 +34,16 @@ fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
-    let (result, data) = metropolis_simulation3d(&lattice, TEMP, BURNIN, ITERATIONS);
+    let (result, data) = cluster_simulation3d(&lattice, TEMP, BURNIN, ITERATIONS);
 
-    if let Err(err) = metropolis_output(data, result, TEMP) {
+    if let Err(err) = cluster_output(data, result, TEMP) {
         eprint!("{}", err);
     }
 
     println!("{}: Done", TEMP);
 }
 
-fn metropolis_output(
-    data: MarkovChain,
-    result: SimResult,
-    temp: f64,
-) -> Result<(), Box<dyn Error>> {
+fn cluster_output(data: MarkovChain, result: SimResult, temp: f64) -> Result<(), Box<dyn Error>> {
     result.clone().read_write_csv(RESULTS_PATH)?;
 
     clean_csv(BINS_PATH)?;

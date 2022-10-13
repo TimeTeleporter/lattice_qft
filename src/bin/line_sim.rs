@@ -1,9 +1,9 @@
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use lattice_qft::{
-    export::CsvData,
+    export::{CsvData, SimResult},
     lattice::Lattice,
-    metropolis::{metropolis_simulation, MetropolisSimResult},
+    metropolis::metropolis_simulation,
     LONG_TEMP_ARY,
 };
 
@@ -21,7 +21,7 @@ fn main() {
 
     println!("{:?}", lattice);
 
-    let results: Vec<MetropolisSimResult> = LONG_TEMP_ARY
+    let results: Vec<SimResult> = LONG_TEMP_ARY
         .par_iter()
         .map(|&temp| {
             let (result, _) = metropolis_simulation(&lattice, temp, BURNIN, ITERATIONS);

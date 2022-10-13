@@ -24,7 +24,7 @@ pub trait Action {
 
     /// Calculates ```(x - y)^2``` for two values.
     fn calculate_link_action(site: Self::FieldType, neighbour: Self::FieldType) -> Self::FieldType {
-        site * site - site * neighbour * 2_i8.into() + neighbour * neighbour
+        (site - neighbour) * (site - neighbour)
     }
 
     fn normalize(&mut self);

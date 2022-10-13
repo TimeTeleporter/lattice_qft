@@ -5,10 +5,8 @@
 #![feature(split_array)]
 
 use lattice_qft::{
-    export::CsvData,
-    lattice::Lattice3d,
-    metropolis::{metropolis_simulation3d, MetropolisSimResult},
-    TEMP_ARY,
+    export::CsvData, export::SimResult, lattice::Lattice3d, metropolis::metropolis_simulation3d,
+    LONG_TEMP_ARY,
 };
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
@@ -17,7 +15,7 @@ const TEST_X: usize = 2;
 const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
 
-const RESULTS_PATH: &str = "data/metropolis_test/sim_data32.csv";
+const RESULTS_PATH: &str = "data/metropolis_test/sim_data_long.csv";
 
 const BURNIN: usize = 100_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 10_000_000;
@@ -29,7 +27,7 @@ fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
-    let results: Vec<MetropolisSimResult> = TEMP_ARY
+    let results: Vec<SimResult> = LONG_TEMP_ARY
         .par_iter()
         .map(|&temp| {
             let (result, _) = metropolis_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
