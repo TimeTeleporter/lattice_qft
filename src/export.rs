@@ -1,10 +1,9 @@
 use std::{error::Error, fs::File};
 
-use rulinalg::{
-    matrix::{BaseMatrix, Matrix},
-    vector::Vector,
-};
+use nalgebra::DVector;
 use serde::{Deserialize, Serialize};
+use varpro::prelude::*;
+use varpro::solvers::levmar::{LevMarProblemBuilder, LevMarSolver};
 
 pub trait CsvData {
     fn read_write_csv(self, path: &str) -> Result<(), Box<dyn Error>>;
@@ -167,7 +166,8 @@ impl ObsChain {
         ObsChain(new_set)
     }
 
-    pub fn calculate_bin_var(mut self, temp: f64) -> Vec<BinData> {
+    /// Processes the data into binnings
+    pub fn calculate_binnings(mut self, temp: f64, ignore_last_few_steps: usize) -> Vec<BinData> {
         let mut results: Vec<BinData> = Vec::new();
         let original_length: usize = self.0.len();
 
@@ -181,9 +181,14 @@ impl ObsChain {
             binning_step += 1;
         }
 
+        for _ in 0..ignore_last_few_steps {
+            results.pop();
+        }
+
         results
     }
 
+    /// Calcualtes ```BinData```, which includes temp, the binning step, variance, std and the error.
     pub fn get_bindata(&self, temp: f64, binning_step: u32) -> BinData {
         // Calculating the relevant values
         let variance: f64 = self.calulate_variance();
@@ -200,68 +205,67 @@ impl ObsChain {
     }
 }
 
-const VERBOSE_BINNED_ERROR: bool = false;
-
 pub fn calculate_binned_error(bindata_ary: &Vec<BinData>) -> Result<f64, Box<dyn Error>> {
-    let mut x_values: Vec<u32> = bindata_ary.iter().map(|data| data.binning_step).collect();
+    let mut x_values: Vec<f64> = bindata_ary
+        .iter()
+        .map(|data| data.binning_step as f64)
+        .collect();
     let mut y_values: Vec<f64> = bindata_ary.into_iter().map(|data| data.error).collect();
+
+    // We cannot have NaN in our y-values.
     while y_values.last().is_some_and(|y| y.is_nan()) {
         y_values.pop();
         x_values.pop();
     }
-    assert_eq!(x_values.len(), y_values.len());
 
-    // Setting initial parameters
-    let (mut a, mut b, mut c): (f64, f64, f64) = (y_values[0] * 2.0, y_values[0], 0.7);
-    if VERBOSE_BINNED_ERROR {
-        println!("a: {a}, b: {b}, c: {c}");
+    (x_values.len() == y_values.len())
+        .then(|| ())
+        .ok_or("x- and y-values are of different length")?;
+
+    let x = DVector::from_vec(x_values);
+    let y = DVector::from_vec(y_values);
+
+    fn nonlin_fn(x: &DVector<f64>, c: f64, d: f64) -> DVector<f64> {
+        x.map(|x| (c * x + d).tanh())
     }
 
-    const FN_PARAM: usize = 3;
-
-    for _ in 0..2 {
-        let mat: Matrix<f64> = Matrix::from_fn(x_values.len(), FN_PARAM, |col_index, row_index| {
-            if VERBOSE_BINNED_ERROR {
-                println!("Matri: row: {row_index}, col: {col_index}");
-            }
-            let x: f64 = x_values[row_index] as f64;
-            match col_index {
-                0 => 1.0,
-                1 => (-1.0 * x * c).exp(),
-                2 => -1.0 * (-1.0 * x * c).exp() * b * x,
-                _ => {
-                    panic!("Columns out of bounds");
-                }
-            }
-        });
-        if VERBOSE_BINNED_ERROR {
-            println!("{}", mat);
-        }
-
-        let sqr = mat.transpose() * mat.clone();
-        if VERBOSE_BINNED_ERROR {
-            println!("sqr: {:?}", sqr);
-        }
-        let inv = sqr.inverse()?;
-        if VERBOSE_BINNED_ERROR {
-            println!("inv: {:?}", inv);
-        }
-        let vectr = Vector::new(y_values.clone());
-        if VERBOSE_BINNED_ERROR {
-            println!("vectr: {}", vectr);
-        }
-        let prod = inv * mat.transpose();
-        if VERBOSE_BINNED_ERROR {
-            println!("prod: {}", prod);
-        }
-        let res: Vector<f64> = prod * vectr;
-        println!("res: {:?}", res);
-        let res = res.data();
-        assert_eq!(res.len(), 3);
-        (a, b, c) = (res[0], res[1], res[2]);
+    fn nonlin_fn_dc(x: &DVector<f64>, c: f64, d: f64) -> DVector<f64> {
+        x.map(|x| (1.0 - (c * x + d).tanh().powi(2)) * x)
     }
 
-    println!("Error calculated {a}");
+    fn nonlin_fn_dd(x: &DVector<f64>, c: f64, d: f64) -> DVector<f64> {
+        x.map(|x| 1.0 - (c * x + d).tanh().powi(2))
+    }
 
-    Ok(a)
+    let model = SeparableModelBuilder::<f64>::new(&["c", "d"])
+        .function(&["c", "d"], nonlin_fn)
+        .partial_deriv("c", nonlin_fn_dc)
+        .partial_deriv("d", nonlin_fn_dd)
+        .invariant_function(|x| DVector::from_element(x.len(), 1.0))
+        .build()?;
+
+    let problem = LevMarProblemBuilder::new()
+        .model(&model)
+        .x(x)
+        .y(y)
+        .initial_guess(&[0.2, 0.0])
+        .build()?;
+
+    let (solved_problem, report) = LevMarSolver::new().minimize(problem);
+    report
+        .termination
+        .was_successful()
+        .then(|| ())
+        .ok_or("Termination failed")?;
+    let alpha = solved_problem.params();
+    let coeff = solved_problem
+        .linear_coefficients()
+        .ok_or("Linear coeff unwrap failed")?;
+
+    println!("{alpha}");
+    println!("{coeff}");
+
+    let res: f64 = coeff.into_iter().sum();
+
+    Ok(res)
 }

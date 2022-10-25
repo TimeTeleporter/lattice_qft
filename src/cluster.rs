@@ -43,9 +43,7 @@ where
             },
         };
 
-        let mut reflected: Field<T, D, SIZE> = self.clone();
-        reflected.mirror_values(plane, modifier);
-        let reflected: Field<T, D, SIZE> = reflected; // Make reflected unmutable
+        let reflected: Field<T, D, SIZE> = self.clone().mirror_values(plane, modifier);
 
         // Activate links if they are on the same side of the plane:
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);

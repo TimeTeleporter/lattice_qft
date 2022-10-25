@@ -11,9 +11,9 @@ use lattice_qft::{
     lattice::Lattice3d,
 };
 
-const MAX_X: usize = 2;
-const MAX_Y: usize = 2;
-const MAX_T: usize = 2;
+const MAX_X: usize = 100;
+const MAX_Y: usize = 100;
+const MAX_T: usize = 100;
 
 const RESULTS_PATH: &str = "data/cluster_sim/cluster_results.csv";
 const DATA_PATH: &str = "data/cluster_sim/cluster_data.csv";
@@ -30,7 +30,7 @@ fn main() {
         //.filter(|&&temp| temp == 0.001)
         .map(|&temp| {
             let (mut result, data) = cluster_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
-            let bins: Vec<BinData> = data.calculate_bin_var(temp);
+            let bins: Vec<BinData> = data.calculate_binnings(temp, 3);
             let error = match calculate_binned_error(&bins) {
                 Ok(error) => Some(error),
                 Err(err) => {

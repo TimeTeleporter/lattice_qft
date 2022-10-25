@@ -48,10 +48,11 @@ where
     [(); D * 2_usize]:,
 {
     /// Mirrors all field values on a plane with a modifier
-    pub fn mirror_values(&mut self, plane: T, modifier: T) {
+    pub fn mirror_values(mut self, plane: T, modifier: T) -> Self {
         for value in self.values.iter_mut() {
             *value = <i8 as Into<T>>::into(2_i8) * plane + modifier - *value;
         }
+        self
     }
 }
 
@@ -303,7 +304,7 @@ fn test_field_mirror() {
 
     let old_action: i64 = field.action_observable();
 
-    field.mirror_values(29, 0);
+    field = field.mirror_values(29, 0);
 
     assert_eq!(old_action, field.action_observable());
 }

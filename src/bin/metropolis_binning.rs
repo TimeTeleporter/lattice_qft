@@ -48,7 +48,7 @@ fn metropolis_output(data: ObsChain, result: SimResult, temp: f64) -> Result<(),
 
     clean_csv(BINS_PATH)?;
 
-    for bin_variance in data.calculate_bin_var(temp) {
+    for bin_variance in data.calculate_binnings(temp, 3) {
         bin_variance.read_write_csv(BINS_PATH)?;
     }
 
