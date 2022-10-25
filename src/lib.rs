@@ -108,3 +108,5 @@ pub mod export;
 pub mod field;
 pub mod lattice;
 pub mod metropolis;
+
+extern crate rayon;

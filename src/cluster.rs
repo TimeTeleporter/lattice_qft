@@ -33,6 +33,7 @@ where
     fn cluster_sweep(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
 
+        println!("{temp} Sweep");
         // Set the mirror plane randomly on a height value
         let plane: T = self.values[rng.gen_range(0..SIZE)];
         let modifier: T = match rng.gen::<bool>() {
@@ -43,10 +44,15 @@ where
             },
         };
 
+        println!("Plane and modifier set");
+        // Calculate the reflected field
         let reflected: Field<T, D, SIZE> = self.clone().mirror_values(plane, modifier);
 
+        println!("Reflected field calculated");
         // Activate links if they are on the same side of the plane:
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
+
+        println!("Bonds initialized");
         // Going through the lattice sites...
         for index in 0..SIZE {
             // ...for each neighbour in positive coordinate direction...
@@ -78,9 +84,11 @@ where
             }
         }
 
+        println!("Bonds activated");
         // Build the clusters
         let clusters: Vec<Vec<usize>> = bonds.build_clusters();
 
+        println!("Clusters built");
         // For each cluster decide to flip it
         for cluster in clusters {
             let coin: bool = rng.gen();
@@ -183,7 +191,7 @@ pub(self) mod bonds {
         }
 
         /// Build a cluster from activated bonds.
-        pub fn build_clusters(&self) -> Vec<Vec<usize>> {
+        pub fn build_clusters(self) -> Vec<Vec<usize>> {
             let mut unvisited: Vec<bool> = vec![true; SIZE];
             let mut clusters: Vec<Vec<usize>> = Vec::new();
             for index in 0..SIZE {

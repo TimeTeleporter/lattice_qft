@@ -2,6 +2,7 @@
 #![feature(generic_const_exprs)]
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
+#![recursion_limit = "2048"]
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
@@ -21,7 +22,15 @@ const DATA_PATH: &str = "data/cluster_sim/cluster_data.csv";
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 1_000_000;
 
+const STACK_SIZE: usize = 1024 * 1024 * 1024;
+
 fn main() {
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(22)
+        .stack_size(STACK_SIZE)
+        .build_global()
+        .unwrap();
+
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
