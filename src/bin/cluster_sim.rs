@@ -7,38 +7,58 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use lattice_qft::{
     cluster::cluster_simulation3d,
-    export::{CsvData, SimResult},
+    export::{calculate_binned_error, clean_csv, BinData, CsvData, SimResult},
     lattice::Lattice3d,
-    LONG_TEMP_ARY,
 };
 
 const MAX_X: usize = 2;
 const MAX_Y: usize = 2;
 const MAX_T: usize = 2;
 
-const RESULTS_PATH: &str = "data/cluster_sim/cluster_data.csv";
+const RESULTS_PATH: &str = "data/cluster_sim/cluster_results.csv";
+const DATA_PATH: &str = "data/cluster_sim/cluster_data.csv";
 
-const BURNIN: usize = 100_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 10_000_000;
+const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
+const ITERATIONS: usize = 1_000_000;
 
 fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    let results: Vec<SimResult> = LONG_TEMP_ARY
+    let results: Vec<(SimResult, Vec<BinData>)> = [0.1]
         .par_iter()
         //.filter(|&&temp| temp == 0.001)
         .map(|&temp| {
-            let (result, _) = cluster_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
-            result
+            let (mut result, data) = cluster_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
+            let bins: Vec<BinData> = data.calculate_bin_var(temp);
+            let error = match calculate_binned_error(&bins) {
+                Ok(error) => Some(error),
+                Err(err) => {
+                    eprintln!("{err}");
+                    None
+                }
+            };
+            result.set_error(error);
+            println!("{:?}", result);
+            (result, bins)
         })
         .collect();
 
-    for res in results {
+    for (res, bins) in results {
         if let Err(err) = res.read_write_csv(RESULTS_PATH) {
-            eprint!("{}", err);
+            eprint!("{err}");
+        }
+
+        if let Err(err) = clean_csv(DATA_PATH) {
+            eprint!("{err}");
+        };
+
+        for bin in bins {
+            if let Err(err) = bin.read_write_csv(DATA_PATH) {
+                eprint!("{err}");
+            }
         }
     }
 
-    println!("Done");
+    println!("Data stored");
 }

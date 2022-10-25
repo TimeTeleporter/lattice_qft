@@ -10,7 +10,7 @@
 use std::error::Error;
 
 use lattice_qft::{
-    export::{clean_csv, CsvData, MarkovChain, SimResult},
+    export::{clean_csv, CsvData, ObsChain, SimResult},
     lattice::Lattice3d,
     metropolis::metropolis_simulation3d,
 };
@@ -43,11 +43,7 @@ fn main() {
     println!("{}: Done", TEMP);
 }
 
-fn metropolis_output(
-    data: MarkovChain,
-    result: SimResult,
-    temp: f64,
-) -> Result<(), Box<dyn Error>> {
+fn metropolis_output(data: ObsChain, result: SimResult, temp: f64) -> Result<(), Box<dyn Error>> {
     result.clone().read_write_csv(RESULTS_PATH)?;
 
     clean_csv(BINS_PATH)?;

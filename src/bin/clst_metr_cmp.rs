@@ -41,7 +41,7 @@ fn main() {
 
             let mut binning_step: u32 = 0;
             let clst_bins: [BinData; NUM_BINS] = [(); NUM_BINS].map(|_| {
-                let bin: BinData = clst_data.get_bin_data(temp, binning_step);
+                let bin: BinData = clst_data.get_bindata(temp, binning_step);
                 clst_data = clst_data.binning();
                 binning_step += 1;
                 bin
@@ -52,7 +52,7 @@ fn main() {
 
             let mut binning_step: u32 = 0;
             let metr_bins: [BinData; NUM_BINS] = [(); NUM_BINS].map(|_| {
-                let bin: BinData = metr_data.get_bin_data(temp, binning_step);
+                let bin: BinData = metr_data.get_bindata(temp, binning_step);
                 metr_data = metr_data.binning();
                 binning_step += 1;
                 bin

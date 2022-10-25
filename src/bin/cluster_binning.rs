@@ -11,7 +11,7 @@ use std::error::Error;
 
 use lattice_qft::{
     cluster::cluster_simulation3d,
-    export::{clean_csv, CsvData, MarkovChain, SimResult},
+    export::{clean_csv, CsvData, ObsChain, SimResult},
     lattice::Lattice3d,
 };
 
@@ -43,7 +43,7 @@ fn main() {
     println!("{}: Done", TEMP);
 }
 
-fn cluster_output(data: MarkovChain, result: SimResult, temp: f64) -> Result<(), Box<dyn Error>> {
+fn cluster_output(data: ObsChain, result: SimResult, temp: f64) -> Result<(), Box<dyn Error>> {
     result.clone().read_write_csv(RESULTS_PATH)?;
 
     clean_csv(BINS_PATH)?;
