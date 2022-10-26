@@ -32,8 +32,8 @@ where
 {
     fn cluster_sweep(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
+        //println!("{temp} Sweep");
 
-        println!("{temp} Sweep");
         // Set the mirror plane randomly on a height value
         let plane: T = self.values[rng.gen_range(0..SIZE)];
         let modifier: T = match rng.gen::<bool>() {
@@ -43,16 +43,16 @@ where
                 false => 1_i8.into(),
             },
         };
+        //println!("Plane and modifier set");
 
-        println!("Plane and modifier set");
         // Calculate the reflected field
         let reflected: Field<T, D, SIZE> = self.clone().mirror_values(plane, modifier);
+        //println!("Reflected field calculated");
 
-        println!("Reflected field calculated");
         // Activate links if they are on the same side of the plane:
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
+        //println!("Bonds initialized");
 
-        println!("Bonds initialized");
         // Going through the lattice sites...
         for index in 0..SIZE {
             // ...for each neighbour in positive coordinate direction...
@@ -83,12 +83,12 @@ where
                 }
             }
         }
+        //println!("Bonds activated");
 
-        println!("Bonds activated");
         // Build the clusters
-        let clusters: Vec<Vec<usize>> = bonds.build_clusters();
+        let clusters: Vec<Vec<usize>> = bonds.collect_clusters();
+        //println!("Clusters built");
 
-        println!("Clusters built");
         // For each cluster decide to flip it
         for cluster in clusters {
             let coin: bool = rng.gen();
@@ -190,35 +190,44 @@ pub(self) mod bonds {
             self.0.values[neighbour][(direction + D) % (D * 2_usize)] = true;
         }
 
-        /// Build a cluster from activated bonds.
-        pub fn build_clusters(self) -> Vec<Vec<usize>> {
+        /// Return collection of all clusters
+        pub fn collect_clusters(self) -> Vec<Vec<usize>> {
             let mut unvisited: Vec<bool> = vec![true; SIZE];
             let mut clusters: Vec<Vec<usize>> = Vec::new();
             for index in 0..SIZE {
                 if unvisited[index] {
-                    let mut cluster: Vec<usize> = Vec::new();
-                    self.cluster_up(index, &mut unvisited, &mut cluster);
-                    clusters.push(cluster);
+                    clusters.push(self.build_cluster(index, &mut unvisited));
                 }
             }
 
             clusters
         }
 
-        /// Recursively add sites to a cluster
-        fn cluster_up(&self, index: usize, unvisited: &mut Vec<bool>, cluster: &mut Vec<usize>) {
-            if unvisited[index] {
-                unvisited[index] = false;
+        /// Build a cluster from activated bonds
+        fn build_cluster(&self, index: usize, unvisited: &mut Vec<bool>) -> Vec<usize> {
+            let mut cluster: Vec<usize> = Vec::new();
+            let mut checklist: Vec<usize> = Vec::new();
+            checklist.push(index);
+            unvisited[index] = false;
+
+            while let Some(index) = checklist.pop() {
                 cluster.push(index);
-                for neighbour_index in self.0.values[index]
-                    .iter()
+
+                for (direction, neighbour) in self
+                    .0
+                    .lattice
+                    .get_neighbours_array(index)
+                    .into_iter()
                     .enumerate()
-                    .filter(|(_, &bond)| bond)
-                    .map(|(direction, _)| self.0.lattice.get_neighbours_array(index)[direction])
                 {
-                    self.cluster_up(neighbour_index, unvisited, cluster);
+                    if self.0.values[neighbour][direction] && unvisited[neighbour] {
+                        checklist.push(neighbour);
+                        unvisited[neighbour] = false;
+                    }
                 }
             }
+
+            cluster
         }
     }
 
@@ -269,7 +278,7 @@ pub(self) mod bonds {
         let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
         let bonds_field: BondsField<D, SIZE> = BondsField::new(&lattice);
 
-        let clusters: Vec<Vec<usize>> = bonds_field.build_clusters();
+        let clusters: Vec<Vec<usize>> = bonds_field.collect_clusters();
 
         let mut test: Vec<Vec<usize>> = Vec::new();
         for index in 0..SIZE {
@@ -296,7 +305,7 @@ pub(self) mod bonds {
             }
         }
 
-        let clusters: Vec<Vec<usize>> = bonds_field.build_clusters();
+        let clusters: Vec<Vec<usize>> = bonds_field.collect_clusters();
 
         let mut test: Vec<Vec<usize>> = Vec::new();
         let mut cluster: Vec<usize> = Vec::with_capacity(SIZE);
