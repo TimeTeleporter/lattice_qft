@@ -8,10 +8,10 @@ use std::time::Instant;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use lattice_qft::{
-    error::BinDataAry,
+    error::{BinDataAry, ObsChain},
     export::{clean_csv, CsvData},
     lattice::Lattice3d,
-    simulation::{metropolis_simulation3d, SimResult},
+    simulation::{cluster_simulation3d, metropolis_simulation3d, SimResult},
     CLUSTER_BINNING_PATH, CLUSTER_RESULTS_PATH, METRPLS_BINNING_PATH, METRPLS_RESULTS_PATH,
 };
 
@@ -26,24 +26,43 @@ fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    let paths = [
-        (CLUSTER_RESULTS_PATH, CLUSTER_BINNING_PATH),
-        (METRPLS_RESULTS_PATH, METRPLS_BINNING_PATH),
+    let sims: [(
+        &str,
+        &str,
+        fn(&Lattice3d<MAX_X, MAX_Y, MAX_T>, f64, usize, usize) -> (SimResult, ObsChain),
+    ); 2] = [
+        (
+            CLUSTER_RESULTS_PATH,
+            CLUSTER_BINNING_PATH,
+            metropolis_simulation3d,
+        ),
+        (
+            METRPLS_RESULTS_PATH,
+            METRPLS_BINNING_PATH,
+            cluster_simulation3d,
+        ),
     ];
 
-    let _res: Vec<()> = paths
+    let _res: Vec<()> = sims
         .par_iter()
-        .map(|(result_path, binning_path)| process(&lattice, result_path, binning_path))
+        .map(|(result_path, binning_path, sim_fn)| {
+            process(&lattice, result_path, binning_path, *sim_fn)
+        })
         .collect();
 }
 
-fn process(lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>, result_path: &str, binning_path: &str) {
+fn process(
+    lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>,
+    result_path: &str,
+    binning_path: &str,
+    simulation: fn(&Lattice3d<MAX_X, MAX_Y, MAX_T>, f64, usize, usize) -> (SimResult, ObsChain),
+) {
     let time = Instant::now();
 
     let results: Vec<(SimResult, BinDataAry)> = [0.1]
         .par_iter()
         .map(|&temp| {
-            let (mut result, data) = metropolis_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
+            let (mut result, data) = simulation(&lattice, temp, BURNIN, ITERATIONS);
             let bins: BinDataAry = data.calculate_binnings(temp, 3);
             let error = bins
                 .clone()
