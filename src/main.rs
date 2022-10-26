@@ -8,10 +8,11 @@ use std::time::Instant;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use lattice_qft::{
-    export::{calculate_binned_error, clean_csv, BinData, CsvData},
+    error::BinDataAry,
+    export::{clean_csv, CsvData},
     lattice::Lattice3d,
     simulation::{metropolis_simulation3d, SimResult},
-    METRPLS_BINNING_PATH, METRPLS_RESULTS_PATH,
+    CLUSTER_BINNING_PATH, CLUSTER_RESULTS_PATH, METRPLS_BINNING_PATH, METRPLS_RESULTS_PATH,
 };
 
 const MAX_X: usize = 10;
@@ -22,22 +23,36 @@ const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 1_000_000;
 
 fn main() {
-    let time = Instant::now();
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    let results: Vec<(SimResult, Vec<BinData>)> = [0.1]
+    let paths = [
+        (CLUSTER_RESULTS_PATH, CLUSTER_BINNING_PATH),
+        (METRPLS_RESULTS_PATH, METRPLS_BINNING_PATH),
+    ];
+
+    let _res: Vec<()> = paths
+        .par_iter()
+        .map(|(result_path, binning_path)| process(&lattice, result_path, binning_path))
+        .collect();
+}
+
+fn process(lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>, result_path: &str, binning_path: &str) {
+    let time = Instant::now();
+
+    let results: Vec<(SimResult, BinDataAry)> = [0.1]
         .par_iter()
         .map(|&temp| {
             let (mut result, data) = metropolis_simulation3d(&lattice, temp, BURNIN, ITERATIONS);
-            let bins: Vec<BinData> = data.calculate_binnings(temp, 3);
-            let error = match calculate_binned_error(&bins) {
-                Ok(error) => Some(error),
-                Err(err) => {
+            let bins: BinDataAry = data.calculate_binnings(temp, 3);
+            let error = bins
+                .clone()
+                .calculate_binned_error_tanh()
+                .or_else(|err| {
                     eprintln!("{err}");
-                    None
-                }
-            };
+                    Err(err)
+                })
+                .ok();
             result.set_error(error);
             println!("{:?}", result);
             (result, bins)
@@ -47,16 +62,16 @@ fn main() {
     println!("Sim done, time elapsed: {} s", time.elapsed().as_secs());
 
     for (res, bins) in results {
-        if let Err(err) = res.read_write_csv(METRPLS_RESULTS_PATH) {
+        if let Err(err) = res.read_write_csv(result_path) {
             eprint!("{err}");
         }
 
-        if let Err(err) = clean_csv(METRPLS_BINNING_PATH) {
+        if let Err(err) = clean_csv(binning_path) {
             eprint!("{err}");
         };
 
         for bin in bins {
-            if let Err(err) = bin.read_write_csv(METRPLS_BINNING_PATH) {
+            if let Err(err) = bin.read_write_csv(binning_path) {
                 eprint!("{err}");
             }
         }

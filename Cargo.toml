@@ -2,14 +2,12 @@
 name = "lattice_qft"
 version = "0.1.0"
 edition = "2021"
-default-run = "cluster-sim"
+# default-run = "cluster-sim"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 csv = "1.1.6"
-num = "0.4.0"
-ordered-float = { version = "3.1", features = ["rand", "serde"] }
 rand = "0.8.5"
 rayon = "1.5.3"
 serde = { version = "1.0.144", features = ["derive"] }
@@ -18,11 +16,3 @@ nalgebra = "0.30"
 
 [profile.dev]
 opt-level = 3
-
-[[bin]]
-name = "cluster-sim"
-path = "src/bin/cluster_sim.rs"
-
-[[bin]]
-name = "metropolis-sim"
-path = "src/bin/metropolis_sim.rs"
