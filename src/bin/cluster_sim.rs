@@ -2,7 +2,6 @@
 #![feature(generic_const_exprs)]
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
-#![recursion_limit = "2048"]
 
 use std::time::Instant;
 
@@ -14,12 +13,12 @@ use lattice_qft::{
     lattice::Lattice3d,
 };
 
-const MAX_X: usize = 100;
-const MAX_Y: usize = 100;
-const MAX_T: usize = 100;
+const MAX_X: usize = 10;
+const MAX_Y: usize = 10;
+const MAX_T: usize = 10;
 
 const RESULTS_PATH: &str = "data/cluster_sim/cluster_results.csv";
-const DATA_PATH: &str = "data/cluster_sim/cluster_data.csv";
+const BINNING_PATH: &str = "data/cluster_sim/cluster_binning.csv";
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 1_000_000;
@@ -55,12 +54,12 @@ fn main() {
             eprint!("{err}");
         }
 
-        if let Err(err) = clean_csv(DATA_PATH) {
+        if let Err(err) = clean_csv(BINNING_PATH) {
             eprint!("{err}");
         };
 
         for bin in bins {
-            if let Err(err) = bin.read_write_csv(DATA_PATH) {
+            if let Err(err) = bin.read_write_csv(BINNING_PATH) {
                 eprint!("{err}");
             }
         }
