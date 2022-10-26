@@ -83,40 +83,6 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// ----------------------------------------------------------------------------
-
-/// Datatype to save and read simulation output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimResult {
-    temp: f64,
-    burnin: usize,
-    iterations: usize,
-    observable: f64,
-    error: Option<f64>,
-}
-
-impl SimResult {
-    pub fn new(
-        temp: f64,
-        burnin: usize,
-        iterations: usize,
-        observable: f64,
-        error: Option<f64>,
-    ) -> Self {
-        SimResult {
-            temp,
-            burnin,
-            iterations,
-            observable,
-            error,
-        }
-    }
-
-    pub fn set_error(&mut self, error_option: Option<f64>) {
-        self.error = error_option;
-    }
-}
-
 /// Datatype to save and read binned simulation output.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BinData {

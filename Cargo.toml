@@ -20,29 +20,9 @@ nalgebra = "0.30"
 opt-level = 3
 
 [[bin]]
-name = "metropolis-test"
-path = "src/bin/metropolis_test.rs"
-
-[[bin]]
 name = "cluster-sim"
 path = "src/bin/cluster_sim.rs"
 
 [[bin]]
 name = "metropolis-sim"
 path = "src/bin/metropolis_sim.rs"
-
-[[bin]]
-name = "line-sim"
-path = "src/bin/line_sim.rs"
-
-[[bin]]
-name = "metropolis-binning"
-path = "src/bin/metropolis_binning.rs"
-
-[[bin]]
-name = "cluster-binning"
-path = "src/bin/cluster_binning.rs"
-
-[[bin]]
-name = "clst-metr-cmp"
-path = "src/bin/clst_metr_cmp.rs"

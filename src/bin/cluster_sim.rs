@@ -8,17 +8,15 @@ use std::time::Instant;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use lattice_qft::{
-    cluster::cluster_simulation3d,
-    export::{calculate_binned_error, clean_csv, BinData, CsvData, SimResult},
+    export::{calculate_binned_error, clean_csv, BinData, CsvData},
     lattice::Lattice3d,
+    simulation::{cluster_simulation3d, SimResult},
+    CLUSTER_BINNING_PATH, CLUSTER_RESULTS_PATH,
 };
 
 const MAX_X: usize = 10;
 const MAX_Y: usize = 10;
 const MAX_T: usize = 10;
-
-const RESULTS_PATH: &str = "data/cluster_sim/cluster_results.csv";
-const BINNING_PATH: &str = "data/cluster_sim/cluster_binning.csv";
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 1_000_000;
@@ -50,16 +48,16 @@ fn main() {
     println!("Sim done, time elapsed: {} s", time.elapsed().as_secs());
 
     for (res, bins) in results {
-        if let Err(err) = res.read_write_csv(RESULTS_PATH) {
+        if let Err(err) = res.read_write_csv(CLUSTER_RESULTS_PATH) {
             eprint!("{err}");
         }
 
-        if let Err(err) = clean_csv(BINNING_PATH) {
+        if let Err(err) = clean_csv(CLUSTER_BINNING_PATH) {
             eprint!("{err}");
         };
 
         for bin in bins {
-            if let Err(err) = bin.read_write_csv(BINNING_PATH) {
+            if let Err(err) = bin.read_write_csv(CLUSTER_BINNING_PATH) {
                 eprint!("{err}");
             }
         }
