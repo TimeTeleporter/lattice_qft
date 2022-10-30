@@ -120,7 +120,7 @@ pub(self) mod bonds {
     {
         /// Constructor for a new BondsField on the lattice initialized to be false everywhere.
         pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
-            let values: Vec<()> = vec![(); lattice.size.iter().product()];
+            let values: Vec<()> = vec![(); SIZE];
             let values: Vec<[bool; D * 2_usize]> =
                 values.into_iter().map(|_| [false; D * 2_usize]).collect();
 
@@ -145,7 +145,6 @@ pub(self) mod bonds {
                     clusters.push(self.build_cluster(index, &mut unvisited));
                 }
             }
-
             clusters
         }
 

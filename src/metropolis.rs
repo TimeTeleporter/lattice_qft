@@ -41,23 +41,22 @@ where
 {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
         // Initialize the change to be measured
-        let mut new_field = self.clone();
         let coin: bool = rng.gen();
-        new_field.values[index] = match coin {
-            true => new_field.values[index] + Self::FieldType::from(1_i8),
-            false => new_field.values[index] - Self::FieldType::from(1_i8),
+        let new_value = match coin {
+            true => self.values[index] + Self::FieldType::from(1_i8),
+            false => self.values[index] - Self::FieldType::from(1_i8),
         };
 
         // Calculate the action of both possibilities
-        let action = self.action_observable();
-        let new_action = new_field.action_observable();
+        let action = self.calculate_assumed_action(index, self.values[index]);
+        let new_action = self.calculate_assumed_action(index, new_value);
 
         // Accept the new action if its lower than the previous.
         // Else accept it with a proportional probability.
         let draw: f64 = rng.gen_range(0.0..=1.0);
         let prob: f64 = (((action - new_action) as f64) * temp).exp();
         if draw <= prob {
-            *self = new_field;
+            self.values[index] = new_value;
         }
     }
 }
