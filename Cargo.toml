@@ -2,7 +2,7 @@
 name = "lattice_qft"
 version = "0.1.0"
 edition = "2021"
-# default-run = "cluster-sim"
+default-run = "sim"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,3 +16,11 @@ nalgebra = "0.30"
 
 [profile.dev]
 opt-level = 3
+
+[[bin]]
+name = "sim"
+path = "src/bin/sim.rs"
+
+[[bin]]
+name = "line"
+path = "src/bin/line.rs"

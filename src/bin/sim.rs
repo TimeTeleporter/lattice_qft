@@ -21,7 +21,7 @@ const MAX_T: usize = CUBE;
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
 const ITERATIONS: usize = 10_000_000;
 
-const TEMP: f64 = 1.5;
+const TEMP: f64 = 0.1;
 
 const RESULTS_PATH: &str = "./data/sim_results.csv";
 const BINNING_PATH: &str = "./data/sim_binning.csv";
