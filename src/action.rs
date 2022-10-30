@@ -27,6 +27,8 @@ pub trait Action {
         (site - neighbour) * (site - neighbour)
     }
 
+    fn calculate_assumed_action(&self, index: usize, site: Self::FieldType) -> i64;
+
     fn normalize(&mut self);
     fn normalize_random(&mut self);
 }
@@ -55,6 +57,15 @@ where
                 let neighbour = self.get_value(neighbour).clone();
                 action = action + Self::calculate_link_action(value, neighbour).into();
             }
+        }
+        action
+    }
+
+    fn calculate_assumed_action(&self, index: usize, value: Self::FieldType) -> i64 {
+        let mut action: i64 = 0;
+        for neighbour in self.lattice.get_neighbours_array(index) {
+            let neighbour = self.get_value(neighbour).clone();
+            action = action + Self::calculate_link_action(value, neighbour).into();
         }
         action
     }
@@ -91,6 +102,10 @@ where
     /// Sums up all link actions of the lattice.
     fn action_observable(&self) -> i64 {
         self.deref().action_observable()
+    }
+
+    fn calculate_assumed_action(&self, index: usize, site: Self::FieldType) -> i64 {
+        self.deref().calculate_assumed_action(index, site)
     }
 
     fn normalize(&mut self) {
@@ -176,4 +191,26 @@ fn test_random_normalize() {
     field.normalize_random();
 
     assert!(field.values.iter().find(|&&x| x == 0).is_some());
+}
+
+#[test]
+fn test_calculate_assumed_action() {
+    use crate::lattice::Lattice3d;
+
+    let lattice: Lattice3d<10, 10, 10> = Lattice3d::new();
+    let field: Field3d<i8, 10, 10, 10> = Field3d::new(&lattice);
+    let mut field: Field3d<i32, 10, 10, 10> = Field3d::from_field(field);
+
+    let index: usize = 234;
+    let value: i32 = 3;
+
+    let assumed: i64 = field.calculate_assumed_action(index, value);
+
+    field.values[index] = 3;
+
+    let test: i64 = field.action_observable();
+
+    println!("test: {test}, assumed: {assumed}");
+
+    assert_eq!(test, assumed);
 }

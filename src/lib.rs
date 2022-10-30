@@ -102,10 +102,10 @@ pub const REL_TEMP_ARY: [f64; 31] = [
     1.2589, 1.5848, 1.9952, 2.5118, 3.1622, 3.9810, 5.0118, 6.3095, 7.9432, 10.0,
 ];
 
-pub const CLUSTER_RESULTS_PATH: &str = "data/cluster_results.csv";
-pub const CLUSTER_BINNING_PATH: &str = "data/cluster_binning.csv";
-pub const METRPLS_RESULTS_PATH: &str = "data/metropolis_results.csv";
-pub const METRPLS_BINNING_PATH: &str = "data/metropolis_binning.csv";
+pub const CLUSTER_RESULTS_PATH: &str = "./data/cluster_results.csv";
+pub const CLUSTER_BINNING_PATH: &str = "./data/cluster_binning.csv";
+pub const METRPLS_RESULTS_PATH: &str = "./data/metropolis_results.csv";
+pub const METRPLS_BINNING_PATH: &str = "./data/metropolis_binning.csv";
 
 pub mod action;
 pub mod cluster;
