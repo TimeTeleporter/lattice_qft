@@ -3,68 +3,70 @@
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
 
-use std::time::Instant;
+use std::{ops::Deref, time::Instant};
 
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
-    error::{BinDataAry, ObsChain},
+    error::BinDataAry,
     export::{clean_csv, CsvData},
     lattice::Lattice3d,
-    simulation::{cluster_simulation3d, metropolis_simulation3d, SimResult},
+    simulation::{ClusterSim, MetrplsSim, SimResult, Simulation, Simulations3d},
     CLUSTER_BINNING_PATH, CLUSTER_RESULTS_PATH, METRPLS_BINNING_PATH, METRPLS_RESULTS_PATH,
 };
 
-const MAX_X: usize = 10;
-const MAX_Y: usize = 10;
-const MAX_T: usize = 10;
+const MAX_X: usize = 5;
+const MAX_Y: usize = 5;
+const MAX_T: usize = 5;
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 1_000_000;
+const ITERATIONS: usize = 10_000_000;
 
 fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    let sims: [(
-        &str,
-        &str,
-        fn(&Lattice3d<MAX_X, MAX_Y, MAX_T>, f64, usize, usize) -> (SimResult, ObsChain),
-    ); 2] = [
-        (
-            CLUSTER_RESULTS_PATH,
-            CLUSTER_BINNING_PATH,
-            metropolis_simulation3d,
-        ),
-        (
-            METRPLS_RESULTS_PATH,
-            METRPLS_BINNING_PATH,
-            cluster_simulation3d,
-        ),
-    ];
+    let temp: f64 = 0.1;
 
-    let _res: Vec<()> = sims
-        .par_iter()
-        .map(|(result_path, binning_path, sim_fn)| {
-            process(&lattice, result_path, binning_path, *sim_fn)
-        })
-        .collect();
-}
+    let mut sims: Vec<(
+        Simulations3d<MAX_X, MAX_Y, MAX_T, BURNIN, ITERATIONS>,
+        (&str, &str),
+    )> = Vec::new();
 
-fn process(
-    lattice: &Lattice3d<MAX_X, MAX_Y, MAX_T>,
-    result_path: &str,
-    binning_path: &str,
-    simulation: fn(&Lattice3d<MAX_X, MAX_Y, MAX_T>, f64, usize, usize) -> (SimResult, ObsChain),
-) {
-    let time = Instant::now();
+    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} ClusterSim");
+    let paths: (&str, &str) = (CLUSTER_RESULTS_PATH, CLUSTER_BINNING_PATH);
+    let sim: ClusterSim<3, { MAX_X * MAX_Y * MAX_T }, BURNIN, ITERATIONS> =
+        ClusterSim::new(name, lattice.deref(), temp);
+    sims.push((Simulations3d::ClusterSim3d(sim), paths));
 
-    let results: Vec<(SimResult, BinDataAry)> = [0.1]
-        .par_iter()
-        .map(|&temp| {
-            let (mut result, data) = simulation(&lattice, temp, BURNIN, ITERATIONS);
-            let bins: BinDataAry = data.calculate_binnings(temp, 3);
-            let error = bins
+    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} MetrplsSim");
+    let paths: (&str, &str) = (METRPLS_RESULTS_PATH, METRPLS_BINNING_PATH);
+    let metrpls_sim: MetrplsSim<3, { MAX_X * MAX_Y * MAX_T }, BURNIN, ITERATIONS> =
+        MetrplsSim::new(name, lattice.deref(), temp);
+    sims.push((Simulations3d::MetropolisSim3d(metrpls_sim), paths));
+
+    let results: Vec<((SimResult, BinDataAry), (&str, &str))> = sims
+        .into_par_iter()
+        .map(|(sim, paths)| {
+            #[allow(unused_mut)]
+            let (mut result, data) = match sim {
+                Simulations3d::ClusterSim3d(mut sim) => {
+                    let time = Instant::now();
+                    let result = sim.run();
+                    let duration: f32 = time.elapsed().as_secs_f32();
+                    println!("The Cluster Simulation took {duration} seconds.");
+                    result
+                }
+                Simulations3d::MetropolisSim3d(mut sim) => {
+                    let time = Instant::now();
+                    let result = sim.run();
+                    let duration: f32 = time.elapsed().as_secs_f32();
+                    println!("The Metropolis Simulation took {duration} seconds.");
+                    result
+                }
+            };
+            let bins: BinDataAry = data.calculate_binnings(result.temp, 3);
+            /*let error = bins
                 .clone()
                 .calculate_binned_error_tanh()
                 .or_else(|err| {
@@ -72,29 +74,22 @@ fn process(
                     Err(err)
                 })
                 .ok();
-            result.set_error(error);
-            println!("{:?}", result);
-            (result, bins)
+            result.set_error(error);*/
+            ((result, bins), paths)
         })
         .collect();
 
-    println!("Sim done, time elapsed: {} s", time.elapsed().as_secs());
-
-    for (res, bins) in results {
-        if let Err(err) = res.read_write_csv(result_path) {
+    for ((res, bins), (results_path, binning_path)) in results {
+        if let Err(err) = res.read_write_csv(results_path) {
             eprint!("{err}");
-        }
-
+        };
         if let Err(err) = clean_csv(binning_path) {
             eprint!("{err}");
         };
-
         for bin in bins {
             if let Err(err) = bin.read_write_csv(binning_path) {
                 eprint!("{err}");
             }
         }
     }
-
-    println!("Data stored, time elapsed: {} s", time.elapsed().as_secs());
 }
