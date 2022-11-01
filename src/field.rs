@@ -1,4 +1,4 @@
-use std::ops::{Add, Deref, DerefMut, Mul, Sub};
+use std::ops::{Deref, DerefMut, Sub};
 
 use rand::{distributions::Standard, prelude::Distribution, random};
 
@@ -38,21 +38,6 @@ where
         for value in self.values.iter_mut() {
             *value = *value - shift;
         }
-    }
-}
-
-// Implementing mirroring
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    T: Copy + From<i8> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
-    [(); D * 2_usize]:,
-{
-    /// Mirrors all field values on a plane with a modifier
-    pub fn mirror_values(mut self, plane: T, modifier: T) -> Self {
-        for value in self.values.iter_mut() {
-            *value = <i8 as Into<T>>::into(2_i8) * plane + modifier - *value;
-        }
-        self
     }
 }
 
@@ -293,18 +278,4 @@ fn test_field_shift() {
     field.shift_values(3);
 
     assert_eq!(field.values[80], -3);
-}
-
-#[test]
-fn test_field_mirror() {
-    use crate::action::Action;
-    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
-    let field: Field<i8, 4, 81> = Field::random(&lattice);
-    let mut field: Field<i32, 4, 81> = Field::from_field(field);
-
-    let old_action: i64 = field.action_observable();
-
-    field = field.mirror_values(29, 0);
-
-    assert_eq!(old_action, field.action_observable());
 }

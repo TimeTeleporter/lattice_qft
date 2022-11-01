@@ -6,11 +6,13 @@ use crate::{action::Action, field::Field};
 
 use self::bonds::BondsField;
 
-pub trait Cluster: Action {
+pub trait Cluster<T>: Action {
     fn cluster_sweep(&mut self, temp: f64);
+
+    fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T;
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Cluster for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Cluster<T> for Field<'a, T, D, SIZE>
 where
     f64: From<T>,
     T: Add<Output = T>
@@ -43,10 +45,6 @@ where
         };
         //println!("Plane and modifier set");
 
-        // Calculate the reflected field
-        let reflected: Field<T, D, SIZE> = self.clone().mirror_values(plane, modifier);
-        //println!("Reflected field calculated");
-
         // Initialize memory to save the activated bonds and set all to false
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
         //println!("Bonds initialized");
@@ -67,7 +65,7 @@ where
                     self.values[neighbour],
                 );
                 let reflected_action: T = <Self as Action>::calculate_link_action(
-                    reflected.values[index],
+                    self.reflect_value(index, plane, modifier),
                     self.values[neighbour],
                 );
 
@@ -95,10 +93,14 @@ where
             let coin: bool = rng.gen();
             if coin {
                 for index in cluster {
-                    self.values[index] = reflected.values[index];
+                    self.values[index] = self.reflect_value(index, plane, modifier);
                 }
             }
         }
+    }
+
+    fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T {
+        <i8 as Into<T>>::into(2_i8) * plane + modifier - self.values[index]
     }
 }
 
@@ -269,4 +271,26 @@ pub(self) mod bonds {
 
         assert_eq!(test.len(), clusters.len());
     }
+}
+
+#[test]
+fn test_field_mirror() {
+    use crate::action::Action;
+    use crate::lattice::Lattice;
+
+    const D: usize = 4;
+    const SIZE_ARY: [usize; D] = [3, 3, 3, 3];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2] * SIZE_ARY[3];
+
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    let field: Field<i8, D, SIZE> = Field::random(&lattice);
+    let mut field: Field<i32, D, SIZE> = Field::from_field(field);
+
+    let old_action: i64 = field.action_observable();
+
+    for index in 0..SIZE {
+        field.values[index] = field.reflect_value(index, 0, 0);
+    }
+
+    assert_eq!(old_action, field.action_observable());
 }

@@ -11,3 +11,5 @@ name,temp,burnin,iterations,observable,error
 5x5x5 Metropolis Simulation,1.5,10000,10000000,0.2797524,
 5x5x5 Cluster Simulation,0.1,10000,10000000,412.0129362399991,
 5x5x5 Metropolis Simulation,0.1,10000,10000000,61.99840082000172,
+5x5x5 Cluster Simulation,0.1,10000,10000000,414.3358193799637,
+5x5x5 Metropolis Simulation,0.1,10000,10000000,62.00224009999305,
