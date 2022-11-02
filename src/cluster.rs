@@ -7,7 +7,7 @@ use crate::{action::Action, field::Field};
 use self::bonds::BondsField;
 
 pub trait Cluster<T>: Action {
-    fn cluster_sweep(&mut self, temp: f64);
+    fn cluster_sweep(&mut self, temp: f64) -> usize;
 
     fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T;
 }
@@ -31,7 +31,7 @@ where
     /// and constructs clusters of lattice sites with values on the same side
     /// of the mirror. For each cluster it is randomly decided if all of the
     /// values of its sites are mirrored or not.
-    fn cluster_sweep(&mut self, temp: f64) {
+    fn cluster_sweep(&mut self, temp: f64) -> usize{
         let mut rng = ThreadRng::default();
 
         // Set the mirror plane randomly on a height value
@@ -86,7 +86,7 @@ where
 
         // Build the clusters
         let clusters: Vec<Vec<usize>> = bonds.collect_clusters();
-        //println!("Clusters built");
+        let clusters_amount: usize = clusters.len();
 
         // For each cluster decide to flip it
         for cluster in clusters {
@@ -97,6 +97,8 @@ where
                 }
             }
         }
+
+        clusters_amount
     }
 
     fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T {

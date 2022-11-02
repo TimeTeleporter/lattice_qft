@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub trait Metropolis: Action {
-    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng);
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool;
 
     fn metropolis_random(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
@@ -16,11 +16,15 @@ pub trait Metropolis: Action {
         self.metropolis_single(index, temp, &mut rng);
     }
 
-    fn metropolis_sweep(&mut self, temp: f64) {
+    fn metropolis_sweep(&mut self, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
+        let mut acceptance: usize = 0;
         for index in 0..Self::SIZE {
-            self.metropolis_single(index, temp, &mut rng);
+            if self.metropolis_single(index, temp, &mut rng) {
+                acceptance += 1;
+            };
         }
+        acceptance
     }
 }
 
@@ -39,7 +43,7 @@ where
         + Copy,
     [(); D * 2_usize]:,
 {
-    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool {
         // Initialize the change to be measured
         let coin: bool = rng.gen();
         let new_value = match coin {
@@ -57,7 +61,9 @@ where
         let prob: f64 = (((action - new_action) as f64) * temp).exp();
         if draw <= prob {
             self.values[index] = new_value;
+            return true;
         }
+        false
     }
 }
 
@@ -77,7 +83,7 @@ where
         + Copy,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
-    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) {
+    fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool {
         self.deref_mut().metropolis_single(index, temp, rng)
     }
 }

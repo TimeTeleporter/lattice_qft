@@ -174,10 +174,27 @@ fn test_index_coordinates_conv() {
 ///              0  1  2  3            0  1  2  3            0  1  2  3
 ///
 #[test]
-fn test_neighbour_index_array() {
+fn test_neighbour_index_array_example() {
     let lattice: Lattice<3, { 4 * 5 * 3 }> = Lattice::new([4, 5, 3]);
     let index: usize = 19;
     let test: [usize; 6] = [16, 3, 39, 18, 15, 59];
 
     assert_eq!(lattice.values[index], test);
 }
+
+/// This tests if for all lattice sites in all direction if the neighbours
+/// neighbour is oneself.
+#[test]
+fn test_big_dim_neighbour_list() {
+    const D: usize = 5;
+    const SIZE_ARY: [usize; D] = [90, 234, 25, 3, 3];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2] * SIZE_ARY[3] * SIZE_ARY[4];
+
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    for (index, neighbours) in lattice.values.iter().enumerate() {
+        for (direction, &neighbour) in neighbours.iter().enumerate() {
+            assert_eq!(index, lattice.values[neighbour][(direction + D) % (D * 2_usize) ]);
+        }
+    }
+}
+

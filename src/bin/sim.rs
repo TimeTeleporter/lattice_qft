@@ -12,14 +12,14 @@ use lattice_qft::{
     simulation::{SimResult, Simulation3d, SimulationType},
 };
 
-const CUBE: usize = 2;
+const CUBE: usize = 5;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 1_000_000;
+const ITERATIONS: usize = 100_000;
 
 const TEMP: f64 = 0.1;
 

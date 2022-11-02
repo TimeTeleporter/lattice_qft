@@ -31,7 +31,7 @@ pub trait Action {
 
     /// Calculates the [action_observable], normalized by the amount of lattice sites.
     fn bond_normalized_action_observable(&self, temp: f64) -> f64 {
-        self.action_observable(temp) / (D * Self::SIZE) as f64
+        self.action_observable(temp) / (Self::D * Self::SIZE) as f64
     }
 
     /// Calculates ```(x - y)^2``` for two values.
