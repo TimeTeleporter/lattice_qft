@@ -12,14 +12,14 @@ use lattice_qft::{
     simulation::{SimResult, Simulation3d, SimulationType},
 };
 
-const CUBE: usize = 5;
+const CUBE: usize = 8;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 10_000_000;
+const ITERATIONS: usize = 1_000_000;
 
 const TEMP: f64 = 0.1;
 
@@ -31,19 +31,22 @@ fn main() {
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
     let mut sims: Vec<Simulation3d<MAX_X, MAX_Y, MAX_T>> = Vec::new();
-    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Cluster Simulation");
+    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Cluster Simulation, Size normalized");
+    let size_normalized: bool = true;
     sims.push(Simulation3d::new(
         name,
         SimulationType::ClusterSim,
+        size_normalized,
         &lattice,
         TEMP,
         BURNIN,
         ITERATIONS,
     ));
-    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Metropolis Simulation");
+    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Metropolis Simulation, Size normalized");
     sims.push(Simulation3d::new(
         name,
         SimulationType::MetropolisSim,
+        size_normalized,
         &lattice,
         TEMP,
         BURNIN,

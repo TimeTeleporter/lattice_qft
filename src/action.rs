@@ -15,11 +15,17 @@ pub trait Action {
 
     const SIZE: usize;
 
-    fn action_observable(&self) -> i64;
+    /// Sums up the action across all lattice bonds
+    fn sum_link_actions(&self) -> i64;
 
     /// Calculates the action of the lattice with the coupling constant.
-    fn lattice_action(&self, temp: f64) -> f64 {
-        (self.action_observable() as f64) * temp
+    fn action_observable(&self, temp: f64) -> f64 {
+        (self.sum_link_actions() as f64) * temp
+    }
+
+    /// Calculates the [action_observable], normalized by the lattice size.
+    fn size_normalized_action_observable(&self, temp: f64) -> f64 {
+        self.action_observable(temp) / Self::SIZE as f64
     }
 
     /// Calculates ```(x - y)^2``` for two values.
@@ -49,7 +55,7 @@ where
     type FieldType = T;
     const SIZE: usize = SIZE;
 
-    fn action_observable(&self) -> i64 {
+    fn sum_link_actions(&self) -> i64 {
         let mut action: i64 = 0;
         for index in 0..Self::SIZE {
             let value = self.get_value(index).clone();
@@ -100,8 +106,8 @@ where
     const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
     /// Sums up all link actions of the lattice.
-    fn action_observable(&self) -> i64 {
-        self.deref().action_observable()
+    fn sum_link_actions(&self) -> i64 {
+        self.deref().sum_link_actions()
     }
 
     fn calculate_assumed_action(&self, index: usize, site: Self::FieldType) -> i64 {
@@ -127,7 +133,7 @@ fn test_action_non_negative() {
 
     let field: Field3d<i32, 9, 9, 9> = Field3d::from_field(field);
 
-    assert!(field.action_observable() >= 0);
+    assert!(field.sum_link_actions() >= 0);
 }
 
 #[test]
@@ -137,7 +143,7 @@ fn test_action_new_zero() {
     let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
     let field: Field<i8, 4, 81> = Field::new(&lattice);
 
-    assert_eq!(field.action_observable(), 0);
+    assert_eq!(field.sum_link_actions(), 0);
 }
 
 #[test]
@@ -149,15 +155,15 @@ fn test_action_given_field() {
 
     field.values[0] = 1;
 
-    assert_eq!(field.action_observable(), 6);
+    assert_eq!(field.sum_link_actions(), 6);
 
     field.values[4] = 1;
 
-    assert_eq!(field.action_observable(), 12);
+    assert_eq!(field.sum_link_actions(), 12);
 
     field.values[1] = 2;
 
-    assert_eq!(field.action_observable(), 28)
+    assert_eq!(field.sum_link_actions(), 28)
 }
 
 #[test]
@@ -171,13 +177,13 @@ fn test_action_add_one() {
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
     let mut field: Field3d<i32, TEST_X, TEST_Y, TEST_T> = Field3d::new(&lattice);
 
-    let action = field.action_observable();
+    let action = field.sum_link_actions();
 
     for value in field.values.iter_mut() {
         *value = *value + 1;
     }
 
-    assert_eq!(action, field.action_observable());
+    assert_eq!(action, field.sum_link_actions());
 }
 
 #[test]
@@ -208,7 +214,7 @@ fn test_calculate_assumed_action() {
 
     field.values[index] = 3;
 
-    let test: i64 = field.action_observable();
+    let test: i64 = field.sum_link_actions();
 
     println!("test: {test}, assumed: {assumed}");
 

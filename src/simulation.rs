@@ -73,6 +73,7 @@ where
 {
     name: String,
     sim_type: SimulationType,
+    size_normalized: bool,
     lattice: &'a Lattice<D, SIZE>,
     temp: f64,
     burnin: usize,
@@ -86,6 +87,7 @@ where
     pub fn new(
         name: String,
         sim_type: SimulationType,
+        size_normalized: bool,
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         burnin: usize,
@@ -94,6 +96,7 @@ where
         Simulation {
             name,
             sim_type,
+            size_normalized,
             lattice,
             temp,
             burnin,
@@ -118,7 +121,10 @@ where
         let mut observable_array: Vec<f64> = Vec::with_capacity(self.iterations); // Simulation observable arrray
         for _step in 0..(self.iterations) {
             self.sim_type.single_sweep(&mut field, self.temp);
-            observable_array.push(field.lattice_action(self.temp));
+            observable_array.push(match self.size_normalized {
+                true => field.size_normalized_action_observable(self.temp),
+                false => field.action_observable(self.temp),
+            });
             field.normalize_random();
         }
 
@@ -164,13 +170,14 @@ where
     pub fn new(
         name: String,
         sim_type: SimulationType,
+        size_normalized: bool,
         lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
         temp: f64,
         burnin: usize,
         iterations: usize,
     ) -> Self {
         let sim: Simulation<3, { MAX_X * MAX_Y * MAX_T }> =
-            Simulation::new(name, sim_type, lattice.deref(), temp, burnin, iterations);
+            Simulation::new(name, sim_type, size_normalized, lattice.deref(), temp, burnin, iterations);
         Simulation3d(sim)
     }
 }

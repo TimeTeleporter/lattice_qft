@@ -286,11 +286,11 @@ fn test_field_mirror() {
     let field: Field<i8, D, SIZE> = Field::random(&lattice);
     let mut field: Field<i32, D, SIZE> = Field::from_field(field);
 
-    let old_action: i64 = field.action_observable();
+    let old_action: i64 = field.sum_link_actions();
 
     for index in 0..SIZE {
         field.values[index] = field.reflect_value(index, 0, 0);
     }
 
-    assert_eq!(old_action, field.action_observable());
+    assert_eq!(old_action, field.sum_link_actions());
 }
