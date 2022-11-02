@@ -9,7 +9,7 @@ use crate::{action::Action, field::Field, pause};
 
 use self::bonds::BondsField;
 
-const VERBOSE: bool = true;
+const VERBOSE: bool = false;
 
 pub trait Cluster<const D: usize, const SIZE: usize>: Action<D, SIZE> {
     fn cluster_sweep(&mut self, temp: f64) -> usize;
@@ -54,10 +54,13 @@ where
                 false => 1_i8.into(),
             },
         };
+        if VERBOSE {
+            println!("Mirror plane set on {plane} and {modifier}");
+        }
 
         // Initialize memory to save the activated bonds and set all to false
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
-        //println!("Bonds initialized");
+
         // Going through the lattice sites...
         for index in 0..SIZE {
             let site: T = self.values[index];
@@ -95,17 +98,13 @@ where
 
         // Build the clusters
         let clusters: Vec<Vec<usize>> = bonds.collect_clusters();
-        if VERBOSE {
-            println!("Clusters built");
-            println!("{:?}", clusters);
-        }
 
         let clusters_amount: usize = clusters.len();
 
         // For each cluster decide to flip it
         for cluster in clusters {
             if VERBOSE {
-                println!("Looking at {:?}", cluster);
+                println!("Looking at the cluster {:?}", cluster);
                 pause();
                 for &index in cluster.iter() {
                     let neighbours: [usize; D * 2_usize] = self.lattice.get_neighbours_array(index);
@@ -148,7 +147,7 @@ where
 pub(self) mod bonds {
     use std::{collections::VecDeque, ops::Deref};
 
-    use crate::{field::Field, lattice::Lattice};
+    use crate::{cluster::VERBOSE, field::Field, lattice::Lattice, pause};
 
     /// Models the activation of outgoing bonds from a lattice site
     pub struct BondsField<'a, const D: usize, const SIZE: usize>(
@@ -197,27 +196,43 @@ pub(self) mod bonds {
             let mut checklist: VecDeque<usize> = VecDeque::with_capacity(SIZE / 2);
             // Add the new site to a checklist for sites to check for
             // activated, unvisited neighbours to be added to the cluster
+            if VERBOSE {
+                println!("Starting to build the cluster around {index}");
+            }
             checklist.push_back(index);
             unvisited[index] = false;
 
             // Continuously working through the checklist, for each entry...
-            while let Some(index) = checklist.pop_front() {
+            while let Some(check) = checklist.pop_front() {
                 // ...add them to the cluster list and...
-                cluster.push(index);
+                cluster.push(check);
+                if VERBOSE {
+                    pause();
+                    println!(
+                        "Looking at {check}, with bonds {:?} and neighbours {:?}",
+                        self.0.values[check],
+                        self.0.lattice.get_neighbours_array(check)
+                    );
+                }
 
                 // ...check each neighbour...
                 for (direction, neighbour) in self
                     .0
                     .lattice
-                    .get_neighbours_array(index)
+                    .get_neighbours_array(check)
                     .into_iter()
                     .enumerate()
                 {
                     // ...if it hasn't been visited and the link is active,
                     // add it to the checklist and mark it as visited.
-                    if self.0.values[neighbour][direction] && unvisited[neighbour] {
+                    if unvisited[neighbour] && self.0.values[check][direction] {
+                        if VERBOSE {
+                            println!("{neighbour} gets added to the checklist :)");
+                        }
                         checklist.push_back(neighbour);
                         unvisited[neighbour] = false;
+                    } else if VERBOSE {
+                        println!("{neighbour} is not added to the checklist :(")
                     }
                 }
             }

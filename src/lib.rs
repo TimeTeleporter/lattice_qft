@@ -123,18 +123,9 @@ extern crate rayon;
 extern crate serde;
 extern crate varpro;
 
-// A method to pause a sim until enter.
-use std::io;
-use std::io::prelude::*;
+// A method to pause a sim until enter
+use std::process::Command;
 
 pub fn pause() {
-    let mut stdin = io::stdin();
-    let mut stdout = io::stdout();
-
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press any key to continue...").unwrap();
-    stdout.flush().unwrap();
-
-    // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
+    let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
 }
