@@ -6,13 +6,18 @@ use crate::{action::Action, field::Field};
 
 use self::bonds::BondsField;
 
-pub trait Cluster<T>: Action {
+pub trait Cluster: Action {
     fn cluster_sweep(&mut self, temp: f64) -> usize;
 
-    fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T;
+    fn reflect_value(
+        &self,
+        index: usize,
+        plane: <Self as Action>::FieldType,
+        modifier: <Self as Action>::FieldType,
+    ) -> <Self as Action>::FieldType;
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Cluster<T> for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Cluster for Field<'a, T, D, SIZE>
 where
     f64: From<T>,
     T: Add<Output = T>
@@ -31,7 +36,7 @@ where
     /// and constructs clusters of lattice sites with values on the same side
     /// of the mirror. For each cluster it is randomly decided if all of the
     /// values of its sites are mirrored or not.
-    fn cluster_sweep(&mut self, temp: f64) -> usize{
+    fn cluster_sweep(&mut self, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
 
         // Set the mirror plane randomly on a height value
@@ -51,8 +56,9 @@ where
 
         // Going through the lattice sites...
         for index in 0..SIZE {
+            let site: T = self.values[index];
             // ...for each neighbour in positive coordinate direction...
-            for (direction, neighbour) in self
+            for (direction, neighbour_index) in self
                 .lattice
                 .pos_neighbours_array(index)
                 .into_iter()
@@ -60,23 +66,23 @@ where
             {
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
-                let action: T = <Self as Action>::calculate_link_action(
-                    self.values[index],
-                    self.values[neighbour],
-                );
+                let neighbour: T = self.values[neighbour_index];
+                let action: T = <Self as Action>::calculate_link_action(site, neighbour);
                 let reflected_action: T = <Self as Action>::calculate_link_action(
-                    self.reflect_value(index, plane, modifier),
-                    self.values[neighbour],
+                    site,
+                    self.reflect_value(neighbour_index, plane, modifier),
                 );
 
+                let action_difference: T = action - reflected_action;
+
                 // Dont activate a bond if both are on the same side.
-                if action >= reflected_action {
+                if action_difference >= 0_i8.into() {
                     continue;
-                }
+                };
 
                 // Activate the link with probability 1 - exp(S - S').
                 let draw: f64 = rng.gen_range(0.0..=1.0);
-                let prob: f64 = 1.0 - (Into::<f64>::into(action - reflected_action) * temp).exp();
+                let prob: f64 = 1.0 - (Into::<f64>::into(action_difference) * temp).exp();
                 if draw <= prob {
                     bonds.activate(index, direction)
                 }
@@ -101,8 +107,14 @@ where
         clusters_amount
     }
 
-    fn reflect_value(&self, index: usize, plane: T, modifier: T) -> T {
-        <i8 as Into<T>>::into(2_i8) * plane + modifier - self.values[index]
+    fn reflect_value(
+        &self,
+        index: usize,
+        plane: <Self as Action>::FieldType,
+        modifier: <Self as Action>::FieldType,
+    ) -> <Self as Action>::FieldType {
+        <i8 as Into<<Self as Action>::FieldType>>::into(2_i8) * plane + modifier
+            - self.values[index]
     }
 }
 
