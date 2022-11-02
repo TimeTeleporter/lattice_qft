@@ -152,6 +152,7 @@ where
 
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for _step in 0..(self.burnin) {
+            println!("Sweep {_step}");
             self.sim_type.single_sweep(&mut field, self.temp);
             field.normalize_random();
         }
@@ -161,6 +162,7 @@ where
         let mut observable_array: Vec<f64> = Vec::with_capacity(self.iterations); // Simulation observable arrray
         let mut sweepstats_ary: Vec<SweepReturn> = Vec::with_capacity(self.iterations);
         for _step in 0..(self.iterations) {
+            println!("Sweep {_step}");
             sweepstats_ary.push(self.sim_type.single_sweep(&mut field, self.temp));
             observable_array.push(match self.size_normalized {
                 true => field.size_normalized_action_observable(self.temp),
