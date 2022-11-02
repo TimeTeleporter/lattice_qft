@@ -13,6 +13,7 @@ pub trait Action {
         + Default
         + From<i8>;
 
+    const D: usize;
     const SIZE: usize;
 
     /// Sums up the action across all lattice bonds
@@ -23,9 +24,14 @@ pub trait Action {
         (self.sum_link_actions() as f64) * temp
     }
 
-    /// Calculates the [action_observable], normalized by the lattice size.
+    /// Calculates the [action_observable], normalized by the amount of lattice sites.
     fn size_normalized_action_observable(&self, temp: f64) -> f64 {
         self.action_observable(temp) / Self::SIZE as f64
+    }
+
+    /// Calculates the [action_observable], normalized by the amount of lattice sites.
+    fn bond_normalized_action_observable(&self, temp: f64) -> f64 {
+        self.action_observable(temp) / (D * Self::SIZE) as f64
     }
 
     /// Calculates ```(x - y)^2``` for two values.
@@ -53,6 +59,7 @@ where
     [(); D * 2_usize]:,
 {
     type FieldType = T;
+    const D: usize = D;
     const SIZE: usize = SIZE;
 
     fn sum_link_actions(&self) -> i64 {
@@ -103,6 +110,7 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type FieldType = T;
+    const D: usize = 3;
     const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
     /// Sums up all link actions of the lattice.
