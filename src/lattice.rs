@@ -193,8 +193,10 @@ fn test_big_dim_neighbour_list() {
     let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
     for (index, neighbours) in lattice.values.iter().enumerate() {
         for (direction, &neighbour) in neighbours.iter().enumerate() {
-            assert_eq!(index, lattice.values[neighbour][(direction + D) % (D * 2_usize) ]);
+            assert_eq!(
+                index,
+                lattice.values[neighbour][(direction + D) % (D * 2_usize)]
+            );
         }
     }
 }
-

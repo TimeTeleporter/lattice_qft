@@ -1,23 +1,28 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, Div, Mul, Sub},
+};
 
 use rand::{rngs::ThreadRng, Rng};
 
-use crate::{action::Action, field::Field};
+use crate::{action::Action, field::Field, pause};
 
 use self::bonds::BondsField;
 
-pub trait Cluster: Action {
+const VERBOSE: bool = true;
+
+pub trait Cluster<const D: usize, const SIZE: usize>: Action<D, SIZE> {
     fn cluster_sweep(&mut self, temp: f64) -> usize;
 
     fn reflect_value(
         &self,
         index: usize,
-        plane: <Self as Action>::FieldType,
-        modifier: <Self as Action>::FieldType,
-    ) -> <Self as Action>::FieldType;
+        plane: <Self as Action<D, SIZE>>::FieldType,
+        modifier: <Self as Action<D, SIZE>>::FieldType,
+    ) -> <Self as Action<D, SIZE>>::FieldType;
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Cluster for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Cluster<D, SIZE> for Field<'a, T, D, SIZE>
 where
     f64: From<T>,
     T: Add<Output = T>
@@ -29,7 +34,8 @@ where
         + Into<i64>
         + Into<f64>
         + PartialOrd
-        + Copy,
+        + Copy
+        + Display,
     [(); D * 2_usize]:,
 {
     /// Implementation of the cluster algortihm. It identifies a mirror plane
@@ -48,12 +54,10 @@ where
                 false => 1_i8.into(),
             },
         };
-        //println!("Plane and modifier set");
 
         // Initialize memory to save the activated bonds and set all to false
         let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
         //println!("Bonds initialized");
-
         // Going through the lattice sites...
         for index in 0..SIZE {
             let site: T = self.values[index];
@@ -67,8 +71,8 @@ where
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
                 let neighbour: T = self.values[neighbour_index];
-                let action: T = <Self as Action>::calculate_link_action(site, neighbour);
-                let reflected_action: T = <Self as Action>::calculate_link_action(
+                let action: T = <Self as Action<D, SIZE>>::calculate_link_action(site, neighbour);
+                let reflected_action: T = <Self as Action<D, SIZE>>::calculate_link_action(
                     site,
                     self.reflect_value(neighbour_index, plane, modifier),
                 );
@@ -88,14 +92,37 @@ where
                 }
             }
         }
-        //println!("Bonds activated");
 
         // Build the clusters
         let clusters: Vec<Vec<usize>> = bonds.collect_clusters();
+        if VERBOSE {
+            println!("Clusters built");
+            println!("{:?}", clusters);
+        }
+
         let clusters_amount: usize = clusters.len();
 
         // For each cluster decide to flip it
         for cluster in clusters {
+            if VERBOSE {
+                println!("Looking at {:?}", cluster);
+                pause();
+                for &index in cluster.iter() {
+                    let neighbours: [usize; D * 2_usize] = self.lattice.get_neighbours_array(index);
+                    println!(
+                        "{index} has the neighbours {:?} and bonds {:?}",
+                        neighbours, bonds.values[index]
+                    );
+                    for (direction, &bond) in bonds.values[index].iter().enumerate() {
+                        let neighbour = neighbours[direction];
+                        if bond {
+                            assert!(cluster.contains(&neighbour));
+                            println!("We found {neighbour} to be also in the cluster");
+                        }
+                    }
+                }
+            }
+
             let coin: bool = rng.gen();
             if coin {
                 for index in cluster {
@@ -110,10 +137,10 @@ where
     fn reflect_value(
         &self,
         index: usize,
-        plane: <Self as Action>::FieldType,
-        modifier: <Self as Action>::FieldType,
-    ) -> <Self as Action>::FieldType {
-        <i8 as Into<<Self as Action>::FieldType>>::into(2_i8) * plane + modifier
+        plane: <Self as Action<D, SIZE>>::FieldType,
+        modifier: <Self as Action<D, SIZE>>::FieldType,
+    ) -> <Self as Action<D, SIZE>>::FieldType {
+        <i8 as Into<<Self as Action<D, SIZE>>::FieldType>>::into(2_i8) * plane + modifier
             - self.values[index]
     }
 }
@@ -151,7 +178,7 @@ pub(self) mod bonds {
         }
 
         /// Return collection of all clusters
-        pub fn collect_clusters(self) -> Vec<Vec<usize>> {
+        pub fn collect_clusters(&self) -> Vec<Vec<usize>> {
             // Remember if a given site has already been considered for a cluster
             let mut unvisited: Vec<bool> = vec![true; SIZE];
             let mut clusters: Vec<Vec<usize>> = Vec::new();
@@ -166,8 +193,8 @@ pub(self) mod bonds {
 
         /// Build a cluster from activated bonds
         fn build_cluster(&self, index: usize, unvisited: &mut Vec<bool>) -> Vec<usize> {
-            let mut cluster: Vec<usize> = Vec::with_capacity(SIZE);
-            let mut checklist: VecDeque<usize> = VecDeque::with_capacity(SIZE);
+            let mut cluster: Vec<usize> = Vec::with_capacity(SIZE / 2);
+            let mut checklist: VecDeque<usize> = VecDeque::with_capacity(SIZE / 2);
             // Add the new site to a checklist for sites to check for
             // activated, unvisited neighbours to be added to the cluster
             checklist.push_back(index);
@@ -197,6 +224,21 @@ pub(self) mod bonds {
 
             cluster.shrink_to_fit();
             cluster
+        }
+
+        /// A method to check if the bonds, which are saved on both of the
+        /// sites, are correct at both points.
+        #[allow(dead_code)]
+        pub fn check_coherence(&self) {
+            for (index, bonds) in self.0.values.iter().enumerate() {
+                for (direction, &bond) in bonds.iter().enumerate() {
+                    assert_eq!(
+                        bond,
+                        self.0.values[self.0.lattice.get_neighbours_array(index)[direction]]
+                            [(direction + D) % (D * 2)]
+                    );
+                }
+            }
         }
     }
 

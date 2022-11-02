@@ -20,3 +20,7 @@ opt-level = 3
 [[bin]]
 name = "sim"
 path = "src/bin/sim.rs"
+
+[[bin]]
+name = "cluster-check"
+path = "src/bin/cluster_check.rs"
