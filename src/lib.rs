@@ -122,3 +122,10 @@ extern crate rand;
 extern crate rayon;
 extern crate serde;
 extern crate varpro;
+
+// A method to pause a sim until enter
+use std::process::Command;
+
+pub fn pause() {
+    let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
+}

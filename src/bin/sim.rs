@@ -12,7 +12,7 @@ use lattice_qft::{
     simulation::{SimResult, Simulation3d, SimulationType},
 };
 
-const CUBE: usize = 5;
+const CUBE: usize = 20;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;

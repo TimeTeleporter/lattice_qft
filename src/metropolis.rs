@@ -7,19 +7,19 @@ use crate::{
     field::{Field, Field3d},
 };
 
-pub trait Metropolis: Action {
+pub trait Metropolis<const D: usize, const SIZE: usize>: Action<D, SIZE> {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool;
 
     fn metropolis_random(&mut self, temp: f64) {
         let mut rng = ThreadRng::default();
-        let index: usize = rng.gen_range(0..Self::SIZE);
+        let index: usize = rng.gen_range(0..SIZE);
         self.metropolis_single(index, temp, &mut rng);
     }
 
     fn metropolis_sweep(&mut self, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
         let mut acceptance: usize = 0;
-        for index in 0..Self::SIZE {
+        for index in 0..SIZE {
             if self.metropolis_single(index, temp, &mut rng) {
                 acceptance += 1;
             };
@@ -28,7 +28,7 @@ pub trait Metropolis: Action {
     }
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Metropolis for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Metropolis<D, SIZE> for Field<'a, T, D, SIZE>
 where
     f64: From<T>,
     T: Add<Output = T>
@@ -67,8 +67,8 @@ where
     }
 }
 
-impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Metropolis
-    for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
+impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    Metropolis<3, { MAX_X * MAX_Y * MAX_T }> for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
 where
     f64: From<T>,
     T: Add<Output = T>

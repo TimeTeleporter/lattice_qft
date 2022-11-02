@@ -1,4 +1,4 @@
-use std::{ops::Deref, time::Instant, error::Error};
+use std::{error::Error, ops::Deref, time::Instant};
 
 use serde::{Deserialize, Serialize};
 
@@ -62,8 +62,14 @@ impl SweepReturn {
         let entries: f64 = ary.len() as f64;
         let poppy: SweepReturn = ary.pop().ok_or("No sweep stats to analyse.")?;
         let mut sum = match poppy {
-            SweepReturn::ClustersAmount(entry) => {print!("Average cluster size of "); entry},
-            SweepReturn::AcceptanceRate(entry) => {print!("Average acceptance rate of "); entry},
+            SweepReturn::ClustersAmount(entry) => {
+                print!("Average cluster size of ");
+                entry
+            }
+            SweepReturn::AcceptanceRate(entry) => {
+                print!("Average acceptance rate of ");
+                entry
+            }
         } as f64;
         for sweepy in ary {
             sum += match sweepy {
@@ -75,7 +81,7 @@ impl SweepReturn {
         println!("{mean}");
 
         Ok(())
-    } 
+    }
 }
 
 impl SimulationType {
@@ -84,12 +90,15 @@ impl SimulationType {
         &self,
         field: &mut Field<i32, D, SIZE>,
         temp: f64,
-    ) -> SweepReturn where
+    ) -> SweepReturn
+    where
         [(); D * 2_usize]:,
     {
         match self {
             SimulationType::ClusterSim => SweepReturn::ClustersAmount(field.cluster_sweep(temp)),
-            SimulationType::MetropolisSim => SweepReturn::AcceptanceRate(field.metropolis_sweep(temp)),
+            SimulationType::MetropolisSim => {
+                SweepReturn::AcceptanceRate(field.metropolis_sweep(temp))
+            }
         }
     }
 }
@@ -131,6 +140,10 @@ where
         }
     }
 
+    /// This is the main function in which the simulation is run. It
+    /// initializes a field, whose configuration is theniteratively altered by
+    /// sweep functions depending on the chosen simulation type. Finally a
+    /// result is calculated and returned.
     pub fn run(&self) -> (SimResult, ObsChain) {
         println!("Started {} {}", self.temp, self.name);
         let time = Instant::now();
@@ -139,6 +152,7 @@ where
 
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for _step in 0..(self.burnin) {
+            println!("Sweep {_step}");
             self.sim_type.single_sweep(&mut field, self.temp);
             field.normalize_random();
         }
@@ -148,6 +162,7 @@ where
         let mut observable_array: Vec<f64> = Vec::with_capacity(self.iterations); // Simulation observable arrray
         let mut sweepstats_ary: Vec<SweepReturn> = Vec::with_capacity(self.iterations);
         for _step in 0..(self.iterations) {
+            println!("Sweep {_step}");
             sweepstats_ary.push(self.sim_type.single_sweep(&mut field, self.temp));
             observable_array.push(match self.size_normalized {
                 true => field.size_normalized_action_observable(self.temp),
@@ -208,8 +223,15 @@ where
         burnin: usize,
         iterations: usize,
     ) -> Self {
-        let sim: Simulation<3, { MAX_X * MAX_Y * MAX_T }> =
-            Simulation::new(name, sim_type, size_normalized, lattice.deref(), temp, burnin, iterations);
+        let sim: Simulation<3, { MAX_X * MAX_Y * MAX_T }> = Simulation::new(
+            name,
+            sim_type,
+            size_normalized,
+            lattice.deref(),
+            temp,
+            burnin,
+            iterations,
+        );
         Simulation3d(sim)
     }
 }

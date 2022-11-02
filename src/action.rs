@@ -4,7 +4,7 @@ use rand::prelude::*;
 
 use crate::field::{Field, Field3d};
 
-pub trait Action {
+pub trait Action<const D: usize, const SIZE: usize> {
     type FieldType: Copy
         + Add<Output = Self::FieldType>
         + Sub<Output = Self::FieldType>
@@ -12,9 +12,6 @@ pub trait Action {
         + Div<Output = Self::FieldType>
         + Default
         + From<i8>;
-
-    const D: usize;
-    const SIZE: usize;
 
     /// Sums up the action across all lattice bonds
     fn sum_link_actions(&self) -> i64;
@@ -26,12 +23,12 @@ pub trait Action {
 
     /// Calculates the [action_observable], normalized by the amount of lattice sites.
     fn size_normalized_action_observable(&self, temp: f64) -> f64 {
-        self.action_observable(temp) / Self::SIZE as f64
+        self.action_observable(temp) / SIZE as f64
     }
 
     /// Calculates the [action_observable], normalized by the amount of lattice sites.
     fn bond_normalized_action_observable(&self, temp: f64) -> f64 {
-        self.action_observable(temp) / (Self::D * Self::SIZE) as f64
+        self.action_observable(temp) / (D * SIZE) as f64
     }
 
     /// Calculates ```(x - y)^2``` for two values.
@@ -45,7 +42,7 @@ pub trait Action {
     fn normalize_random(&mut self);
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Action for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Action<D, SIZE> for Field<'a, T, D, SIZE>
 where
     T: Copy
         + Add<Output = T>
@@ -59,12 +56,10 @@ where
     [(); D * 2_usize]:,
 {
     type FieldType = T;
-    const D: usize = D;
-    const SIZE: usize = SIZE;
 
     fn sum_link_actions(&self) -> i64 {
         let mut action: i64 = 0;
-        for index in 0..Self::SIZE {
+        for index in 0..SIZE {
             let value = self.get_value(index).clone();
             for neighbour in self.lattice.pos_neighbours_array(index) {
                 let neighbour = self.get_value(neighbour).clone();
@@ -95,8 +90,8 @@ where
     }
 }
 
-impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Action
-    for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
+impl<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    Action<3, { MAX_X * MAX_Y * MAX_T }> for Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
 where
     T: Copy
         + Add<Output = T>
@@ -110,8 +105,6 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type FieldType = T;
-    const D: usize = 3;
-    const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
     /// Sums up all link actions of the lattice.
     fn sum_link_actions(&self) -> i64 {
