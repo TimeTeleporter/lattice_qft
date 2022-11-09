@@ -40,7 +40,8 @@ where
         + Into<i64>
         + Into<f64>
         + PartialOrd
-        + Copy,
+        + Copy
+        + Sync,
     [(); D * 2_usize]:,
 {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool {
@@ -80,7 +81,8 @@ where
         + Into<i64>
         + Into<f64>
         + PartialOrd
-        + Copy,
+        + Copy
+        + Sync,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     fn metropolis_single(&mut self, index: usize, temp: f64, rng: &mut ThreadRng) -> bool {

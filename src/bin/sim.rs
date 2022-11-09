@@ -9,7 +9,7 @@ use lattice_qft::{
     error::BinDataAry,
     export::{clean_csv, CsvData},
     lattice::Lattice3d,
-    simulation::{SimResult, Simulation3d, SimulationType},
+    simulation::{Observable, SimResult, Simulation3d, SimulationType},
 };
 
 const CUBE: usize = 20;
@@ -31,22 +31,27 @@ fn main() {
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
     let mut sims: Vec<Simulation3d<MAX_X, MAX_Y, MAX_T>> = Vec::new();
-    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Cluster Simulation, Size normalized");
-    let size_normalized: bool = true;
+    let name: String = format!(
+        "{MAX_X}x{MAX_Y}x{MAX_T} Metropolis Simulation, Wilson {}",
+        CUBE / 3
+    );
     sims.push(Simulation3d::new(
         name,
-        SimulationType::ClusterSim,
-        size_normalized,
+        SimulationType::MetropolisSim,
+        Observable::Wilson(CUBE / 3),
         &lattice,
         TEMP,
         BURNIN,
         ITERATIONS,
     ));
-    let name: String = format!("{MAX_X}x{MAX_Y}x{MAX_T} Metropolis Simulation, Size normalized");
+    let name: String = format!(
+        "{MAX_X}x{MAX_Y}x{MAX_T} Cluster Simulation, Wilson {}",
+        CUBE / 3
+    );
     sims.push(Simulation3d::new(
         name,
-        SimulationType::MetropolisSim,
-        size_normalized,
+        SimulationType::ClusterSim,
+        Observable::Wilson(CUBE / 3),
         &lattice,
         TEMP,
         BURNIN,

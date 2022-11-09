@@ -1,6 +1,7 @@
 use std::ops::{Add, Deref, DerefMut, Div, Mul, Sub};
 
 use rand::prelude::*;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::field::{Field, Field3d};
 
@@ -19,6 +20,13 @@ pub trait Action<const D: usize, const SIZE: usize> {
     /// Calculates the action of the lattice with the coupling constant.
     fn action_observable(&self, temp: f64) -> f64 {
         (self.sum_link_actions() as f64) * temp
+    }
+
+    /// Sums over all links that go through the XT-plane
+    fn wilson_link_sum(&self, width: usize) -> i64;
+
+    fn wilson_action_observable(&self, temp: f64, width: usize) -> f64 {
+        (self.wilson_link_sum(width) as f64) * temp
     }
 
     /// Calculates the [action_observable], normalized by the amount of lattice sites.
@@ -52,7 +60,8 @@ where
         + Default
         + From<i8>
         + Into<i64>
-        + PartialOrd,
+        + PartialOrd
+        + Sync,
     [(); D * 2_usize]:,
 {
     type FieldType = T;
@@ -67,6 +76,26 @@ where
             }
         }
         action
+    }
+
+    fn wilson_link_sum(&self, width: usize) -> i64 {
+        // Vec over all lattice values that sit on the x axis up to a given width
+        self.lattice
+            .values
+            .iter()
+            .enumerate()
+            .collect::<Vec<(usize, &[usize; D * 2_usize])>>()
+            .par_iter()
+            .filter(|(index, _)| {
+                let coords = self.lattice.calc_coords_from_index(*index);
+                coords.into_array()[0] < width && coords.is_on_plane(0, D - 1)
+            })
+            .map(|(index, neighbours)| {
+                Self::calculate_link_action(self.values[*index], self.values[neighbours[1]]).into()
+            })
+            .collect::<Vec<i64>>()
+            .iter()
+            .sum::<i64>()
     }
 
     fn calculate_assumed_action(&self, index: usize, value: Self::FieldType) -> i64 {
@@ -101,7 +130,8 @@ where
         + Default
         + From<i8>
         + Into<i64>
-        + PartialOrd,
+        + PartialOrd
+        + Sync,
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type FieldType = T;
@@ -115,6 +145,10 @@ where
         self.deref().calculate_assumed_action(index, site)
     }
 
+    fn wilson_link_sum(&self, width: usize) -> i64 {
+        self.deref().wilson_link_sum(width)
+    }
+
     fn normalize(&mut self) {
         self.deref_mut().normalize()
     }
@@ -122,6 +156,26 @@ where
     fn normalize_random(&mut self) {
         self.deref_mut().normalize_random()
     }
+}
+
+#[test]
+fn test_wilson_action() {
+    use crate::field::Field3d;
+    use crate::lattice::Lattice3d;
+
+    const MAX_X: usize = 7;
+    const MAX_Y: usize = 8;
+    const MAX_T: usize = 20;
+
+    const TEMP: f64 = 0.1;
+    const WIDTH: usize = 3;
+
+    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
+    let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
+    let field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
+
+    println!("Wilson: {}", field.wilson_action_observable(TEMP, WIDTH));
+    println!("Action: {}", field.action_observable(TEMP));
 }
 
 #[test]

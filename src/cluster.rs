@@ -35,7 +35,8 @@ where
         + Into<f64>
         + PartialOrd
         + Copy
-        + Display,
+        + Display
+        + Sync,
     [(); D * 2_usize]:,
 {
     /// Implementation of the cluster algortihm. It identifies a mirror plane

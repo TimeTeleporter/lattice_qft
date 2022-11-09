@@ -31,3 +31,7 @@ name,temp,burnin,iterations,observable,error
 "5x5x5 Metropolis Simulation, Size normalized",0.1,10000,1000000,0.4961171376000104,
 "20x20x20 Cluster Simulation, Size normalized",0.1,10000,100000,0.49987743399999107,
 "20x20x20 Metropolis Simulation, Size normalized",0.1,10000,100000,0.4998515372500041,
+"20x20x20 Metropolis Simulation, Size normalized",0.1,10000,100000,0.4999718639999978,
+"20x20x20 Cluster Simulation, Size normalized",0.1,10000,100000,0.4999597242500033,
+"20x20x20 Metropolis Simulation, Wilson 6",0.1,10000,100000,1.3282920000000167,
+"20x20x20 Cluster Simulation, Wilson 6",0.1,10000,100000,1.3372510000000115,

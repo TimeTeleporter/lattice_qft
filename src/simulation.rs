@@ -47,6 +47,31 @@ impl SimResult {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum Observable {
+    Action,
+    Wilson(usize),
+    SizeNormalized,
+}
+
+impl Observable {
+    /// Performs a single sweep depending on the simulation type. Returns some statistics from the sweep
+    fn observe<const D: usize, const SIZE: usize>(
+        &self,
+        field: &Field<i32, D, SIZE>,
+        temp: f64,
+    ) -> f64
+    where
+        [(); D * 2_usize]:,
+    {
+        match self {
+            Observable::Action => field.action_observable(temp),
+            Observable::Wilson(width) => field.wilson_action_observable(temp, *width),
+            Observable::SizeNormalized => field.size_normalized_action_observable(temp),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum SimulationType {
     ClusterSim,
     MetropolisSim,
@@ -109,7 +134,7 @@ where
 {
     name: String,
     sim_type: SimulationType,
-    size_normalized: bool,
+    observable: Observable,
     lattice: &'a Lattice<D, SIZE>,
     temp: f64,
     burnin: usize,
@@ -123,7 +148,7 @@ where
     pub fn new(
         name: String,
         sim_type: SimulationType,
-        size_normalized: bool,
+        observable: Observable,
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         burnin: usize,
@@ -132,7 +157,7 @@ where
         Simulation {
             name,
             sim_type,
-            size_normalized,
+            observable,
             lattice,
             temp,
             burnin,
@@ -164,10 +189,7 @@ where
         for _step in 0..(self.iterations) {
             println!("Sweep {_step}");
             sweepstats_ary.push(self.sim_type.single_sweep(&mut field, self.temp));
-            observable_array.push(match self.size_normalized {
-                true => field.size_normalized_action_observable(self.temp),
-                false => field.action_observable(self.temp),
-            });
+            observable_array.push(self.observable.observe(&field, self.temp));
             field.normalize_random();
         }
 
@@ -217,7 +239,7 @@ where
     pub fn new(
         name: String,
         sim_type: SimulationType,
-        size_normalized: bool,
+        observable: Observable,
         lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
         temp: f64,
         burnin: usize,
@@ -226,7 +248,7 @@ where
         let sim: Simulation<3, { MAX_X * MAX_Y * MAX_T }> = Simulation::new(
             name,
             sim_type,
-            size_normalized,
+            observable,
             lattice.deref(),
             temp,
             burnin,
