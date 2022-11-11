@@ -19,7 +19,7 @@ const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 
 const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 100_000;
+const ITERATIONS: usize = 200_000;
 
 const TEMP: f64 = 0.1;
 
@@ -38,7 +38,7 @@ fn main() {
     sims.push(Simulation3d::new(
         name,
         SimulationType::MetropolisSim,
-        Observable::Wilson(CUBE / 3),
+        Observable::Wilson(CUBE / 3, CUBE / 3, TEMP),
         &lattice,
         TEMP,
         BURNIN,
@@ -51,7 +51,7 @@ fn main() {
     sims.push(Simulation3d::new(
         name,
         SimulationType::ClusterSim,
-        Observable::Wilson(CUBE / 3),
+        Observable::Wilson(CUBE / 3, CUBE / 3, TEMP),
         &lattice,
         TEMP,
         BURNIN,

@@ -49,7 +49,8 @@ impl SimResult {
 #[derive(Debug, Clone, Copy)]
 pub enum Observable {
     Action,
-    Wilson(usize),
+    /// This defines the Wilson loop observable.
+    Wilson(usize, usize, f64),
     SizeNormalized,
 }
 
@@ -65,7 +66,10 @@ impl Observable {
     {
         match self {
             Observable::Action => field.action_observable(temp),
-            Observable::Wilson(width) => field.wilson_action_observable(temp, *width),
+            Observable::Wilson(width, height, temp) => {
+                field.wilson_loop_observable(*temp, *width, *height)
+                    * (-1.0 * temp * *height as f64 * *width as f64).exp()
+            }
             Observable::SizeNormalized => field.size_normalized_action_observable(temp),
         }
     }

@@ -23,10 +23,13 @@ pub trait Action<const D: usize, const SIZE: usize> {
     }
 
     /// Sums over all links that go through the XT-plane
-    fn wilson_link_sum(&self, width: usize) -> i64;
+    fn wilson_link_sum(&self, width: usize, height: usize) -> i64;
 
-    fn wilson_action_observable(&self, temp: f64, width: usize) -> f64 {
-        (self.wilson_link_sum(width) as f64) * temp
+    /// Calculates ```$\exp(-2 * e^2 \sum_{<xy> \in W} (h_x - h_y))$```
+    /// where ```$e$``` is the coupling constant and ```$W$``` is the Wilson
+    /// loop with given width and height.
+    fn wilson_loop_observable(&self, temp: f64, width: usize, height: usize) -> f64 {
+        (((2 * self.wilson_link_sum(width, height)) as f64) * temp).exp()
     }
 
     /// Calculates the [action_observable], normalized by the amount of lattice sites.
@@ -41,7 +44,13 @@ pub trait Action<const D: usize, const SIZE: usize> {
 
     /// Calculates ```(x - y)^2``` for two values.
     fn calculate_link_action(site: Self::FieldType, neighbour: Self::FieldType) -> Self::FieldType {
-        (site - neighbour) * (site - neighbour)
+        let diff: Self::FieldType = Self::calculate_link_diff(site, neighbour);
+        diff * diff
+    }
+
+    /// Calculates ```(x - y)``` for two values.
+    fn calculate_link_diff(site: Self::FieldType, neighbour: Self::FieldType) -> Self::FieldType {
+        site - neighbour
     }
 
     fn calculate_assumed_action(&self, index: usize, site: Self::FieldType) -> i64;
@@ -78,7 +87,7 @@ where
         action
     }
 
-    fn wilson_link_sum(&self, width: usize) -> i64 {
+    fn wilson_link_sum(&self, width: usize, height: usize) -> i64 {
         // Vec over all lattice values that sit on the x axis up to a given width
         self.lattice
             .values
@@ -88,10 +97,11 @@ where
             .par_iter()
             .filter(|(index, _)| {
                 let coords = self.lattice.calc_coords_from_index(*index);
-                coords.into_array()[0] < width && coords.is_on_plane(0, D - 1)
+                let ary: [usize; D] = coords.into_array();
+                ary[0] < width && ary[D - 1] < height && coords.is_on_plane(0, D - 1)
             })
             .map(|(index, neighbours)| {
-                Self::calculate_link_action(self.values[*index], self.values[neighbours[1]]).into()
+                Self::calculate_link_diff(self.values[*index], self.values[neighbours[1]]).into()
             })
             .collect::<Vec<i64>>()
             .iter()
@@ -145,8 +155,8 @@ where
         self.deref().calculate_assumed_action(index, site)
     }
 
-    fn wilson_link_sum(&self, width: usize) -> i64 {
-        self.deref().wilson_link_sum(width)
+    fn wilson_link_sum(&self, width: usize, height: usize) -> i64 {
+        self.deref().wilson_link_sum(width, height)
     }
 
     fn normalize(&mut self) {
@@ -169,13 +179,13 @@ fn test_wilson_action() {
 
     const TEMP: f64 = 0.1;
     const WIDTH: usize = 3;
+    const HEIGHT: usize = 3;
 
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
     let field: Field3d<i8, MAX_X, MAX_Y, MAX_T> = Field3d::random(&lattice);
     let field: Field3d<i32, MAX_X, MAX_Y, MAX_T> = Field3d::from_field(field);
 
-    println!("Wilson: {}", field.wilson_action_observable(TEMP, WIDTH));
-    println!("Action: {}", field.action_observable(TEMP));
+    field.wilson_loop_observable(TEMP, WIDTH, HEIGHT);
 }
 
 #[test]
