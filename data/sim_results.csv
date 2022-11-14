@@ -41,3 +41,5 @@ name,temp,burnin,iterations,observable,error
 "20x20x20 Cluster Simulation, Wilson 6",0.1,100000,1000000,-4.696287510436696,
 "20x20x20 Metropolis Simulation, Wilson 6",0.1,10000,200000,0.035624384233253634,
 "20x20x20 Cluster Simulation, Wilson 6",0.1,10000,200000,0.035509747800644594,
+"2x2x2 Metropolis Simulation, Wilson 0",0.1,100000,10000000,0.9316828633194217,
+"2x2x2 Cluster Simulation, Wilson 0",0.1,100000,10000000,0.9316077320373509,

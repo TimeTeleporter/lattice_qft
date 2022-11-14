@@ -6,6 +6,7 @@ use crate::{
     action::Action,
     cluster::Cluster,
     error::ObsChain,
+    export::{clean_csv, CsvData},
     field::Field,
     lattice::{Lattice, Lattice3d},
     metropolis::Metropolis,
@@ -50,12 +51,19 @@ impl SimResult {
 pub enum Observable {
     Action,
     /// This defines the Wilson loop observable.
+    ///
+    /// # Parameters
+    ///
+    /// 1. width
+    /// 2. height
+    /// 3. temp
+    ///
     Wilson(usize, usize, f64),
     SizeNormalized,
 }
 
 impl Observable {
-    /// Performs a single sweep depending on the simulation type. Returns some statistics from the sweep
+    /// Calculates an observable from the field variables.
     fn observe<const D: usize, const SIZE: usize>(
         &self,
         field: &Field<i32, D, SIZE>,
@@ -76,9 +84,9 @@ impl Observable {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum SimulationType {
-    ClusterSim,
-    MetropolisSim,
+pub enum Algorithm {
+    Cluster,
+    Metropolis,
 }
 
 pub enum SweepReturn {
@@ -113,7 +121,7 @@ impl SweepReturn {
     }
 }
 
-impl SimulationType {
+impl Algorithm {
     /// Performs a single sweep depending on the simulation type. Returns some statistics from the sweep
     fn single_sweep<const D: usize, const SIZE: usize>(
         &self,
@@ -124,10 +132,84 @@ impl SimulationType {
         [(); D * 2_usize]:,
     {
         match self {
-            SimulationType::ClusterSim => SweepReturn::ClustersAmount(field.cluster_sweep(temp)),
-            SimulationType::MetropolisSim => {
-                SweepReturn::AcceptanceRate(field.metropolis_sweep(temp))
+            Algorithm::Cluster => SweepReturn::ClustersAmount(field.cluster_sweep(temp)),
+            Algorithm::Metropolis => SweepReturn::AcceptanceRate(field.metropolis_sweep(temp)),
+        }
+    }
+}
+
+pub enum ComputationResult {
+    SimResult(SimResult),
+    SimResultObs((SimResult, ObsChain)),
+    TestResult(TestResult),
+}
+
+impl ComputationResult {
+    pub fn write_to_csv(
+        self,
+        sim_path: &str,
+        bin_path: &str,
+        test_path: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        match self {
+            ComputationResult::SimResultObs((res, obs)) => {
+                let temp: f64 = res.temp;
+                res.read_write_csv(sim_path)?;
+                clean_csv(bin_path)?;
+                for bin in obs.calculate_binnings(temp, 2) {
+                    bin.read_write_csv(bin_path)?;
+                }
+                Ok(())
             }
+            ComputationResult::TestResult(test) => test.read_write_csv(test_path),
+            ComputationResult::SimResult(res) => res.read_write_csv(sim_path),
+        }
+    }
+}
+
+pub enum ComputationType<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    Simulation(Simulation<'a, D, SIZE>),
+    Test(TestSim<'a, D, SIZE>),
+}
+
+impl<'a, const D: usize, const SIZE: usize> ComputationType<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn run(&self) -> ComputationResult {
+        match self {
+            ComputationType::Simulation(sim) => ComputationResult::SimResult({
+                let (res, _) = sim.run();
+                res
+            }),
+            ComputationType::Test(test) => ComputationResult::TestResult(test.run()),
+        }
+    }
+}
+
+pub enum ComputationType3d<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    Simulation(Simulation3d<'a, MAX_X, MAX_Y, MAX_T>),
+    Test(TestSim3d<'a, MAX_X, MAX_Y, MAX_T>),
+}
+
+impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    ComputationType3d<'a, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    pub fn run(&self) -> ComputationResult {
+        match self {
+            ComputationType3d::Simulation(sim) => ComputationResult::SimResult({
+                let (res, _) = sim.run();
+                res
+            }),
+            ComputationType3d::Test(test) => ComputationResult::TestResult(test.run()),
         }
     }
 }
@@ -137,10 +219,10 @@ where
     [(); D * 2_usize]:,
 {
     name: String,
-    sim_type: SimulationType,
+    algorithm: Algorithm,
     observable: Observable,
     lattice: &'a Lattice<D, SIZE>,
-    temp: f64,
+    pub temp: f64,
     burnin: usize,
     iterations: usize,
 }
@@ -151,7 +233,7 @@ where
 {
     pub fn new(
         name: String,
-        sim_type: SimulationType,
+        algorithm: Algorithm,
         observable: Observable,
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
@@ -160,7 +242,7 @@ where
     ) -> Self {
         Simulation {
             name,
-            sim_type,
+            algorithm,
             observable,
             lattice,
             temp,
@@ -182,7 +264,7 @@ where
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for _step in 0..(self.burnin) {
             println!("Sweep {_step}");
-            self.sim_type.single_sweep(&mut field, self.temp);
+            self.algorithm.single_sweep(&mut field, self.temp);
             field.normalize_random();
         }
 
@@ -192,7 +274,7 @@ where
         let mut sweepstats_ary: Vec<SweepReturn> = Vec::with_capacity(self.iterations);
         for _step in 0..(self.iterations) {
             println!("Sweep {_step}");
-            sweepstats_ary.push(self.sim_type.single_sweep(&mut field, self.temp));
+            sweepstats_ary.push(self.algorithm.single_sweep(&mut field, self.temp));
             observable_array.push(self.observable.observe(&field, self.temp));
             field.normalize_random();
         }
@@ -242,7 +324,7 @@ where
 {
     pub fn new(
         name: String,
-        sim_type: SimulationType,
+        algorithm: Algorithm,
         observable: Observable,
         lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
         temp: f64,
@@ -251,7 +333,7 @@ where
     ) -> Self {
         let sim: Simulation<3, { MAX_X * MAX_Y * MAX_T }> = Simulation::new(
             name,
-            sim_type,
+            algorithm,
             observable,
             lattice.deref(),
             temp,
@@ -268,6 +350,163 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type Target = Simulation<'a, 3, { MAX_X * MAX_Y * MAX_T }>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Datatype to save and read simulation output.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestResult {
+    name: String,
+    pub temp: f64,
+    range: usize,
+    observable: f64,
+    error: Option<f64>,
+}
+
+impl TestResult {
+    pub fn new(name: String, temp: f64, range: usize, observable: f64, error: Option<f64>) -> Self {
+        TestResult {
+            name,
+            temp,
+            range,
+            observable,
+            error,
+        }
+    }
+
+    pub fn set_error(&mut self, error_option: Option<f64>) {
+        self.error = error_option;
+    }
+}
+
+/// A struct to initialize a test of a lattice with lattice sites in a given
+/// range.
+pub struct TestSim<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    name: String,
+    observable: Observable,
+    lattice: &'a Lattice<D, SIZE>,
+    pub temp: f64,
+    range: usize,
+}
+
+impl<'a, const D: usize, const SIZE: usize> TestSim<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn new(
+        name: String,
+        observable: Observable,
+        lattice: &'a Lattice<D, SIZE>,
+        temp: f64,
+        range: usize,
+    ) -> Self {
+        TestSim {
+            name,
+            observable,
+            lattice,
+            temp,
+            range,
+        }
+    }
+
+    /// This is the main function in which the simulation is run. It
+    /// initializes a field, whose configuration is theniteratively altered by
+    /// sweep functions depending on the chosen simulation type. Finally a
+    /// result is calculated and returned.
+    pub fn run(&self) -> TestResult {
+        let permutations: usize = self.range.pow(SIZE as u32 - 1); // 16 ^ 7 = 268’435’456
+
+        print!("Started to calculate the observable over the range");
+        println!(" -{} to +{}.", self.range / 2, self.range / 2);
+        println!("Those are {} field configurations.", permutations);
+
+        let field: Field<i8, D, SIZE> = Field::new(self.lattice);
+        let mut field: Field<i32, D, SIZE> = Field::from_field(field);
+
+        field.values[7] = (self.range / 2) as i32;
+
+        // The partition function is the sum over all Bolzmann weights
+        let mut partfn: f64 = 0.0;
+
+        // The observable is the sum over all weights (Bolzmann times observable),
+        // devided by the partition function.
+        let mut test: f64 = 0.0;
+
+        let boundary: i32 = self.range as i32 - 1;
+
+        for _ in 0..permutations {
+            'updateconfig: for index in 0..SIZE {
+                match field.values[index] {
+                    x if x < boundary => {
+                        field.values[index] = field.values[index] + 1;
+                        break 'updateconfig;
+                    }
+                    x if x == boundary => {
+                        field.values[index] = 0;
+                    }
+                    _ => {
+                        panic!("config entry out of bounds.");
+                    }
+                }
+            }
+            let bolz: f64 = (-field.action_observable(self.temp)).exp();
+            test = test + (self.observable.observe(&field, self.temp) * bolz);
+            partfn = partfn + bolz;
+        }
+
+        self.produce_simresult(test / partfn)
+    }
+
+    fn produce_simresult(&self, observable: f64) -> TestResult {
+        TestResult {
+            name: self.name.clone(),
+            temp: self.temp,
+            range: self.range,
+            observable,
+            error: None,
+        }
+    }
+}
+
+pub struct TestSim3d<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>(
+    TestSim<'a, 3, { MAX_X * MAX_Y * MAX_T }>,
+)
+where
+    [(); MAX_X * MAX_Y * MAX_T]:;
+
+impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
+    TestSim3d<'a, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    pub fn new(
+        name: String,
+        observable: Observable,
+        lattice: &'a Lattice3d<MAX_X, MAX_Y, MAX_T>,
+        temp: f64,
+        range: usize,
+    ) -> Self {
+        TestSim3d(TestSim {
+            name,
+            observable,
+            lattice,
+            temp,
+            range,
+        })
+    }
+}
+
+impl<'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize> Deref
+    for TestSim3d<'a, MAX_X, MAX_Y, MAX_T>
+where
+    [(); MAX_X * MAX_Y * MAX_T]:,
+{
+    type Target = TestSim<'a, 3, { MAX_X * MAX_Y * MAX_T }>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }

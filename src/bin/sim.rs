@@ -9,17 +9,20 @@ use lattice_qft::{
     error::BinDataAry,
     export::{clean_csv, CsvData},
     lattice::Lattice3d,
-    simulation::{Observable, SimResult, Simulation3d, SimulationType},
+    simulation::{Algorithm, Observable, SimResult, Simulation3d},
 };
 
-const CUBE: usize = 20;
+const CUBE: usize = 2;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 
-const BURNIN: usize = 10_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 200_000;
+const WIDTH: usize = 1;
+const HEIGHT: usize = 1;
+
+const BURNIN: usize = 100_000; // Number of sweeps until it starts counting.
+const ITERATIONS: usize = 10_000_000;
 
 const TEMP: f64 = 0.1;
 
@@ -37,8 +40,8 @@ fn main() {
     );
     sims.push(Simulation3d::new(
         name,
-        SimulationType::MetropolisSim,
-        Observable::Wilson(CUBE / 3, CUBE / 3, TEMP),
+        Algorithm::Metropolis,
+        Observable::Wilson(WIDTH, HEIGHT, TEMP),
         &lattice,
         TEMP,
         BURNIN,
@@ -50,8 +53,8 @@ fn main() {
     );
     sims.push(Simulation3d::new(
         name,
-        SimulationType::ClusterSim,
-        Observable::Wilson(CUBE / 3, CUBE / 3, TEMP),
+        Algorithm::Cluster,
+        Observable::Wilson(WIDTH, HEIGHT, TEMP),
         &lattice,
         TEMP,
         BURNIN,
