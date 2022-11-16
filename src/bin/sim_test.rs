@@ -25,8 +25,8 @@ const RANGE: usize = 16;
 const _TEMP: f64 = 0.1;
 const WIDTH: usize = 1;
 const HEIGHT: usize = 1;
-const BURNIN: usize = 10_000;
-const ITERATIONS: usize = 100_000;
+const BURNIN: usize = 100_000;
+const ITERATIONS: usize = 10_000_000;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 
@@ -44,7 +44,7 @@ fn main() {
             width: WIDTH,
             height: HEIGHT,
         };
-        comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
+        //comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
         comps.push(Simulation3d::new_compuatation(
             &lattice,
             Algorithm::Cluster,
