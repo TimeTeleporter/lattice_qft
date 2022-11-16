@@ -161,7 +161,7 @@ impl Algorithm {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Simulation<'a, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
@@ -265,7 +265,7 @@ where
         let observable: f64 = observable_array.iter().sum::<f64>() / observable_array.len() as f64;
 
         // Construct the return data type
-        let mut result: ComputationResults = self.into_result(observable)?;
+        let mut result: ComputationResults = self.clone().into_result(observable)?;
         result.error = fehler;
 
         let duration: f32 = time.elapsed().as_secs_f32();
@@ -332,6 +332,7 @@ where
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Test<'a, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
@@ -431,8 +432,9 @@ where
             partfn = partfn + bolz;
         }
 
-        let result: ComputationResults = self.into_result(test / partfn)?;
-        let _duration = time.elapsed().as_secs_f32();
+        let result: ComputationResults = self.clone().into_result(test / partfn)?;
+        let duration = time.elapsed().as_secs_f32();
+        println!("{} Test took {duration} secs", self.temp);
 
         Ok(result)
     }
