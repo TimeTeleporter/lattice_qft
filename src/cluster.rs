@@ -39,10 +39,11 @@ where
         + Sync,
     [(); D * 2_usize]:,
 {
-    /// Implementation of the cluster algortihm. It identifies a mirror plane
+    /// Implementation of a multi-cluster algortihm. It identifies a mirror plane
     /// and constructs clusters of lattice sites with values on the same side
     /// of the mirror. For each cluster it is randomly decided if all of the
-    /// values of its sites are mirrored or not.
+    /// values of its sites are mirrored or not. Returns the amount of clusters
+    /// built in the sweep.
     fn cluster_sweep(&mut self, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
 

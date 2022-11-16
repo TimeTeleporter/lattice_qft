@@ -3,20 +3,23 @@
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
 
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
+    computation::{
+        Algorithm, Computatable, Computation, ComputationResults, Observable, Simulation3d, Test3d,
+    },
+    export::CsvData,
     lattice::Lattice3d,
-    simulation::{ComputationResult, ComputationType3d, Observable, Simulation3d, TestSim3d},
     REL_TEMP_ARY,
 };
 
 const TEST_X: usize = 2;
 const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
-const _SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
+const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-const TEST_RANGE: usize = 8;
+const RANGE: usize = 16;
 
 // Parameters for the Wilson loop
 const _TEMP: f64 = 0.1;
@@ -25,9 +28,7 @@ const HEIGHT: usize = 1;
 const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 100_000;
 
-const TEST_PATH: &str = "data/test_results.csv";
-const RESULTS_PATH: &str = "./data/sim_results.csv";
-const BINNING_PATH: &str = "./data/sim_binning.csv";
+const RESULTS_PATH: &str = "./data/results.csv";
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -37,53 +38,42 @@ fn main() {
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
     // Initialise the simulations
-    let mut comps: Vec<ComputationType3d<TEST_X, TEST_Y, TEST_T>> = Vec::new();
+    let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
     for temp in REL_TEMP_ARY {
-        let name: String =
-            format!("{TEST_X}x{TEST_Y}x{TEST_T} Test for a {WIDTH}x{HEIGHT} Wilson loop");
-        comps.push(ComputationType3d::Test(TestSim3d::new(
-            name,
-            Observable::Wilson(WIDTH, HEIGHT, temp),
+        let observable: Observable = Observable::Wilson {
+            width: WIDTH,
+            height: HEIGHT,
+        };
+        comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
+        comps.push(Simulation3d::new_compuatation(
             &lattice,
-            temp,
-            TEST_RANGE,
-        )));
-        let name: String =
-            format!("{TEST_X}x{TEST_Y}x{TEST_T} Metropolis Sim for a {WIDTH}x{HEIGHT} Wilson loop");
-        comps.push(ComputationType3d::Simulation(Simulation3d::new(
-            name,
-            lattice_qft::simulation::Algorithm::Metropolis,
-            Observable::Wilson(WIDTH, HEIGHT, temp),
-            &lattice,
+            Algorithm::Cluster,
+            observable,
             temp,
             BURNIN,
             ITERATIONS,
-        )));
-        let name: String =
-            format!("{TEST_X}x{TEST_Y}x{TEST_T} Cluster Sim for a {WIDTH}x{HEIGHT} Wilson loop");
-        comps.push(ComputationType3d::Simulation(Simulation3d::new(
-            name,
-            lattice_qft::simulation::Algorithm::Cluster,
-            Observable::Wilson(WIDTH, HEIGHT, temp),
+        ));
+        comps.push(Simulation3d::new_compuatation(
             &lattice,
+            Algorithm::Metropolis,
+            observable,
             temp,
             BURNIN,
             ITERATIONS,
-        )));
+        ));
     }
 
     // Parallel over all temp data
-    let data: Vec<ComputationResult> = comps
-        .par_iter()
-        .map(|comp| {
-            let result = comp.run();
-            result
-        })
+    let data: Vec<ComputationResults> = comps
+        .into_par_iter()
+        .filter_map(|comp| comp.run().ok())
         .collect();
 
+    println!("All calcualtions done");
+
     for entry in data {
-        if let Err(err) = entry.write_to_csv(RESULTS_PATH, BINNING_PATH, TEST_PATH) {
-            eprint!("TestData Error: {}", err);
+        if let Err(err) = entry.read_write_csv(RESULTS_PATH) {
+            eprint!("{}", err);
         };
     }
 }

@@ -109,12 +109,12 @@ pub const METRPLS_BINNING_PATH: &str = "./data/metropolis_binning.csv";
 
 pub mod action;
 pub mod cluster;
+pub mod computation;
 pub mod error;
 pub mod export;
 pub mod field;
 pub mod lattice;
 pub mod metropolis;
-pub mod simulation;
 
 extern crate csv;
 extern crate nalgebra;

@@ -4,6 +4,8 @@ use std::error::Error;
 use varpro::prelude::*;
 use varpro::solvers::levmar::{LevMarProblemBuilder, LevMarSolver};
 
+const VERBOSE: bool = false;
+
 /// Datatype to save and read binned simulation output.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BinData {
@@ -168,8 +170,10 @@ impl BinDataAry {
             .linear_coefficients()
             .ok_or("Linear coeff unwrap failed")?;
 
-        println!("{alpha}");
-        println!("{coeff}");
+        if VERBOSE {
+            println!("{alpha}");
+            println!("{coeff}");
+        }
 
         let res: f64 = coeff.into_iter().sum();
 

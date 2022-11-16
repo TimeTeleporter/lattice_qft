@@ -16,6 +16,8 @@ pub trait Metropolis<const D: usize, const SIZE: usize>: Action<D, SIZE> {
         self.metropolis_single(index, temp, &mut rng);
     }
 
+    /// Performs a metropolis step for each lattice site. Returns the number
+    /// of accepted metropolis steps.
     fn metropolis_sweep(&mut self, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
         let mut acceptance: usize = 0;

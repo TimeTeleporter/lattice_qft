@@ -6,10 +6,11 @@
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
-    error::BinDataAry,
-    export::{clean_csv, CsvData},
+    computation::{
+        Algorithm, Computatable, Computation, ComputationResults, Observable, Simulation,
+    },
+    export::CsvData,
     lattice::Lattice3d,
-    simulation::{Algorithm, Observable, SimResult, Simulation3d},
 };
 
 const CUBE: usize = 2;
@@ -17,6 +18,7 @@ const CUBE: usize = 2;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
+const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 const WIDTH: usize = 1;
 const HEIGHT: usize = 1;
@@ -27,61 +29,44 @@ const ITERATIONS: usize = 10_000_000;
 const TEMP: f64 = 0.1;
 
 const RESULTS_PATH: &str = "./data/sim_results.csv";
-const BINNING_PATH: &str = "./data/sim_binning.csv";
+//const BINNING_PATH: &str = "./data/sim_binning.csv";
 
 fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    let mut sims: Vec<Simulation3d<MAX_X, MAX_Y, MAX_T>> = Vec::new();
-    let name: String = format!(
-        "{MAX_X}x{MAX_Y}x{MAX_T} Metropolis Simulation, Wilson {}",
-        CUBE / 3
-    );
-    sims.push(Simulation3d::new(
-        name,
-        Algorithm::Metropolis,
-        Observable::Wilson(WIDTH, HEIGHT, TEMP),
+    let observable: Observable = Observable::Wilson {
+        width: WIDTH,
+        height: HEIGHT,
+    };
+
+    let mut sims: Vec<Computation<3, SIZE>> = Vec::new();
+    sims.push(Simulation::new_compuatation(
         &lattice,
+        Algorithm::Cluster,
+        observable,
         TEMP,
         BURNIN,
         ITERATIONS,
     ));
-    let name: String = format!(
-        "{MAX_X}x{MAX_Y}x{MAX_T} Cluster Simulation, Wilson {}",
-        CUBE / 3
-    );
-    sims.push(Simulation3d::new(
-        name,
-        Algorithm::Cluster,
-        Observable::Wilson(WIDTH, HEIGHT, TEMP),
+    sims.push(Simulation::new_compuatation(
         &lattice,
+        Algorithm::Metropolis,
+        observable,
         TEMP,
         BURNIN,
         ITERATIONS,
     ));
 
-    let results: Vec<(SimResult, BinDataAry)> = sims
+    let results: Vec<ComputationResults> = sims
         .into_par_iter()
-        .map(|sim| {
-            let (result, data) = sim.run();
-            let bins: BinDataAry = data.calculate_binnings(result.temp, 3);
-            (result, bins)
-        })
+        .filter_map(|sim| sim.run().ok())
         .collect();
 
-    for (res, bins) in results {
+    for res in results {
         if let Err(err) = res.read_write_csv(RESULTS_PATH) {
             eprint!("{err}");
         };
-        if let Err(err) = clean_csv(BINNING_PATH) {
-            eprint!("{err}");
-        };
-        for bin in bins {
-            if let Err(err) = bin.read_write_csv(BINNING_PATH) {
-                eprint!("{err}");
-            }
-        }
     }
 }
 
