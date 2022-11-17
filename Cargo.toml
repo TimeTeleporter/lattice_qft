@@ -20,7 +20,3 @@ opt-level = 3
 [[bin]]
 name = "sim"
 path = "src/bin/sim.rs"
-
-[[bin]]
-name = "sim-test"
-path = "src/bin/sim_test.rs"

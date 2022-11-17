@@ -7,73 +7,92 @@ use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
     computation::{
-        Algorithm, Computatable, Computation, ComputationResults, Observable, Simulation,
+        Algorithm, Computatable, Computation, ComputationResults, Observable, Simulation3d, Test3d,
     },
     export::CsvData,
     lattice::Lattice3d,
+    REL_TEMP_ARY,
 };
 
-const CUBE: usize = 2;
+const TEST_X: usize = 4;
+const TEST_Y: usize = 4;
+const TEST_T: usize = 4;
+const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-const MAX_X: usize = CUBE;
-const MAX_Y: usize = CUBE;
-const MAX_T: usize = CUBE;
-const SIZE: usize = MAX_X * MAX_Y * MAX_T;
+const RANGE: usize = 16;
 
-const WIDTH: usize = 1;
-const HEIGHT: usize = 1;
+const BURNIN: usize = 10_000;
+const ITERATIONS: usize = 1_000_000;
 
-const BURNIN: usize = 100_000; // Number of sweeps until it starts counting.
-const ITERATIONS: usize = 10_000_000;
+const RESULTS_PATH: &str = "./data/results.csv";
 
-const TEMP: f64 = 0.1;
-
-const RESULTS_PATH: &str = "./data/sim_results.csv";
-//const BINNING_PATH: &str = "./data/sim_binning.csv";
-
+/// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
+/// with values from 0 to 8 are known. Then we run a metropolis simulation
+/// in order to test that it converges to the desired distribution.
 fn main() {
     // Initialize the lattice
-    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
+    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
 
-    let observable: Observable = Observable::Wilson {
-        width: WIDTH,
-        height: HEIGHT,
-    };
+    // Initialise the simulations
+    let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
+    for temp in REL_TEMP_ARY {
+        let observable: Observable = Observable::Wilson {
+            width: 1,
+            height: 1,
+        };
+        //comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
+        comps.push(Simulation3d::new_compuatation(
+            &lattice,
+            Algorithm::Cluster,
+            observable,
+            temp,
+            BURNIN,
+            ITERATIONS,
+        ));
+        comps.push(Simulation3d::new_compuatation(
+            &lattice,
+            Algorithm::Metropolis,
+            observable,
+            temp,
+            BURNIN,
+            ITERATIONS,
+        ));
+    }
+    for temp in REL_TEMP_ARY {
+        let observable: Observable = Observable::Wilson {
+            width: 2,
+            height: 2,
+        };
+        //comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
+        comps.push(Simulation3d::new_compuatation(
+            &lattice,
+            Algorithm::Cluster,
+            observable,
+            temp,
+            BURNIN,
+            ITERATIONS,
+        ));
+        comps.push(Simulation3d::new_compuatation(
+            &lattice,
+            Algorithm::Metropolis,
+            observable,
+            temp,
+            BURNIN,
+            ITERATIONS,
+        ));
+    }
 
-    let mut sims: Vec<Computation<3, SIZE>> = Vec::new();
-    sims.push(Simulation::new_compuatation(
-        &lattice,
-        Algorithm::Cluster,
-        observable,
-        TEMP,
-        BURNIN,
-        ITERATIONS,
-    ));
-    sims.push(Simulation::new_compuatation(
-        &lattice,
-        Algorithm::Metropolis,
-        observable,
-        TEMP,
-        BURNIN,
-        ITERATIONS,
-    ));
-
-    let results: Vec<ComputationResults> = sims
+    // Parallel over all temp data
+    let data: Vec<ComputationResults> = comps
         .into_par_iter()
-        .filter_map(|sim| sim.run().ok())
+        .filter_map(|comp| comp.run().ok())
         .collect();
 
-    for res in results {
-        if let Err(err) = res.read_write_csv(RESULTS_PATH) {
-            eprint!("{err}");
+    println!("All calcualtions done");
+
+    for entry in data {
+        if let Err(err) = entry.read_write_csv(RESULTS_PATH) {
+            eprint!("{}", err);
         };
     }
 }
-
-/*
-let error = bins.clone().calculate_binned_error_tanh().or_else(|err| {
-    eprintln!("{err}");
-    Err(err)
-    }).ok();
-    result.set_error(error);
-*/
