@@ -6,6 +6,11 @@ use varpro::solvers::levmar::{LevMarProblemBuilder, LevMarSolver};
 
 const VERBOSE: bool = false;
 
+#[derive(Debug, Clone)]
+pub enum ErrorCalculation {
+    Tanh,
+}
+
 /// Datatype to save and read binned simulation output.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BinData {

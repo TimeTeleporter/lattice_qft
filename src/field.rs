@@ -1,6 +1,9 @@
-use std::ops::{Deref, DerefMut, Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, Deref, DerefMut, Mul, Sub},
+};
 
-use rand::{distributions::Standard, prelude::Distribution, random};
+use rand::{distributions::Standard, prelude::*};
 
 use crate::lattice::{Lattice, Lattice3d, LatticeCoords};
 
@@ -11,34 +14,6 @@ where
 {
     pub values: Vec<T>,
     pub lattice: &'a Lattice<D, SIZE>,
-}
-
-// Implementing getting values
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> &T {
-        self.get_value(self.lattice.calc_index_from_coords(coords))
-    }
-
-    pub fn get_value(&self, index: usize) -> &T {
-        &self.values[index]
-    }
-}
-
-// Implementing shift
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    T: Copy + Sub<Output = T>,
-    [(); D * 2_usize]:,
-{
-    /// Subtracts a shift from all values of the field.
-    pub fn shift_values(&mut self, shift: T) {
-        for value in self.values.iter_mut() {
-            *value = *value - shift;
-        }
-    }
 }
 
 impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
@@ -53,32 +28,6 @@ where
         let values: Vec<T> = values.iter().map(|_| T::default()).collect();
 
         Field::<'a, T, D, SIZE> { values, lattice }
-    }
-}
-
-impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
-where
-    T: Default + PartialOrd + Copy,
-    [(); D * 2_usize]:,
-{
-    pub fn get_max(&self) -> (usize, T) {
-        let mut result: (usize, T) = (usize::default(), T::default());
-        for (index, &item) in self.values.iter().enumerate() {
-            if item > result.1 {
-                result = (index, item);
-            }
-        }
-        result
-    }
-
-    pub fn get_min(&self) -> (usize, T) {
-        let mut result: (usize, T) = (usize::default(), T::default());
-        for (index, &item) in self.values.iter().enumerate() {
-            if item < result.1 {
-                result = (index, item);
-            }
-        }
-        result
     }
 }
 
@@ -112,60 +61,143 @@ where
     }
 }
 
-impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
 where
-    T: std::fmt::Debug,
+    T: Default + PartialOrd + Copy,
+    [(); D * 2_usize]:,
 {
-    /// Prints the value in a intuitive way.
-    pub fn print_values_formated(&self, size: [usize; 3]) {
-        for t in 0..size[2] {
-            println!("t = {}", t);
-            for y in 0..size[1] {
-                print!("[");
-                for x in 0..size[0] {
-                    if x == size[0] - 1 {
-                        println!(
-                            "{:?} ]",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    } else {
-                        print!(
-                            "{:?}, ",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    }
-                }
+    pub fn get_max(&self) -> (usize, T) {
+        let mut result: (usize, T) = (usize::default(), T::default());
+        for (index, &item) in self.values.iter().enumerate() {
+            if item > result.1 {
+                result = (index, item);
             }
+        }
+        result
+    }
+
+    pub fn get_min(&self) -> (usize, T) {
+        let mut result: (usize, T) = (usize::default(), T::default());
+        for (index, &item) in self.values.iter().enumerate() {
+            if item < result.1 {
+                result = (index, item);
+            }
+        }
+        result
+    }
+}
+
+// -HeightFields---------------------------------------------------------------
+
+/// A collection of traits to be fullfilled by the field type, i.e. i8, i32
+pub trait HeightVariable<T>:
+    Copy
+    + Add<Output = T>
+    + Sub<Output = T>
+    + Mul<Output = T>
+    + Default
+    + From<i8>
+    + Into<f64>
+    + Display
+    + PartialOrd
+{
+}
+
+impl<T> HeightVariable<T> for T where
+    T: Copy
+        + Add<Output = T>
+        + Sub<Output = T>
+        + Mul<Output = T>
+        + Default
+        + From<i8>
+        + Into<f64>
+        + Display
+        + PartialOrd
+{
+}
+
+/// A field of height values for a square lattice
+pub trait HeightField<T, const D: usize, const SIZE: usize>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    /// Calculates the difference of two height variables.
+    fn difference(&self, site1: usize, site2: usize) -> T;
+
+    /// Calculates the square difference of two height variables.
+    fn difference_squared(&self, site1: usize, site2: usize) -> T {
+        let diff: T = self.difference(site1, site2);
+        diff * diff
+    }
+
+    /// Sums up all bond differences connected to a site.
+    fn local_bond_diff_square_sum(&self, index: usize) -> T;
+
+    /// Sums up all bond differences in positive coordinate direction
+    /// connected to a site.
+    fn pos_bond_diff_square_sum(&self, index: usize) -> T;
+
+    /// Sums up all bond differences.
+    fn global_bond_diff_square_sum(&self) -> T {
+        let mut sum: T = T::default();
+        for index in 0..SIZE {
+            sum = sum + self.pos_bond_diff_square_sum(index);
+        }
+        sum
+    }
+
+    /// Shifts all values by the value of a random chosen height value.
+    fn normalize_random(&mut self);
+
+    /// Subtracts a shift from all values of the field.
+    fn shift_values(&mut self, shift: T);
+
+    fn reflect_value(value: T, plane: T, modifier: T) -> T {
+        Into::<T>::into(2_i8) * plane + modifier - value
+    }
+}
+
+impl<'a, T, const D: usize, const SIZE: usize> HeightField<T, D, SIZE> for Field<'a, T, D, SIZE>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn difference(&self, site1: usize, site2: usize) -> T {
+        self.values[site1] - self.values[site2]
+    }
+
+    fn local_bond_diff_square_sum(&self, index: usize) -> T {
+        let mut sum: T = T::default();
+        for neighbour in self.lattice.get_neighbours_array(index) {
+            sum = sum + self.difference_squared(index, neighbour);
+        }
+        sum
+    }
+
+    fn pos_bond_diff_square_sum(&self, index: usize) -> T {
+        let mut sum: T = T::default();
+        for neighbour in self.lattice.pos_neighbours_array(index) {
+            sum = sum + self.difference_squared(index, neighbour);
+        }
+        sum
+    }
+
+    fn normalize_random(&mut self) {
+        let mut rng = ThreadRng::default();
+        let &shift = self.values.choose(&mut rng).unwrap();
+        self.shift_values(shift);
+    }
+
+    /// Subtracts a shift from all values of the field.
+    fn shift_values(&mut self, shift: T) {
+        for value in self.values.iter_mut() {
+            *value = *value - shift;
         }
     }
 }
 
-impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
-where
-    T: std::fmt::Debug,
-{
-    /// Prints the value in a intuitive way.
-    pub fn print_values_formated(&self, size: [usize; 2]) {
-        for y in 0..size[1] {
-            print!("[");
-            for x in 0..size[0] {
-                if x == size[0] - 1 {
-                    println!(
-                        "{:?} ]",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
-                    );
-                } else {
-                    print!(
-                        "{:?}, ",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
-                    );
-                }
-            }
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
+// -Field3d--------------------------------------------------------------------
 
 /// Implements a filed of given Type T on a 3-dimensional lattice of size
 /// MAX_X * MAX_Y * MAX_T.
@@ -278,4 +310,74 @@ fn test_field_shift() {
     field.shift_values(3);
 
     assert_eq!(field.values[80], -3);
+}
+
+// -Formatting-----------------------------------------------------------------
+
+impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> &T {
+        self.get_value(self.lattice.calc_index_from_coords(coords))
+    }
+
+    pub fn get_value(&self, index: usize) -> &T {
+        &self.values[index]
+    }
+}
+
+// Printing 3-dimensional fields nicely.
+impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 3]) {
+        for t in 0..size[2] {
+            println!("t = {}", t);
+            for y in 0..size[1] {
+                print!("[");
+                for x in 0..size[0] {
+                    if x == size[0] - 1 {
+                        println!(
+                            "{:?} ]",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
+                    } else {
+                        print!(
+                            "{:?}, ",
+                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Printing two-dimensional fields nicely.
+impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 2]) {
+        for y in 0..size[1] {
+            print!("[");
+            for x in 0..size[0] {
+                if x == size[0] - 1 {
+                    println!(
+                        "{:?} ]",
+                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                    );
+                } else {
+                    print!(
+                        "{:?}, ",
+                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                    );
+                }
+            }
+        }
+    }
 }

@@ -17,7 +17,7 @@ impl<const D: usize> LatticeCoords<D> {
     }
 
     /// Change the coordinates in one direction by one.
-    fn move_one(mut self, size: [usize; D], direction: usize) -> Self {
+    pub fn move_one(mut self, size: [usize; D], direction: usize) -> Self {
         let mut is_forward: bool = false;
         if direction < D {
             is_forward = true;
@@ -39,7 +39,12 @@ impl<const D: usize> LatticeCoords<D> {
     /// axis through the origin.
     pub fn is_on_plane(&self, dim1: usize, dim2: usize) -> bool {
         let mut others_zero: bool = true;
-        for entry in self.0.into_iter().filter(|&x| x != dim1 && x != dim2) {
+        for (_, entry) in self
+            .0
+            .into_iter()
+            .enumerate()
+            .filter(|(i, _)| *i != dim1 && *i != dim2)
+        {
             if entry != 0 {
                 others_zero = false;
                 break;

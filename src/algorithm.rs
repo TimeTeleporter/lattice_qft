@@ -1,54 +1,107 @@
-use std::{
-    fmt::Display,
-    ops::{Add, Div, Mul, Sub},
+use rand::prelude::*;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    action::{Action, ActionType},
+    field::{Field, HeightField, HeightVariable},
+    pause,
 };
-
-use rand::{rngs::ThreadRng, Rng};
-
-use crate::{action::Action, field::Field, pause};
 
 use self::bonds::BondsField;
 
 const VERBOSE: bool = false;
 
-pub trait Cluster<const D: usize, const SIZE: usize>: Action<D, SIZE> {
-    fn cluster_sweep(&mut self, temp: f64) -> usize;
-
-    fn reflect_value(
-        &self,
-        index: usize,
-        plane: <Self as Action<D, SIZE>>::FieldType,
-        modifier: <Self as Action<D, SIZE>>::FieldType,
-    ) -> <Self as Action<D, SIZE>>::FieldType;
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub enum AlgorithmType {
+    Metropolis,
+    Cluster,
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Cluster<D, SIZE> for Field<'a, T, D, SIZE>
+impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for AlgorithmType
 where
-    f64: From<T>,
-    T: Add<Output = T>
-        + Sub<Output = T>
-        + Mul<Output = T>
-        + Div<Output = T>
-        + Default
-        + From<i8>
-        + Into<i64>
-        + Into<f64>
-        + PartialOrd
-        + Copy
-        + Display
-        + Sync,
+    T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    /// Implementation of a multi-cluster algortihm. It identifies a mirror plane
-    /// and constructs clusters of lattice sites with values on the same side
-    /// of the mirror. For each cluster it is randomly decided if all of the
-    /// values of its sites are mirrored or not. Returns the amount of clusters
-    /// built in the sweep.
-    fn cluster_sweep(&mut self, temp: f64) -> usize {
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
+        match self {
+            AlgorithmType::Metropolis => Metropolis::field_sweep(&Metropolis, field, action, temp),
+            AlgorithmType::Cluster => Cluster::field_sweep(&Cluster, field, action, temp),
+        }
+    }
+}
+
+struct Metropolis;
+struct Cluster;
+
+pub trait Algorithm<T, const D: usize, const SIZE: usize>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize;
+}
+
+impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Metropolis
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
+        let mut rng = ThreadRng::default();
+        let mut acceptance: usize = 0;
+        for index in 0..SIZE {
+            if Metropolis::metropolis_single(field, index, action, temp, &mut rng) {
+                acceptance += 1;
+            };
+        }
+        acceptance
+    }
+}
+
+impl Metropolis {
+    fn metropolis_single<T: HeightVariable<T>, const D: usize, const SIZE: usize>(
+        field: &mut Field<T, D, SIZE>,
+        index: usize,
+        action: &ActionType,
+        temp: f64,
+        rng: &mut ThreadRng,
+    ) -> bool
+    where
+        [(); D * 2_usize]:,
+    {
+        // Initialize the change to be measured
+        let coin: bool = rng.gen();
+        let new_value = match coin {
+            true => field.values[index] + T::from(1_i8),
+            false => field.values[index] - T::from(1_i8),
+        };
+
+        // Calculate the action of both possibilities
+        let old_action = action.calculate_assumed_action(field, index, field.values[index]);
+        let new_action = action.calculate_assumed_action(field, index, new_value);
+
+        // Accept the new action if its lower than the previous.
+        // Else accept it with a proportional probability.
+        let draw: f64 = rng.gen_range(0.0..=1.0);
+        let prob: f64 = (Into::<f64>::into(old_action - new_action) * temp).exp();
+        if draw <= prob {
+            field.values[index] = new_value;
+            return true;
+        }
+        false
+    }
+}
+
+impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Cluster
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
 
         // Set the mirror plane randomly on a height value
-        let plane: T = self.values[rng.gen_range(0..SIZE)];
+        let plane: T = field.values[rng.gen_range(0..SIZE)];
         let modifier: T = match rng.gen::<bool>() {
             true => 0_i8.into(),
             false => match rng.gen::<bool>() {
@@ -61,13 +114,13 @@ where
         }
 
         // Initialize memory to save the activated bonds and set all to false
-        let mut bonds: BondsField<D, SIZE> = BondsField::new(self.lattice);
+        let mut bonds: BondsField<D, SIZE> = BondsField::new(field.lattice);
 
         // Going through the lattice sites...
         for index in 0..SIZE {
-            let site: T = self.values[index];
+            let site: T = field.values[index];
             // ...for each neighbour in positive coordinate direction...
-            for (direction, neighbour_index) in self
+            for (direction, neighbour_index) in field
                 .lattice
                 .pos_neighbours_array(index)
                 .into_iter()
@@ -75,17 +128,21 @@ where
             {
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
-                let neighbour: T = self.values[neighbour_index];
-                let action: T = <Self as Action<D, SIZE>>::calculate_link_action(site, neighbour);
-                let reflected_action: T = <Self as Action<D, SIZE>>::calculate_link_action(
+                let neighbour: T = field.values[neighbour_index];
+                let standard_action: T =
+                    <ActionType as Action<T, D, SIZE>>::bond_formula(action, site, neighbour);
+                let reflected_action: T = <ActionType as Action<T, D, SIZE>>::bond_formula(
+                    action,
                     site,
-                    self.reflect_value(neighbour_index, plane, modifier),
+                    <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                        neighbour, plane, modifier,
+                    ),
                 );
 
-                let action_difference: T = action - reflected_action;
+                let action_difference: T = standard_action - reflected_action;
 
                 // Dont activate a bond if both are on the same side.
-                if action_difference >= 0_i8.into() {
+                if action_difference >= Into::<T>::into(0_i8) {
                     continue;
                 };
 
@@ -109,7 +166,8 @@ where
                 println!("Looking at the cluster {:?}", cluster);
                 pause();
                 for &index in cluster.iter() {
-                    let neighbours: [usize; D * 2_usize] = self.lattice.get_neighbours_array(index);
+                    let neighbours: [usize; D * 2_usize] =
+                        field.lattice.get_neighbours_array(index);
                     println!(
                         "{index} has the neighbours {:?} and bonds {:?}",
                         neighbours, bonds.values[index]
@@ -127,29 +185,26 @@ where
             let coin: bool = rng.gen();
             if coin {
                 for index in cluster {
-                    self.values[index] = self.reflect_value(index, plane, modifier);
+                    field.values[index] =
+                        <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                            field.values[index],
+                            plane,
+                            modifier,
+                        );
                 }
             }
         }
 
         clusters_amount
     }
-
-    fn reflect_value(
-        &self,
-        index: usize,
-        plane: <Self as Action<D, SIZE>>::FieldType,
-        modifier: <Self as Action<D, SIZE>>::FieldType,
-    ) -> <Self as Action<D, SIZE>>::FieldType {
-        <i8 as Into<<Self as Action<D, SIZE>>::FieldType>>::into(2_i8) * plane + modifier
-            - self.values[index]
-    }
 }
 
 pub(self) mod bonds {
     use std::{collections::VecDeque, ops::Deref};
 
-    use crate::{cluster::VERBOSE, field::Field, lattice::Lattice, pause};
+    use crate::{field::Field, lattice::Lattice, pause};
+
+    use super::VERBOSE;
 
     /// Models the activation of outgoing bonds from a lattice site
     pub struct BondsField<'a, const D: usize, const SIZE: usize>(
@@ -344,26 +399,4 @@ pub(self) mod bonds {
 
         assert_eq!(test.len(), clusters.len());
     }
-}
-
-#[test]
-fn test_field_mirror() {
-    use crate::action::Action;
-    use crate::lattice::Lattice;
-
-    const D: usize = 4;
-    const SIZE_ARY: [usize; D] = [3, 3, 3, 3];
-    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2] * SIZE_ARY[3];
-
-    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
-    let field: Field<i8, D, SIZE> = Field::random(&lattice);
-    let mut field: Field<i32, D, SIZE> = Field::from_field(field);
-
-    let old_action: i64 = field.sum_link_actions();
-
-    for index in 0..SIZE {
-        field.values[index] = field.reflect_value(index, 0, 0);
-    }
-
-    assert_eq!(old_action, field.sum_link_actions());
 }
