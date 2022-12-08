@@ -3,12 +3,6 @@ use std::fmt::Display;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    action::{Action, ActionType},
-    field::{Field, HeightField, HeightVariable},
-    pause,
-};
-
 use self::bonds::BondsField;
 
 const VERBOSE: bool = false;
@@ -28,6 +22,14 @@ impl Display for AlgorithmType {
     }
 }
 
+pub trait Algorithm<T, const D: usize, const SIZE: usize>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize;
+}
+
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for AlgorithmType
 where
     T: HeightVariable<T>,
@@ -43,14 +45,6 @@ where
 
 struct Metropolis;
 struct Cluster;
-
-pub trait Algorithm<T, const D: usize, const SIZE: usize>
-where
-    T: HeightVariable<T>,
-    [(); D * 2_usize]:,
-{
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize;
-}
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Metropolis
 where

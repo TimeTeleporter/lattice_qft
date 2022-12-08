@@ -2,11 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    action::{Action, ActionType},
-    field::{Field, HeightVariable},
-    wilson::Wilsonloop,
-};
+use crate::heightfield::HeightVariable;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ObservableType {
@@ -29,6 +25,15 @@ impl Display for ObservableType {
             }
         }
     }
+}
+
+/// This trait implements methods to get a observable from a [HeightField].
+pub trait Observable<T, const D: usize, const SIZE: usize>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn observe(&self, field: &Field<T, D, SIZE>, temp: f64) -> f64;
 }
 
 impl<T, const D: usize, const SIZE: usize> Observable<T, D, SIZE> for ObservableType
@@ -56,14 +61,6 @@ where
 
 struct ActionObservable<'a>(&'a ActionType);
 struct WilsonObservable<'a>(&'a Wilsonloop);
-
-pub trait Observable<T, const D: usize, const SIZE: usize>
-where
-    T: HeightVariable<T>,
-    [(); D * 2_usize]:,
-{
-    fn observe(&self, field: &Field<T, D, SIZE>, temp: f64) -> f64;
-}
 
 impl<'a, T, const D: usize, const SIZE: usize> Observable<T, D, SIZE> for ActionObservable<'a>
 where

@@ -107,15 +107,14 @@ pub const CLUSTER_BINNING_PATH: &str = "./data/cluster_binning.csv";
 pub const METRPLS_RESULTS_PATH: &str = "./data/metropolis_results.csv";
 pub const METRPLS_BINNING_PATH: &str = "./data/metropolis_binning.csv";
 
-pub mod action;
 pub mod algorithm;
 pub mod computation;
 pub mod error;
 pub mod export;
 pub mod field;
+pub mod heightfield;
 pub mod lattice;
 pub mod observable;
-pub mod wilson;
 
 extern crate csv;
 extern crate nalgebra;
