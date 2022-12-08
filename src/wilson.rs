@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -10,6 +12,25 @@ pub struct Wilsonloop {
     width: usize,
     height: usize,
     right: bool,
+}
+
+impl Wilsonloop {
+    pub fn new(width: usize, height: usize, right: bool) -> Wilsonloop {
+        Wilsonloop {
+            width,
+            height,
+            right,
+        }
+    }
+}
+
+impl Display for Wilsonloop {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.right {
+            true => write!(f, "{}x{} right-handed Wilson loop", self.width, self.height),
+            false => write!(f, "{}x{} left-handed Wilson loop", self.width, self.height),
+        }
+    }
 }
 
 impl Wilsonloop {

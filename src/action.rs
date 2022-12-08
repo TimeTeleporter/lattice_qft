@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -9,6 +11,15 @@ use crate::{
 pub enum ActionType {
     StandardAction,
     WilsonAction(Wilsonloop),
+}
+
+impl Display for ActionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ActionType::StandardAction => write!(f, "Standard Action"),
+            ActionType::WilsonAction(wilson) => write!(f, "Action of a {wilson}"),
+        }
+    }
 }
 
 impl<T, const D: usize, const SIZE: usize> Action<T, D, SIZE> for ActionType
@@ -28,6 +39,67 @@ where
                 site1_val,
                 site2_val,
             ),
+        }
+    }
+
+    fn direction_bond_formula(
+        &self,
+        field: &Field<T, D, SIZE>,
+        value: T,
+        index: usize,
+        direction: usize,
+    ) -> T {
+        match self {
+            ActionType::StandardAction => {
+                <StandardAction as Action<T, D, SIZE>>::direction_bond_formula(
+                    &StandardAction,
+                    field,
+                    value,
+                    index,
+                    direction,
+                )
+            }
+            ActionType::WilsonAction(wilson) => {
+                <WilsonAction as Action<T, D, SIZE>>::direction_bond_formula(
+                    &WilsonAction(wilson),
+                    field,
+                    value,
+                    index,
+                    direction,
+                )
+            }
+        }
+    }
+
+    fn calculate_assumed_action(&self, field: &Field<T, D, SIZE>, index: usize, value: T) -> T {
+        match self {
+            ActionType::StandardAction => {
+                <StandardAction as Action<T, D, SIZE>>::calculate_assumed_action(
+                    &StandardAction,
+                    field,
+                    index,
+                    value,
+                )
+            }
+            ActionType::WilsonAction(wilson) => {
+                <WilsonAction as Action<T, D, SIZE>>::calculate_assumed_action(
+                    &WilsonAction(wilson),
+                    field,
+                    index,
+                    value,
+                )
+            }
+        }
+    }
+
+    fn integer_action(&self, field: &Field<T, D, SIZE>) -> T {
+        match self {
+            ActionType::StandardAction => {
+                <StandardAction as Action<T, D, SIZE>>::integer_action(&StandardAction, field)
+            }
+            ActionType::WilsonAction(wilson) => {
+                <WilsonAction as Action<T, D, SIZE>>::integer_action(&WilsonAction(wilson), field)
+            }
         }
     }
 }
@@ -53,10 +125,7 @@ where
         value: T,
         index: usize,
         direction: usize,
-    ) -> T {
-        let neighbour: T = field.values[field.lattice.get_neighbours_array(index)[direction]];
-        self.bond_formula(value, neighbour)
-    }
+    ) -> T;
 
     fn direction_bond_action(
         &self,
@@ -67,23 +136,8 @@ where
         Self::direction_bond_formula(&self, field, field.values[index], index, direction)
     }
 
-    fn calculate_assumed_action(&self, field: &Field<T, D, SIZE>, index: usize, value: T) -> T {
-        let mut sum: T = T::default();
-        for neighbour in field.lattice.get_neighbours_array(index) {
-            sum = sum + Self::bond_formula(self, value, field.values[neighbour]);
-        }
-        sum
-    }
-
-    fn integer_action(&self, field: &Field<T, D, SIZE>) -> T {
-        let mut sum: T = T::default();
-        for index in 0..SIZE {
-            for neighbour in field.lattice.pos_neighbours_array(index) {
-                sum = sum + self.bond_action(field, index, neighbour);
-            }
-        }
-        sum
-    }
+    fn calculate_assumed_action(&self, field: &Field<T, D, SIZE>, index: usize, value: T) -> T;
+    fn integer_action(&self, field: &Field<T, D, SIZE>) -> T;
 
     fn action_observable(&self, field: &Field<T, D, SIZE>, temp: f64) -> f64 {
         Into::<f64>::into(self.integer_action(field)) * temp
@@ -99,6 +153,41 @@ where
         let diff: T = site1_val - site2_val;
         diff * diff
     }
+
+    /// The standard action is determined as the difference squared.
+    fn bond_action(&self, field: &Field<T, D, SIZE>, site1: usize, site2: usize) -> T {
+        <Self as Action<T, D, SIZE>>::bond_formula(self, field.values[site1], field.values[site2])
+    }
+
+    fn direction_bond_formula(
+        &self,
+        field: &Field<T, D, SIZE>,
+        value: T,
+        index: usize,
+        direction: usize,
+    ) -> T {
+        let neighbour: T = field.values[field.lattice.get_neighbours_array(index)[direction]];
+        <Self as Action<T, D, SIZE>>::bond_formula(self, value, neighbour)
+    }
+
+    fn calculate_assumed_action(&self, field: &Field<T, D, SIZE>, index: usize, value: T) -> T {
+        let mut sum: T = T::default();
+        for neighbour in field.lattice.get_neighbours_array(index) {
+            sum = sum
+                + <Self as Action<T, D, SIZE>>::bond_formula(self, value, field.values[neighbour]);
+        }
+        sum
+    }
+
+    fn integer_action(&self, field: &Field<T, D, SIZE>) -> T {
+        let mut sum: T = T::default();
+        for index in 0..SIZE {
+            for neighbour in field.lattice.pos_neighbours_array(index) {
+                sum = sum + self.bond_action(field, index, neighbour);
+            }
+        }
+        sum
+    }
 }
 
 impl<'a, T, const D: usize, const SIZE: usize> Action<T, D, SIZE> for WilsonAction<'a>
@@ -112,10 +201,6 @@ where
         panic!("No bond formula for wilson action only dependant on the values");
     }
 
-    fn bond_action(&self, _: &Field<T, D, SIZE>, _: usize, _: usize) -> T {
-        panic!("No bond wilson action without direction");
-    }
-
     fn direction_bond_formula(
         &self,
         field: &Field<T, D, SIZE>,
@@ -125,15 +210,6 @@ where
     ) -> T {
         self.0
             .direction_bond_formula(field, value, index, direction)
-    }
-
-    fn direction_bond_action(
-        &self,
-        field: &Field<T, D, SIZE>,
-        index: usize,
-        direction: usize,
-    ) -> T {
-        self.0.direction_bond_action(field, index, direction)
     }
 
     fn calculate_assumed_action(&self, field: &Field<T, D, SIZE>, index: usize, value: T) -> T {

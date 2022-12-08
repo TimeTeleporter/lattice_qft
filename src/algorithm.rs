@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +17,15 @@ const VERBOSE: bool = false;
 pub enum AlgorithmType {
     Metropolis,
     Cluster,
+}
+
+impl Display for AlgorithmType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AlgorithmType::Metropolis => write!(f, "Metropolis"),
+            AlgorithmType::Cluster => write!(f, "Cluster"),
+        }
+    }
 }
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for AlgorithmType
@@ -97,6 +108,7 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
+    /// Implementation of the cluster algorithm.
     fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
 
@@ -118,7 +130,6 @@ where
 
         // Going through the lattice sites...
         for index in 0..SIZE {
-            let site: T = field.values[index];
             // ...for each neighbour in positive coordinate direction...
             for (direction, neighbour_index) in field
                 .lattice
@@ -129,15 +140,19 @@ where
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
                 let neighbour: T = field.values[neighbour_index];
-                let standard_action: T =
-                    <ActionType as Action<T, D, SIZE>>::bond_formula(action, site, neighbour);
-                let reflected_action: T = <ActionType as Action<T, D, SIZE>>::bond_formula(
-                    action,
-                    site,
-                    <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
-                        neighbour, plane, modifier,
-                    ),
+                let standard_action: T = <ActionType as Action<T, D, SIZE>>::direction_bond_action(
+                    action, field, index, direction,
                 );
+                let reflected_action: T =
+                    <ActionType as Action<T, D, SIZE>>::direction_bond_formula(
+                        action,
+                        field,
+                        <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                            neighbour, plane, modifier,
+                        ),
+                        index,
+                        direction,
+                    );
 
                 let action_difference: T = standard_action - reflected_action;
 

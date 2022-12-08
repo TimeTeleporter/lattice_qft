@@ -1,4 +1,4 @@
-use std::{error::Error, time::Instant};
+use std::{error::Error, fmt::Display, time::Instant};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +22,32 @@ pub enum ComputationType {
         range: usize,
         permutations: u64,
     },
+}
+
+impl Display for ComputationType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComputationType::Simulation {
+                algorithm,
+                burnin,
+                iterations,
+            } => {
+                write!(
+                    f,
+                    "{} Simulation with {} iterations ({} burnin)",
+                    algorithm, iterations, burnin,
+                )
+            }
+            ComputationType::Test {
+                range,
+                permutations,
+            } => write!(
+                f,
+                "Test with {} range ({} permutations)",
+                range, permutations
+            ),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -169,9 +195,21 @@ where
     }
 
     fn into_comp_result(self, result: f64) -> ComputationResult {
+        let [x, y, t]: [Option<usize>; 3] = if D == 3 {
+            [
+                Some(self.lattice.size[0]),
+                Some(self.lattice.size[1]),
+                Some(self.lattice.size[2]),
+            ]
+        } else {
+            [None, None, None]
+        };
         ComputationResult {
             d: D,
             size: SIZE,
+            x,
+            y,
+            t,
             temp: self.temp,
             comptype: self.comptype,
             action: self.action,
@@ -230,9 +268,21 @@ where
     }
 
     fn into_comp_result(self, result: f64) -> ComputationResult {
+        let [x, y, t]: [Option<usize>; 3] = if D == 3 {
+            [
+                Some(self.lattice.size[0]),
+                Some(self.lattice.size[1]),
+                Some(self.lattice.size[2]),
+            ]
+        } else {
+            [None, None, None]
+        };
         ComputationResult {
             d: D,
             size: SIZE,
+            x,
+            y,
+            t,
             temp: self.temp,
             comptype: ComputationType::Simulation {
                 algorithm: self.algorithm,
@@ -304,9 +354,21 @@ where
     }
 
     fn into_comp_result(self, result: f64) -> ComputationResult {
+        let [x, y, t]: [Option<usize>; 3] = if D == 3 {
+            [
+                Some(self.lattice.size[0]),
+                Some(self.lattice.size[1]),
+                Some(self.lattice.size[2]),
+            ]
+        } else {
+            [None, None, None]
+        };
         ComputationResult {
             d: D,
             size: SIZE,
+            x,
+            y,
+            t,
             temp: self.temp,
             comptype: ComputationType::Test {
                 range: self.range,
@@ -327,6 +389,9 @@ where
 pub struct ComputationResult {
     d: usize,
     size: usize,
+    x: Option<usize>,
+    y: Option<usize>,
+    t: Option<usize>,
     temp: f64,
     comptype: ComputationType,
     action: ActionType,
@@ -340,4 +405,36 @@ impl ComputationResult {
     fn add_error(&mut self, error: f64) {
         self.error = Some(error);
     }
+
+    pub fn into_export(self) -> ComputationExport {
+        ComputationExport {
+            d: self.d,
+            size: self.size,
+            x: self.x,
+            y: self.y,
+            t: self.t,
+            temp: self.temp,
+            comptype: self.comptype.to_string(),
+            action: self.action.to_string(),
+            observable: self.observable.to_string(),
+            result: self.result,
+            error: self.error,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+/// We export the [`ComputationResult`] in a csv file with this formating
+pub struct ComputationExport {
+    d: usize,
+    size: usize,
+    x: Option<usize>,
+    y: Option<usize>,
+    t: Option<usize>,
+    temp: f64,
+    comptype: String,
+    action: String,
+    observable: String,
+    result: f64,
+    error: Option<f64>,
 }

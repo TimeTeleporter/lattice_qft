@@ -1,1 +1,13 @@
-d,size,temp,comptype
+d,size,x,y,t,temp,comptype,action,observable,result,error
+3,8,2,2,2,0.1,Cluster Simulation with 1000000 iterations (10000 burnin),Standard Action,Standard Action observable,3.499017999999137,0.005390524665125819
+3,8,2,2,2,0.1,Metropolis Simulation with 1000000 iterations (10000 burnin),Standard Action,Standard Action observable,3.4981039999991648,0.004054173492477275
+3,8,2,2,2,0.1,Test with 16 range (268435456 permutations),Standard Action,Standard Action observable,3.4999985184009264,
+3,8,2,2,2,0.1,Cluster Simulation with 1000000 iterations (10000 burnin),Standard Action,Standard Action size normalized observable,0.4364836999998575,0.0007874889956601076
+3,8,2,2,2,0.1,Metropolis Simulation with 1000000 iterations (10000 burnin),Standard Action,Standard Action size normalized observable,0.4373903749998895,0.0004327154408361946
+3,8,2,2,2,0.1,Test with 16 range (268435456 permutations),Standard Action,Standard Action size normalized observable,0.4374998148001158,
+3,8000,20,20,20,0.1,Cluster Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Action of a 4x4 right-handed Wilson loop size normalized observable,3202.9282279852887,0.00002652779221534729
+3,8000,20,20,20,0.1,Metropolis Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Action of a 4x4 right-handed Wilson loop size normalized observable,0.5006263773749997,0.000017115048612641257
+3,8000,20,20,20,0.1,Cluster Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Standard Action size normalized observable,3264.06995932802,0.0015482008457183838
+3,8000,20,20,20,0.1,Metropolis Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Standard Action size normalized observable,0.5004254416750102,0.000015725252630918642
+3,8000,20,20,20,0.1,Cluster Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Standard Action size normalized observable,3243.3617335278695,-0.000028109442474319457
+3,8000,20,20,20,0.1,Metropolis Simulation with 1000000 iterations (10000 burnin),Action of a 4x4 right-handed Wilson loop,Standard Action size normalized observable,0.5004179696000051,0.000019910970877390355

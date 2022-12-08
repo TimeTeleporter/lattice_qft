@@ -13,11 +13,12 @@ use lattice_qft::{
     export::CsvData,
     lattice::Lattice3d,
     observable::ObservableType,
+    wilson::Wilsonloop,
 };
 
-const TEST_X: usize = 4;
-const TEST_Y: usize = 4;
-const TEST_T: usize = 4;
+const TEST_X: usize = 20;
+const TEST_Y: usize = 20;
+const TEST_T: usize = 20;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
 //const RANGE: usize = 16;
@@ -37,14 +38,27 @@ fn main() {
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
     for temp in [0.1] {
+        let wilson: Wilsonloop = Wilsonloop::new(4, 4, true);
+        let action: ActionType = ActionType::WilsonAction(wilson);
+        let obs_action: ActionType = ActionType::StandardAction;
+        let observable: ObservableType = ObservableType::SizeNormalized(obs_action);
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
             AlgorithmType::Cluster,
             BURNIN,
             ITERATIONS,
-            ActionType::StandardAction,
-            ObservableType::ActionObservable(ActionType::StandardAction),
+            action.clone(),
+            observable.clone(),
+        ));
+        comps.push(Computation::new_simulation(
+            &lattice,
+            temp,
+            AlgorithmType::Metropolis,
+            BURNIN,
+            ITERATIONS,
+            action.clone(),
+            observable.clone(),
         ));
     }
 
@@ -57,7 +71,7 @@ fn main() {
     println!("All calcualtions done");
 
     for entry in data {
-        if let Err(err) = entry.read_write_csv(RESULTS_PATH) {
+        if let Err(err) = entry.into_export().read_write_csv(RESULTS_PATH) {
             eprint!("{}", err);
         };
     }

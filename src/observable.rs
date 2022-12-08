@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -12,6 +14,21 @@ pub enum ObservableType {
     WilsonObservable(Wilsonloop),
     SizeNormalized(ActionType),
     BondNormalized(ActionType),
+}
+
+impl Display for ObservableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ObservableType::ActionObservable(action) => write!(f, "{} observable", action),
+            ObservableType::WilsonObservable(wilson) => write!(f, "{} observable", wilson),
+            ObservableType::SizeNormalized(action) => {
+                write!(f, "{} size normalized observable", action)
+            }
+            ObservableType::BondNormalized(action) => {
+                write!(f, "{} bond normalized observable", action)
+            }
+        }
+    }
 }
 
 impl<T, const D: usize, const SIZE: usize> Observable<T, D, SIZE> for ObservableType
