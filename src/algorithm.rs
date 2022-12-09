@@ -3,6 +3,12 @@ use std::fmt::Display;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::{
+    field::Field,
+    heightfield::{Action, HeightField, HeightVariable},
+    pause,
+};
+
 use self::bonds::BondsField;
 
 const VERBOSE: bool = false;
@@ -17,7 +23,7 @@ impl Display for AlgorithmType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AlgorithmType::Metropolis => write!(f, "Metropolis"),
-            AlgorithmType::Cluster => write!(f, "Cluster"),
+            AlgorithmType::Cluster => write!(f, "Cluster   "),
         }
     }
 }
@@ -27,7 +33,7 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize;
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize;
 }
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for AlgorithmType
@@ -35,10 +41,10 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
         match self {
-            AlgorithmType::Metropolis => Metropolis::field_sweep(&Metropolis, field, action, temp),
-            AlgorithmType::Cluster => Cluster::field_sweep(&Cluster, field, action, temp),
+            AlgorithmType::Metropolis => Metropolis::field_sweep(&Metropolis, field, temp),
+            AlgorithmType::Cluster => Cluster::field_sweep(&Cluster, field, temp),
         }
     }
 }
@@ -51,11 +57,11 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
         let mut acceptance: usize = 0;
         for index in 0..SIZE {
-            if Metropolis::metropolis_single(field, index, action, temp, &mut rng) {
+            if Metropolis::metropolis_single(field, index, temp, &mut rng) {
                 acceptance += 1;
             };
         }
@@ -67,7 +73,6 @@ impl Metropolis {
     fn metropolis_single<T: HeightVariable<T>, const D: usize, const SIZE: usize>(
         field: &mut Field<T, D, SIZE>,
         index: usize,
-        action: &ActionType,
         temp: f64,
         rng: &mut ThreadRng,
     ) -> bool
@@ -76,14 +81,15 @@ impl Metropolis {
     {
         // Initialize the change to be measured
         let coin: bool = rng.gen();
-        let new_value = match coin {
+        let old_value: T = field.values[index];
+        let new_value: T = match coin {
             true => field.values[index] + T::from(1_i8),
             false => field.values[index] - T::from(1_i8),
         };
 
         // Calculate the action of both possibilities
-        let old_action = action.calculate_assumed_action(field, index, field.values[index]);
-        let new_action = action.calculate_assumed_action(field, index, new_value);
+        let old_action = field.assumed_local_action(index, old_value);
+        let new_action = field.assumed_local_action(index, new_value);
 
         // Accept the new action if its lower than the previous.
         // Else accept it with a proportional probability.
@@ -103,7 +109,7 @@ where
     [(); D * 2_usize]:,
 {
     /// Implementation of the cluster algorithm.
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, action: &ActionType, temp: f64) -> usize {
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
         let mut rng = ThreadRng::default();
 
         // Set the mirror plane randomly on a height value
@@ -134,19 +140,14 @@ where
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
                 let neighbour: T = field.values[neighbour_index];
-                let standard_action: T = <ActionType as Action<T, D, SIZE>>::direction_bond_action(
-                    action, field, index, direction,
+                let standard_action: T = field.bond_action(index, direction);
+                let reflected_action: T = field.assumed_bond_action(
+                    index,
+                    direction,
+                    <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                        neighbour, plane, modifier,
+                    ),
                 );
-                let reflected_action: T =
-                    <ActionType as Action<T, D, SIZE>>::direction_bond_formula(
-                        action,
-                        field,
-                        <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
-                            neighbour, plane, modifier,
-                        ),
-                        index,
-                        direction,
-                    );
 
                 let action_difference: T = standard_action - reflected_action;
 

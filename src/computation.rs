@@ -3,10 +3,10 @@ use std::{error::Error, fmt::Display, time::Instant};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    action::{Action, ActionType},
     algorithm::{Algorithm, AlgorithmType},
     error::ObsChain,
-    field::{Field, HeightField},
+    field::Field,
+    heightfield::{Action, HeightField},
     lattice::Lattice,
     observable::{Observable, ObservableType},
 };
@@ -29,23 +29,12 @@ impl Display for ComputationType {
         match self {
             ComputationType::Simulation {
                 algorithm,
-                burnin,
                 iterations,
+                ..
             } => {
-                write!(
-                    f,
-                    "{} Simulation with {} iterations ({} burnin)",
-                    algorithm, iterations, burnin,
-                )
+                write!(f, "{} Simulation ({})", algorithm, iterations)
             }
-            ComputationType::Test {
-                range,
-                permutations,
-            } => write!(
-                f,
-                "Test with {} range ({} permutations)",
-                range, permutations
-            ),
+            ComputationType::Test { range, .. } => write!(f, "Test (0 - {})", range),
         }
     }
 }
@@ -60,7 +49,6 @@ where
     algorithm: AlgorithmType,
     burnin: usize,
     iterations: usize,
-    action: ActionType,
     observable: ObservableType,
 }
 
@@ -73,7 +61,6 @@ where
     temp: f64,
     range: usize,
     permutations: u64,
-    action: ActionType,
     observable: ObservableType,
 }
 
@@ -85,7 +72,6 @@ where
     lattice: &'a Lattice<D, SIZE>,
     temp: f64,
     comptype: ComputationType,
-    action: ActionType,
     observable: ObservableType,
 }
 
@@ -99,7 +85,6 @@ where
         algorithm: AlgorithmType,
         burnin: usize,
         iterations: usize,
-        action: ActionType,
         observable: ObservableType,
     ) -> Computation<'a, D, SIZE> {
         Computation {
@@ -110,7 +95,6 @@ where
                 burnin,
                 iterations,
             },
-            action,
             observable,
         }
     }
@@ -119,7 +103,6 @@ where
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         range: usize,
-        action: ActionType,
         observable: ObservableType,
     ) -> Computation<'a, D, SIZE> {
         // 16 ^ 7 = 268’435’456
@@ -132,7 +115,6 @@ where
                 range,
                 permutations,
             },
-            action,
             observable,
         }
     }
@@ -150,7 +132,6 @@ where
                 algorithm,
                 burnin,
                 iterations,
-                action: self.action,
                 observable: self.observable,
             })
         } else {
@@ -169,7 +150,6 @@ where
                 temp: self.temp,
                 range,
                 permutations,
-                action: self.action,
                 observable: self.observable,
             })
         } else {
@@ -212,7 +192,6 @@ where
             t,
             temp: self.temp,
             comptype: self.comptype,
-            action: self.action,
             observable: self.observable,
             result,
             error: None,
@@ -232,8 +211,7 @@ where
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for _step in 0..(self.burnin) {
             //println!("Sweep {_step}");
-            self.algorithm
-                .field_sweep(&mut field, &self.action, self.temp);
+            self.algorithm.field_sweep(&mut field, self.temp);
             field.normalize_random();
         }
 
@@ -242,8 +220,7 @@ where
         let mut observable_array: Vec<f64> = Vec::with_capacity(self.iterations); // Simulation observable arrray
         for _step in 0..(self.iterations) {
             //println!("Sweep {_step}");
-            self.algorithm
-                .field_sweep(&mut field, &self.action, self.temp);
+            self.algorithm.field_sweep(&mut field, self.temp);
             observable_array.push(self.observable.observe(&field, self.temp));
             field.normalize_random();
         }
@@ -289,7 +266,6 @@ where
                 burnin: self.burnin,
                 iterations: self.iterations,
             },
-            action: self.action,
             observable: self.observable,
             result,
             error: None,
@@ -341,7 +317,7 @@ where
                     }
                 }
             }
-            let bolz: f64 = (-self.action.action_observable(&field, self.temp)).exp();
+            let bolz: f64 = (-field.action_observable(self.temp)).exp();
             test = test + (self.observable.observe(&field, self.temp) * bolz);
             partfn = partfn + bolz;
         }
@@ -374,7 +350,6 @@ where
                 range: self.range,
                 permutations: self.permutations,
             },
-            action: self.action,
             observable: self.observable,
             result,
             error: None,
@@ -394,7 +369,6 @@ pub struct ComputationResult {
     t: Option<usize>,
     temp: f64,
     comptype: ComputationType,
-    action: ActionType,
     observable: ObservableType,
     result: f64,
     error: Option<f64>,
@@ -415,7 +389,6 @@ impl ComputationResult {
             t: self.t,
             temp: self.temp,
             comptype: self.comptype.to_string(),
-            action: self.action.to_string(),
             observable: self.observable.to_string(),
             result: self.result,
             error: self.error,
@@ -433,7 +406,6 @@ pub struct ComputationExport {
     t: Option<usize>,
     temp: f64,
     comptype: String,
-    action: String,
     observable: String,
     result: f64,
     error: Option<f64>,

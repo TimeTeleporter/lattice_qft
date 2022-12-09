@@ -6,19 +6,17 @@
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
-    action::ActionType,
     //REL_TEMP_ARY,
     algorithm::AlgorithmType,
     computation::{Computation, ComputationResult, Compute},
     export::CsvData,
     lattice::Lattice3d,
     observable::ObservableType,
-    wilson::Wilsonloop,
 };
 
-const TEST_X: usize = 20;
-const TEST_Y: usize = 20;
-const TEST_T: usize = 20;
+const TEST_X: usize = 2;
+const TEST_Y: usize = 2;
+const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
 //const RANGE: usize = 16;
@@ -38,17 +36,13 @@ fn main() {
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
     for temp in [0.1] {
-        let wilson: Wilsonloop = Wilsonloop::new(4, 4, true);
-        let action: ActionType = ActionType::WilsonAction(wilson);
-        let obs_action: ActionType = ActionType::StandardAction;
-        let observable: ObservableType = ObservableType::SizeNormalized(obs_action);
+        let observable: ObservableType = ObservableType::SizeNormalizedAction;
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
             AlgorithmType::Cluster,
             BURNIN,
             ITERATIONS,
-            action.clone(),
             observable.clone(),
         ));
         comps.push(Computation::new_simulation(
@@ -57,7 +51,6 @@ fn main() {
             AlgorithmType::Metropolis,
             BURNIN,
             ITERATIONS,
-            action.clone(),
             observable.clone(),
         ));
     }

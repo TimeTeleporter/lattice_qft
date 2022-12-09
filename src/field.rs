@@ -1,3 +1,5 @@
+use std::ops::{Deref, DerefMut};
+
 use rand::{distributions::Standard, prelude::*};
 
 use crate::lattice::{Lattice, Lattice3d, LatticeCoords};
@@ -158,17 +160,6 @@ fn test_field_conversion() {
     let field: Field<i16, 3, 8> = Field::from_field(field8);
 
     assert_eq!(field16.values, field.values);
-}
-
-#[test]
-fn test_field_shift() {
-    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
-
-    let mut field: Field<i8, 4, 81> = Field::new(&lattice);
-
-    field.shift_values(3);
-
-    assert_eq!(field.values[80], -3);
 }
 
 // -Formatting-----------------------------------------------------------------
