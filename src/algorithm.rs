@@ -11,14 +11,18 @@ use crate::{
 
 use self::bonds::BondsField;
 
-const VERBOSE: bool = false;
+const VERBOSE: bool = true;
 
+// - AlgorithmType ------------------------------------------------------------
+
+/// Lists all availible algorithms
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum AlgorithmType {
     Metropolis,
     Cluster,
 }
 
+// Here we implement Display in order to convert into String.
 impl Display for AlgorithmType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -28,14 +32,19 @@ impl Display for AlgorithmType {
     }
 }
 
+/// Requirements for algorithms
 pub trait Algorithm<T, const D: usize, const SIZE: usize>
 where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
+    /// This abstract method takes references to self, a field and and a temp
+    /// and performes a Markov chain step from one field configuration to the
+    /// next. It returns a statistic as a usize.
     fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize;
 }
 
+// Deconstructs the method call to their own struct.
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for AlgorithmType
 where
     T: HeightVariable<T>,
@@ -49,8 +58,11 @@ where
     }
 }
 
+// For each AlgorithmType we have a stuct that implements Algorithm.
 struct Metropolis;
 struct Cluster;
+
+// - Metropolis ---------------------------------------------------------------
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Metropolis
 where
@@ -103,6 +115,8 @@ impl Metropolis {
     }
 }
 
+// - Cluster ------------------------------------------------------------------
+
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Cluster
 where
     T: HeightVariable<T>,
@@ -130,6 +144,7 @@ where
 
         // Going through the lattice sites...
         for index in 0..SIZE {
+            //let site: T = field.values[index];
             // ...for each neighbour in positive coordinate direction...
             for (direction, neighbour_index) in field
                 .lattice
@@ -140,19 +155,19 @@ where
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
                 let neighbour: T = field.values[neighbour_index];
-                let standard_action: T = field.bond_action(index, direction);
+                let action: T = field.bond_action(index, direction);
                 let reflected_action: T = field.assumed_bond_action(
                     index,
                     direction,
-                    <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                    <Field<'_, T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
                         neighbour, plane, modifier,
                     ),
                 );
 
-                let action_difference: T = standard_action - reflected_action;
+                let action_difference: T = action - reflected_action;
 
                 // Dont activate a bond if both are on the same side.
-                if action_difference >= Into::<T>::into(0_i8) {
+                if action_difference >= 0_i8.into() {
                     continue;
                 };
 
@@ -196,7 +211,7 @@ where
             if coin {
                 for index in cluster {
                     field.values[index] =
-                        <Field<T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
+                        <Field<'_, T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
                             field.values[index],
                             plane,
                             modifier,
@@ -209,12 +224,12 @@ where
     }
 }
 
-pub(self) mod bonds {
+pub(super) mod bonds {
     use std::{collections::VecDeque, ops::Deref};
 
-    use crate::{field::Field, lattice::Lattice, pause};
+    use crate::lattice::Lattice;
 
-    use super::VERBOSE;
+    use super::{pause, Field, VERBOSE};
 
     /// Models the activation of outgoing bonds from a lattice site
     pub struct BondsField<'a, const D: usize, const SIZE: usize>(

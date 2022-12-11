@@ -45,14 +45,14 @@ fn main() {
             ITERATIONS,
             observable.clone(),
         ));
-        comps.push(Computation::new_simulation(
+        /*comps.push(Computation::new_simulation(
             &lattice,
             temp,
             AlgorithmType::Metropolis,
             BURNIN,
             ITERATIONS,
             observable.clone(),
-        ));
+        ));*/
     }
 
     // Parallel over all temp data

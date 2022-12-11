@@ -44,31 +44,6 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    /// Calculates the difference of two height variables.
-    fn difference(&self, site1: usize, site2: usize) -> T;
-
-    /// Calculates the square difference of two height variables.
-    fn difference_squared(&self, site1: usize, site2: usize) -> T {
-        let diff: T = self.difference(site1, site2);
-        diff * diff
-    }
-
-    /// Sums up all bond differences connected to a site.
-    fn local_bond_diff_square_sum(&self, index: usize) -> T;
-
-    /// Sums up all bond differences in positive coordinate direction
-    /// connected to a site.
-    fn pos_bond_diff_square_sum(&self, index: usize) -> T;
-
-    /// Sums up all bond differences.
-    fn global_bond_diff_square_sum(&self) -> T {
-        let mut sum: T = T::default();
-        for index in 0..SIZE {
-            sum = sum + self.pos_bond_diff_square_sum(index);
-        }
-        sum
-    }
-
     /// Shifts all values by the value of a random chosen height value.
     fn normalize_random(&mut self);
 
@@ -87,26 +62,6 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn difference(&self, site1: usize, site2: usize) -> T {
-        self.values[site1] - self.values[site2]
-    }
-
-    fn local_bond_diff_square_sum(&self, index: usize) -> T {
-        let mut sum: T = T::default();
-        for neighbour in self.lattice.get_neighbours_array(index) {
-            sum = sum + self.difference_squared(index, neighbour);
-        }
-        sum
-    }
-
-    fn pos_bond_diff_square_sum(&self, index: usize) -> T {
-        let mut sum: T = T::default();
-        for neighbour in self.lattice.pos_neighbours_array(index) {
-            sum = sum + self.difference_squared(index, neighbour);
-        }
-        sum
-    }
-
     fn normalize_random(&mut self) {
         let mut rng = ThreadRng::default();
         let &shift = self.values.choose(&mut rng).unwrap();
@@ -163,7 +118,13 @@ where
     [(); D * 2_usize]:,
 {
     fn integer_action(&self) -> T {
-        self.global_bond_diff_square_sum()
+        let mut sum: T = T::default();
+        for index in 0..SIZE {
+            for direction in 0..D {
+                sum = sum + self.bond_action(index, direction);
+            }
+        }
+        sum
     }
     fn assumed_local_action(&self, index: usize, value: T) -> T {
         let mut sum: T = T::default();
@@ -179,7 +140,8 @@ where
     }
 
     fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T {
-        let diff: T = value - self.values[self.lattice.values[index][direction]];
+        let neighbour_index: usize = self.lattice.values[index][direction];
+        let diff: T = value - self.values[neighbour_index];
         diff * diff
     }
 }

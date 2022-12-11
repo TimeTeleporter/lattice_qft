@@ -1,3 +1,11 @@
 d,size,x,y,t,temp,comptype,observable,result,error
 3,8,2,2,2,0.1,Cluster    Simulation (1000000),action size normalized,3812.3499999362325,7.255422066836184e-14
 3,8,2,2,2,0.1,Metropolis Simulation (1000000),action size normalized,0.4374493999998805,0.0004338000899946323
+3,8,2,2,2,0.1,Cluster    Simulation (1000000),action size normalized,3276.474999941401,5.525337132272767e-13
+3,8,2,2,2,0.1,Metropolis Simulation (1000000),action size normalized,0.43743334999985917,0.00003223493695259094
+3,8,2,2,2,0.1,Cluster    Simulation (1000000),action size normalized,2392.950000010641,6.746033483477317e-13
+3,8,2,2,2,0.1,Metropolis Simulation (1000000),action size normalized,0.4378020249998698,0.0004626337977242656
+3,8,2,2,2,0.1,Cluster    Simulation (1000000),action size normalized,2699.724999949256,1.6839862837514374e-12
+3,8,2,2,2,0.1,Metropolis Simulation (1000000),action size normalized,0.43640064999985956,0.0005196047322897357
+3,8,2,2,2,0.1,Cluster    Simulation (1000000),action size normalized,4948.150000008076,1.31995037086831e-12
+3,8,2,2,2,0.1,Metropolis Simulation (1000000),action size normalized,0.43764882499988783,0.0004581622779369354

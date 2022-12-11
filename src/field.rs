@@ -4,6 +4,7 @@ use rand::{distributions::Standard, prelude::*};
 
 use crate::lattice::{Lattice, Lattice3d, LatticeCoords};
 
+/// A field is a set of values assigned to each lattice site.
 #[derive(Debug, Clone)]
 pub struct Field<'a, T, const D: usize, const SIZE: usize>
 where
@@ -12,6 +13,8 @@ where
     pub values: Vec<T>,
     pub lattice: &'a Lattice<D, SIZE>,
 }
+
+// - Constructors -------------------------------------------------------------
 
 impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
 where
@@ -58,7 +61,72 @@ where
     }
 }
 
-// -Field3d--------------------------------------------------------------------
+// - Printing -----------------------------------------------------------------
+
+// Printing 3-dimensional fields nicely.
+impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 3]) {
+        for t in 0..size[2] {
+            println!("t = {}", t);
+            for y in 0..size[1] {
+                print!("[");
+                for x in 0..size[0] {
+                    if x == size[0] - 1 {
+                        println!(
+                            "{:?} ]",
+                            self.values[self
+                                .lattice
+                                .calc_index_from_coords(LatticeCoords::new([x, y, t]))]
+                        );
+                    } else {
+                        print!(
+                            "{:?}, ",
+                            self.values[self
+                                .lattice
+                                .calc_index_from_coords(LatticeCoords::new([x, y, t]))]
+                        );
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Printing two-dimensional fields nicely.
+impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
+where
+    T: std::fmt::Debug,
+{
+    /// Prints the value in a intuitive way.
+    pub fn print_values_formated(&self, size: [usize; 2]) {
+        for y in 0..size[1] {
+            print!("[");
+            for x in 0..size[0] {
+                if x == size[0] - 1 {
+                    println!(
+                        "{:?} ]",
+                        self.values[self
+                            .lattice
+                            .calc_index_from_coords(LatticeCoords::new([x, y]))]
+                    );
+                } else {
+                    print!(
+                        "{:?}, ",
+                        self.values[self
+                            .lattice
+                            .calc_index_from_coords(LatticeCoords::new([x, y]))]
+                    );
+                }
+            }
+        }
+    }
+}
+
+// - Field3d ------------------------------------------------------------------
 
 /// Implements a filed of given Type T on a 3-dimensional lattice of size
 /// MAX_X * MAX_Y * MAX_T.
@@ -68,6 +136,8 @@ pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: u
 )
 where
     [(); MAX_X * MAX_Y * MAX_T]:;
+
+// - Deref --------------------------------------------------------------------
 
 // By implementing deref we can utilize all the functions of the tuple element
 // without implementing it ourselves.
@@ -94,6 +164,8 @@ where
     }
 }
 
+// - Printing -----------------------------------------------------------------
+
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     Field3d<'_, T, MAX_X, MAX_Y, MAX_T>
 where
@@ -105,6 +177,8 @@ where
         self.0.print_values_formated([MAX_X, MAX_Y, MAX_T]);
     }
 }
+
+// - Constructors for Field3d -------------------------------------------------
 
 impl<'a, T: 'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
@@ -149,6 +223,8 @@ where
     }
 }
 
+// - Tests --------------------------------------------------------------------
+
 #[test]
 fn test_field_conversion() {
     let lattice: Lattice<3, 8> = Lattice::new([2, 2, 2]);
@@ -160,74 +236,4 @@ fn test_field_conversion() {
     let field: Field<i16, 3, 8> = Field::from_field(field8);
 
     assert_eq!(field16.values, field.values);
-}
-
-// -Formatting-----------------------------------------------------------------
-
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> &T {
-        self.get_value(self.lattice.calc_index_from_coords(coords))
-    }
-
-    pub fn get_value(&self, index: usize) -> &T {
-        &self.values[index]
-    }
-}
-
-// Printing 3-dimensional fields nicely.
-impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
-where
-    T: std::fmt::Debug,
-{
-    /// Prints the value in a intuitive way.
-    pub fn print_values_formated(&self, size: [usize; 3]) {
-        for t in 0..size[2] {
-            println!("t = {}", t);
-            for y in 0..size[1] {
-                print!("[");
-                for x in 0..size[0] {
-                    if x == size[0] - 1 {
-                        println!(
-                            "{:?} ]",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    } else {
-                        print!(
-                            "{:?}, ",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
-                        );
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Printing two-dimensional fields nicely.
-impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
-where
-    T: std::fmt::Debug,
-{
-    /// Prints the value in a intuitive way.
-    pub fn print_values_formated(&self, size: [usize; 2]) {
-        for y in 0..size[1] {
-            print!("[");
-            for x in 0..size[0] {
-                if x == size[0] - 1 {
-                    println!(
-                        "{:?} ]",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
-                    );
-                } else {
-                    print!(
-                        "{:?}, ",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
-                    );
-                }
-            }
-        }
-    }
 }
