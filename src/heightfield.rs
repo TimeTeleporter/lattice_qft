@@ -49,12 +49,6 @@ where
 
     /// Subtracts a shift from all values of the field.
     fn shift_values(&mut self, shift: T);
-
-    /// Reflects a hieght value on a given plane, with the modifier moving the
-    /// plane by half steps.
-    fn reflect_value(value: T, plane: T, modifier: T) -> T {
-        Into::<T>::into(2_i8) * plane + modifier - value
-    }
 }
 
 impl<'a, T, const D: usize, const SIZE: usize> HeightField<T, D, SIZE> for Field<'a, T, D, SIZE>

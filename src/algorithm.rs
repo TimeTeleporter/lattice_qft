@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     field::Field,
-    heightfield::{Action, HeightField, HeightVariable},
+    heightfield::{Action, HeightVariable},
     pause,
 };
 
 use self::bonds::BondsField;
 
-const VERBOSE: bool = true;
+const VERBOSE: bool = false;
 
 // - AlgorithmType ------------------------------------------------------------
 
@@ -144,24 +144,15 @@ where
 
         // Going through the lattice sites...
         for index in 0..SIZE {
-            //let site: T = field.values[index];
             // ...for each neighbour in positive coordinate direction...
-            for (direction, neighbour_index) in field
-                .lattice
-                .pos_neighbours_array(index)
-                .into_iter()
-                .enumerate()
-            {
+            for direction in 0..D {
                 // ...calculate both the normal and the reflected action of the
                 // link between them.
-                let neighbour: T = field.values[neighbour_index];
                 let action: T = field.bond_action(index, direction);
                 let reflected_action: T = field.assumed_bond_action(
                     index,
                     direction,
-                    <Field<'_, T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
-                        neighbour, plane, modifier,
-                    ),
+                    reflect_value(field.values[index], plane, modifier),
                 );
 
                 let action_difference: T = action - reflected_action;
@@ -210,18 +201,19 @@ where
             let coin: bool = rng.gen();
             if coin {
                 for index in cluster {
-                    field.values[index] =
-                        <Field<'_, T, D, SIZE> as HeightField<T, D, SIZE>>::reflect_value(
-                            field.values[index],
-                            plane,
-                            modifier,
-                        );
+                    field.values[index] = reflect_value(field.values[index], plane, modifier);
                 }
             }
         }
 
         clusters_amount
     }
+}
+
+/// Reflects a hieght value on a given plane, with the modifier moving the
+/// plane by half steps.
+fn reflect_value<T: HeightVariable<T>>(value: T, plane: T, modifier: T) -> T {
+    Into::<T>::into(2_i8) * plane + modifier - value
 }
 
 pub(super) mod bonds {
