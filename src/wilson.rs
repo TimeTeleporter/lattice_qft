@@ -1,51 +1,111 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use crate::{
+    algorithm::bonds::BondsField,
     field::Field,
     heightfield::{Action, HeightVariable},
+    lattice::Lattice,
 };
 
-pub struct WilsonField<'a, T, const D: usize, const SIZE: usize>
+pub struct WilsonField<'a, T, const SIZE: usize>
 where
     T: HeightVariable<T>,
-    [(); D * 2_usize]:,
 {
-    field: Field<'a, T, D, SIZE>,
-    width: usize,
-    height: usize,
-    spin: T,
+    field: Field<'a, T, 3, SIZE>,
+    bonds: BondsField<'a, 3, SIZE>,
+    spin: bool,
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Deref for WilsonField<'a, T, D, SIZE>
-where
-    T: HeightVariable<T>,
-    [(); D * 2_usize]:,
-{
-    type Target = Field<'a, T, D, SIZE>;
+impl<'a, T: HeightVariable<T>, const SIZE: usize> Deref for WilsonField<'a, T, SIZE> {
+    type Target = Field<'a, T, 3, SIZE>;
 
     fn deref(&self) -> &Self::Target {
         &self.field
     }
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Action<T> for WilsonField<'a, T, D, SIZE>
+impl<'a, T: HeightVariable<T>, const SIZE: usize> DerefMut for WilsonField<'a, T, SIZE> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.field
+    }
+}
+
+impl<'a, T, const SIZE: usize> WilsonField<'a, T, SIZE>
 where
     T: HeightVariable<T>,
-    [(); D * 2_usize]:,
+{
+    pub fn new(
+        lattice: &'a Lattice<3, SIZE>,
+        width: usize,
+        height: usize,
+    ) -> WilsonField<'a, T, SIZE> {
+        let field: Field<'a, T, 3, SIZE> = Field::new(lattice);
+        Self::from_field(field, width, height)
+    }
+
+    pub fn from_field(
+        field: Field<'a, T, 3, SIZE>,
+        width: usize,
+        height: usize,
+    ) -> WilsonField<'a, T, SIZE> {
+        let mut bonds: BondsField<'a, 3, SIZE> = BondsField::new(field.lattice);
+        for index in 0..SIZE {
+            let [x, y, t]: [usize; 3] = field.lattice.calc_coords_from_index(index).into_array();
+            if y == 0 && x < width && t < height {
+                bonds.activate(index, 1);
+            }
+        }
+        WilsonField {
+            field,
+            bonds,
+            spin: true,
+        }
+    }
+}
+
+impl<'a, T, const SIZE: usize> Action<T> for WilsonField<'a, T, SIZE>
+where
+    T: HeightVariable<T>,
 {
     fn integer_action(&self) -> T {
-        todo!()
+        let mut sum: T = T::default();
+        for index in 0..SIZE {
+            for direction in 0..3_usize {
+                sum = sum + self.bond_action(index, direction);
+            }
+        }
+        sum
     }
 
     fn assumed_local_action(&self, index: usize, value: T) -> T {
-        todo!()
+        let mut sum: T = T::default();
+        for direction in 0..(3 * 2_usize) {
+            sum = sum + self.assumed_bond_action(index, direction, value);
+        }
+        sum
     }
 
     fn bond_action(&self, index: usize, direction: usize) -> T {
-        todo!()
+        self.assumed_bond_action(index, direction, self.field.values[index])
     }
 
     fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T {
-        todo!()
+        if self.bonds.is_active(index, direction) {
+            println!("Modified");
+            let spin_modifier: T = (match direction {
+                1 => 1_i8,
+                4 => -1_i8,
+                _ => 0_i8,
+            } * match self.spin {
+                true => 1_i8,
+                false => -1_i8,
+            })
+            .into();
+            let neighbour_index: usize = self.field.lattice.values[index][direction];
+            let diff: T = value - self.field.values[neighbour_index] + spin_modifier;
+            diff * diff
+        } else {
+            self.field.assumed_bond_action(index, direction, value)
+        }
     }
 }

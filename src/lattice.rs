@@ -216,3 +216,15 @@ fn test_big_dim_neighbour_list() {
         }
     }
 }
+
+#[test]
+fn test_is_on_plane() {
+    let coord: LatticeCoords<3> = LatticeCoords::new([5, 0, 3]);
+    assert!(coord.is_on_plane(0, 2));
+    assert!(!coord.is_on_plane(0, 1));
+    assert!(!coord.is_on_plane(1, 2));
+    let coord: LatticeCoords<3> = LatticeCoords::new([0, 0, 3]);
+    assert!(coord.is_on_plane(0, 2));
+    assert!(!coord.is_on_plane(0, 1));
+    assert!(coord.is_on_plane(1, 2));
+}

@@ -14,9 +14,9 @@ use lattice_qft::{
     observable::ObservableType,
 };
 
-const TEST_X: usize = 4;
-const TEST_Y: usize = 4;
-const TEST_T: usize = 4;
+const TEST_X: usize = 2;
+const TEST_Y: usize = 2;
+const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
 //const RANGE: usize = 16;
@@ -40,23 +40,25 @@ fn main() {
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
-            AlgorithmType::Cluster,
+            AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
             observable.clone(),
         ));
-        comps.push(Computation::new_simulation(
+        comps.push(Computation::new_wilson_sim(
             &lattice,
             temp,
-            AlgorithmType::Metropolis,
+            AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
-            observable.clone(),
+            1,
+            1,
+            observable,
         ));
     }
 
     // Parallel over all temp data
-    let data: Vec<ComputationResult> = comps
+    let data: Vec<ComputationResult<3, SIZE>> = comps
         .into_par_iter()
         .filter_map(|comp| comp.run().ok())
         .collect();

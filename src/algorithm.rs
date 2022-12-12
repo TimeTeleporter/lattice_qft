@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     field::Field,
     heightfield::{Action, HeightVariable},
     pause,
+    wilson::WilsonField,
 };
 
 use self::bonds::BondsField;
@@ -16,25 +16,33 @@ const VERBOSE: bool = false;
 // - AlgorithmType ------------------------------------------------------------
 
 /// Lists all availible algorithms
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum AlgorithmType {
-    Metropolis,
-    Cluster,
-    WilsonMetropolis { width: usize, height: usize },
+    Metropolis(Metropolis),
+    Cluster(Cluster),
 }
 
 // Here we implement Display in order to convert into String.
 impl Display for AlgorithmType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AlgorithmType::Metropolis => write!(f, "Metropolis"),
-            AlgorithmType::Cluster => write!(f, "Cluster   "),
-            AlgorithmType::WilsonMetropolis { width, height } => {
-                write!(f, "Metropolis {}x{} Wilson loop", *width, *height)
-            }
+            AlgorithmType::Metropolis(_) => write!(f, "Metropolis"),
+            AlgorithmType::Cluster(_) => write!(f, "Cluster   "),
         }
     }
 }
+
+impl AlgorithmType {
+    pub fn new_metropolis() -> AlgorithmType {
+        AlgorithmType::Metropolis(Metropolis)
+    }
+
+    pub fn new_cluster() -> AlgorithmType {
+        AlgorithmType::Cluster(Cluster)
+    }
+}
+
+// - Algorithm ----------------------------------------------------------------
 
 /// Requirements for algorithms
 pub trait Algorithm<T, const D: usize, const SIZE: usize>
@@ -56,24 +64,41 @@ where
 {
     fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
         match self {
-            AlgorithmType::Metropolis => Metropolis.field_sweep(field, temp),
-            AlgorithmType::Cluster => Cluster.field_sweep(field, temp),
-            AlgorithmType::WilsonMetropolis { width, height } => {
-                WilsonMetropolis { width, height }.field_sweep(field, temp)
-            }
+            AlgorithmType::Metropolis(algo) => algo.field_sweep(field, temp),
+            AlgorithmType::Cluster(algo) => algo.field_sweep(field, temp),
         }
     }
 }
 
-// For each AlgorithmType we have a stuct that implements Algorithm.
-struct Metropolis;
-struct Cluster;
-struct WilsonMetropolis<'a> {
-    width: &'a usize,
-    height: &'a usize,
+// - Wilson -------------------------------------------------------------------
+
+pub trait WilsonAlgorithm<T, const SIZE: usize>
+where
+    T: HeightVariable<T>,
+{
+    /// This abstract method takes references to self, a field and and a temp
+    /// and performes a Markov chain step from one field configuration to the
+    /// next. It returns a statistic as a usize.
+    fn wilson_sweep(&self, field: &mut WilsonField<T, SIZE>, temp: f64) -> usize;
+}
+
+// Deconstructs the method call to their own struct.
+impl<T, const SIZE: usize> WilsonAlgorithm<T, SIZE> for AlgorithmType
+where
+    T: HeightVariable<T>,
+{
+    fn wilson_sweep(&self, field: &mut WilsonField<T, SIZE>, temp: f64) -> usize {
+        match self {
+            AlgorithmType::Metropolis(algo) => algo.wilson_sweep(field, temp),
+            AlgorithmType::Cluster(algo) => algo.wilson_sweep(field, temp),
+        }
+    }
 }
 
 // - Metropolis ---------------------------------------------------------------
+
+#[derive(Debug, Clone)]
+pub struct Metropolis;
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Metropolis
 where
@@ -87,6 +112,9 @@ where
             if Metropolis.metropolis_single(field, index, temp, &mut rng) {
                 acceptance += 1;
             };
+        }
+        if VERBOSE {
+            println!("Sweep");
         }
         acceptance
     }
@@ -127,7 +155,61 @@ impl Metropolis {
     }
 }
 
+impl<T, const SIZE: usize> WilsonAlgorithm<T, SIZE> for Metropolis
+where
+    T: HeightVariable<T>,
+{
+    fn wilson_sweep(&self, field: &mut WilsonField<T, SIZE>, temp: f64) -> usize {
+        let mut rng = ThreadRng::default();
+        let mut acceptance: usize = 0;
+        for index in 0..SIZE {
+            if Metropolis.wilson_single(field, index, temp, &mut rng) {
+                acceptance += 1;
+            };
+        }
+        if VERBOSE {
+            println!("Sweep");
+        }
+        acceptance
+    }
+}
+
+impl Metropolis {
+    fn wilson_single<T: HeightVariable<T>, const SIZE: usize>(
+        &self,
+        field: &mut WilsonField<T, SIZE>,
+        index: usize,
+        temp: f64,
+        rng: &mut ThreadRng,
+    ) -> bool {
+        // Initialize the change to be measured
+        let coin: bool = rng.gen();
+        let old_value: T = field.values[index];
+        let new_value: T = match coin {
+            true => field.values[index] + T::from(1_i8),
+            false => field.values[index] - T::from(1_i8),
+        };
+
+        // Calculate the action of both possibilities
+        let old_action = field.assumed_local_action(index, old_value);
+        let new_action = field.assumed_local_action(index, new_value);
+
+        // Accept the new action if its lower than the previous.
+        // Else accept it with a proportional probability.
+        let draw: f64 = rng.gen_range(0.0..=1.0);
+        let prob: f64 = (Into::<f64>::into(old_action - new_action) * temp).exp();
+        if draw <= prob {
+            field.values[index] = new_value;
+            return true;
+        }
+        false
+    }
+}
+
 // - Cluster ------------------------------------------------------------------
+
+#[derive(Debug, Clone)]
+pub struct Cluster;
 
 impl<T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for Cluster
 where
@@ -260,6 +342,10 @@ pub(super) mod bonds {
             let neighbour = self.0.lattice.get_neighbours_array(index)[direction];
             self.0.values[index][direction] = true;
             self.0.values[neighbour][(direction + D) % (D * 2_usize)] = true;
+        }
+
+        pub fn is_active(&self, index: usize, direction: usize) -> bool {
+            self.0.values[index][direction]
         }
 
         /// Return collection of all clusters
@@ -430,56 +516,9 @@ pub(super) mod bonds {
     }
 }
 
-// - WilsonMetropolis ---------------------------------------------------------
-
-impl<'a, T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for WilsonMetropolis<'a>
-where
-    T: HeightVariable<T>,
-    [(); D * 2_usize]:,
-{
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
-        let mut rng = ThreadRng::default();
-        let mut acceptance: usize = 0;
-        for index in 0..SIZE {
-            if self.metropolis_single(field, index, temp, &mut rng) {
-                acceptance += 1;
-            };
-        }
-        acceptance
-    }
-}
-
-impl<'a> WilsonMetropolis<'a> {
-    fn metropolis_single<T: HeightVariable<T>, const D: usize, const SIZE: usize>(
-        &self,
-        field: &mut Field<T, D, SIZE>,
-        index: usize,
-        temp: f64,
-        rng: &mut ThreadRng,
-    ) -> bool
-    where
-        [(); D * 2_usize]:,
-    {
-        // Initialize the change to be measured
-        let coin: bool = rng.gen();
-        let old_value: T = field.values[index];
-        let new_value: T = match coin {
-            true => field.values[index] + T::from(1_i8),
-            false => field.values[index] - T::from(1_i8),
-        };
-
-        // Calculate the action of both possibilities
-        let old_action = field.assumed_local_action(index, old_value);
-        let new_action = field.assumed_local_action(index, new_value);
-
-        // Accept the new action if its lower than the previous.
-        // Else accept it with a proportional probability.
-        let draw: f64 = rng.gen_range(0.0..=1.0);
-        let prob: f64 = (Into::<f64>::into(old_action - new_action) * temp).exp();
-        if draw <= prob {
-            field.values[index] = new_value;
-            return true;
-        }
-        false
+impl<T: HeightVariable<T>, const SIZE: usize> WilsonAlgorithm<T, SIZE> for Cluster {
+    fn wilson_sweep(&self, field: &mut WilsonField<T, SIZE>, temp: f64) -> usize {
+        let _ = (field, temp);
+        todo!()
     }
 }
