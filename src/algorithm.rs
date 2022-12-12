@@ -20,6 +20,7 @@ const VERBOSE: bool = false;
 pub enum AlgorithmType {
     Metropolis,
     Cluster,
+    WilsonMetropolis { width: usize, height: usize },
 }
 
 // Here we implement Display in order to convert into String.
@@ -28,6 +29,9 @@ impl Display for AlgorithmType {
         match self {
             AlgorithmType::Metropolis => write!(f, "Metropolis"),
             AlgorithmType::Cluster => write!(f, "Cluster   "),
+            AlgorithmType::WilsonMetropolis { width, height } => {
+                write!(f, "Metropolis {}x{} Wilson loop", *width, *height)
+            }
         }
     }
 }
@@ -52,8 +56,11 @@ where
 {
     fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
         match self {
-            AlgorithmType::Metropolis => Metropolis::field_sweep(&Metropolis, field, temp),
-            AlgorithmType::Cluster => Cluster::field_sweep(&Cluster, field, temp),
+            AlgorithmType::Metropolis => Metropolis.field_sweep(field, temp),
+            AlgorithmType::Cluster => Cluster.field_sweep(field, temp),
+            AlgorithmType::WilsonMetropolis { width, height } => {
+                WilsonMetropolis { width, height }.field_sweep(field, temp)
+            }
         }
     }
 }
@@ -61,6 +68,10 @@ where
 // For each AlgorithmType we have a stuct that implements Algorithm.
 struct Metropolis;
 struct Cluster;
+struct WilsonMetropolis<'a> {
+    width: &'a usize,
+    height: &'a usize,
+}
 
 // - Metropolis ---------------------------------------------------------------
 
@@ -73,7 +84,7 @@ where
         let mut rng = ThreadRng::default();
         let mut acceptance: usize = 0;
         for index in 0..SIZE {
-            if Metropolis::metropolis_single(field, index, temp, &mut rng) {
+            if Metropolis.metropolis_single(field, index, temp, &mut rng) {
                 acceptance += 1;
             };
         }
@@ -83,6 +94,7 @@ where
 
 impl Metropolis {
     fn metropolis_single<T: HeightVariable<T>, const D: usize, const SIZE: usize>(
+        &self,
         field: &mut Field<T, D, SIZE>,
         index: usize,
         temp: f64,
@@ -415,5 +427,59 @@ pub(super) mod bonds {
         test.push(cluster);
 
         assert_eq!(test.len(), clusters.len());
+    }
+}
+
+// - WilsonMetropolis ---------------------------------------------------------
+
+impl<'a, T, const D: usize, const SIZE: usize> Algorithm<T, D, SIZE> for WilsonMetropolis<'a>
+where
+    T: HeightVariable<T>,
+    [(); D * 2_usize]:,
+{
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
+        let mut rng = ThreadRng::default();
+        let mut acceptance: usize = 0;
+        for index in 0..SIZE {
+            if self.metropolis_single(field, index, temp, &mut rng) {
+                acceptance += 1;
+            };
+        }
+        acceptance
+    }
+}
+
+impl<'a> WilsonMetropolis<'a> {
+    fn metropolis_single<T: HeightVariable<T>, const D: usize, const SIZE: usize>(
+        &self,
+        field: &mut Field<T, D, SIZE>,
+        index: usize,
+        temp: f64,
+        rng: &mut ThreadRng,
+    ) -> bool
+    where
+        [(); D * 2_usize]:,
+    {
+        // Initialize the change to be measured
+        let coin: bool = rng.gen();
+        let old_value: T = field.values[index];
+        let new_value: T = match coin {
+            true => field.values[index] + T::from(1_i8),
+            false => field.values[index] - T::from(1_i8),
+        };
+
+        // Calculate the action of both possibilities
+        let old_action = field.assumed_local_action(index, old_value);
+        let new_action = field.assumed_local_action(index, new_value);
+
+        // Accept the new action if its lower than the previous.
+        // Else accept it with a proportional probability.
+        let draw: f64 = rng.gen_range(0.0..=1.0);
+        let prob: f64 = (Into::<f64>::into(old_action - new_action) * temp).exp();
+        if draw <= prob {
+            field.values[index] = new_value;
+            return true;
+        }
+        false
     }
 }

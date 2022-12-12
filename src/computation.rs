@@ -40,31 +40,6 @@ impl Display for ComputationType {
 }
 
 #[derive(Debug, Clone)]
-struct Simulation<'a, const D: usize, const SIZE: usize>
-where
-    [(); D * 2_usize]:,
-{
-    lattice: &'a Lattice<D, SIZE>,
-    temp: f64,
-    algorithm: AlgorithmType,
-    burnin: usize,
-    iterations: usize,
-    observable: ObservableType,
-}
-
-#[derive(Debug, Clone)]
-struct Test<'a, const D: usize, const SIZE: usize>
-where
-    [(); D * 2_usize]:,
-{
-    lattice: &'a Lattice<D, SIZE>,
-    temp: f64,
-    range: usize,
-    permutations: u64,
-    observable: ObservableType,
-}
-
-#[derive(Debug, Clone)]
 pub struct Computation<'a, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
@@ -156,6 +131,31 @@ where
             Err("Unable to convert Computation into Test.".into())
         }
     }
+}
+
+#[derive(Debug, Clone)]
+struct Simulation<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    lattice: &'a Lattice<D, SIZE>,
+    temp: f64,
+    algorithm: AlgorithmType,
+    burnin: usize,
+    iterations: usize,
+    observable: ObservableType,
+}
+
+#[derive(Debug, Clone)]
+struct Test<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    lattice: &'a Lattice<D, SIZE>,
+    temp: f64,
+    range: usize,
+    permutations: u64,
+    observable: ObservableType,
 }
 
 pub trait Compute {

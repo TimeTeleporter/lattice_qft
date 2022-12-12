@@ -115,6 +115,7 @@ pub mod field;
 pub mod heightfield;
 pub mod lattice;
 pub mod observable;
+pub mod wilson;
 
 extern crate csv;
 extern crate nalgebra;
