@@ -94,6 +94,10 @@ pub trait Action<T: HeightVariable<T>> {
     }
 
     /// Calculates the action of a indexed lattice site.
+    fn local_action(&self, index: usize) -> T;
+
+    /// Calculates the action of a indexed lattice site, where the value of the
+    /// height variable at the indexed site can be given arbitrarily.
     fn assumed_local_action(&self, index: usize, value: T) -> T;
 
     /// The action of the bond going from the indexed site in the given
@@ -120,6 +124,11 @@ where
         }
         sum
     }
+
+    fn local_action(&self, index: usize) -> T {
+        self.assumed_local_action(index, self.values[index])
+    }
+
     fn assumed_local_action(&self, index: usize, value: T) -> T {
         let mut sum: T = T::default();
         for neighbour in self.lattice.get_neighbours_array(index) {

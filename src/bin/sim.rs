@@ -51,8 +51,8 @@ fn main() {
             AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
-            1,
-            1,
+            2,
+            2,
             observable,
         ));
     }
