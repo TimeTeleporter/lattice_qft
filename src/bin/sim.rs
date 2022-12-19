@@ -6,23 +6,26 @@
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 use lattice_qft::{
-    computation::{
-        Algorithm, Computatable, Computation, ComputationResults, Observable, Simulation3d, Test3d,
-    },
+    //REL_TEMP_ARY,
+    algorithm::AlgorithmType,
+    computation::{Computation, ComputationResult, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    REL_TEMP_ARY,
+    observable::{ObservableType, ObservableValue},
 };
 
-const TEST_X: usize = 4;
-const TEST_Y: usize = 4;
-const TEST_T: usize = 4;
+const TEST_X: usize = 2;
+const TEST_Y: usize = 2;
+const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-const RANGE: usize = 16;
+const RANGE: usize = 24;
 
 const BURNIN: usize = 10_000;
-const ITERATIONS: usize = 1_000_000;
+const ITERATIONS: usize = 100_000_000;
+
+const WIDTH: usize = 1;
+const HEIGHT: usize = 1;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 
@@ -35,55 +38,45 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in REL_TEMP_ARY {
-        let observable: Observable = Observable::Wilson {
-            width: 1,
-            height: 1,
-        };
-        //comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
-        comps.push(Simulation3d::new_compuatation(
+    for temp in [0.1] {
+        let observable: ObservableType =
+            ObservableType::SizeNormalizedAction(ObservableValue::default());
+        comps.push(Computation::new_wilson_test(
             &lattice,
-            Algorithm::Cluster,
-            observable,
             temp,
-            BURNIN,
-            ITERATIONS,
+            RANGE,
+            WIDTH,
+            HEIGHT,
+            observable.clone(),
         ));
-        comps.push(Simulation3d::new_compuatation(
+        comps.push(Computation::new_wilson_sim(
             &lattice,
-            Algorithm::Metropolis,
-            observable,
             temp,
+            AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
+            WIDTH,
+            HEIGHT,
+            observable.clone(),
         ));
-    }
-    for temp in REL_TEMP_ARY {
-        let observable: Observable = Observable::Wilson {
-            width: 2,
-            height: 2,
-        };
-        //comps.push(Test3d::new_computation(&lattice, observable, temp, RANGE));
-        comps.push(Simulation3d::new_compuatation(
+        comps.push(Computation::new_test(
             &lattice,
-            Algorithm::Cluster,
-            observable,
             temp,
-            BURNIN,
-            ITERATIONS,
+            RANGE,
+            observable.clone(),
         ));
-        comps.push(Simulation3d::new_compuatation(
+        comps.push(Computation::new_simulation(
             &lattice,
-            Algorithm::Metropolis,
-            observable,
             temp,
+            AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
+            observable,
         ));
     }
 
     // Parallel over all temp data
-    let data: Vec<ComputationResults> = comps
+    let data: Vec<ComputationResult<3, SIZE>> = comps
         .into_par_iter()
         .filter_map(|comp| comp.run().ok())
         .collect();
@@ -91,7 +84,7 @@ fn main() {
     println!("All calcualtions done");
 
     for entry in data {
-        if let Err(err) = entry.read_write_csv(RESULTS_PATH) {
+        if let Err(err) = entry.into_export().read_write_csv(RESULTS_PATH) {
             eprint!("{}", err);
         };
     }

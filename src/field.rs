@@ -1,9 +1,10 @@
-use std::ops::{Deref, DerefMut, Sub};
+use std::ops::{Deref, DerefMut};
 
-use rand::{distributions::Standard, prelude::Distribution, random};
+use rand::{distributions::Standard, prelude::*};
 
 use crate::lattice::{Lattice, Lattice3d, LatticeCoords};
 
+/// A field is a set of values assigned to each lattice site.
 #[derive(Debug, Clone)]
 pub struct Field<'a, T, const D: usize, const SIZE: usize>
 where
@@ -13,33 +14,7 @@ where
     pub lattice: &'a Lattice<D, SIZE>,
 }
 
-// Implementing getting values
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> &T {
-        self.get_value(self.lattice.calc_index_from_coords(coords))
-    }
-
-    pub fn get_value(&self, index: usize) -> &T {
-        &self.values[index]
-    }
-}
-
-// Implementing shift
-impl<T, const D: usize, const SIZE: usize> Field<'_, T, D, SIZE>
-where
-    T: Copy + Sub<Output = T>,
-    [(); D * 2_usize]:,
-{
-    /// Subtracts a shift from all values of the field.
-    pub fn shift_values(&mut self, shift: T) {
-        for value in self.values.iter_mut() {
-            *value = *value - shift;
-        }
-    }
-}
+// - Constructors -------------------------------------------------------------
 
 impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
 where
@@ -53,32 +28,6 @@ where
         let values: Vec<T> = values.iter().map(|_| T::default()).collect();
 
         Field::<'a, T, D, SIZE> { values, lattice }
-    }
-}
-
-impl<'a, T, const D: usize, const SIZE: usize> Field<'a, T, D, SIZE>
-where
-    T: Default + PartialOrd + Copy,
-    [(); D * 2_usize]:,
-{
-    pub fn get_max(&self) -> (usize, T) {
-        let mut result: (usize, T) = (usize::default(), T::default());
-        for (index, &item) in self.values.iter().enumerate() {
-            if item > result.1 {
-                result = (index, item);
-            }
-        }
-        result
-    }
-
-    pub fn get_min(&self) -> (usize, T) {
-        let mut result: (usize, T) = (usize::default(), T::default());
-        for (index, &item) in self.values.iter().enumerate() {
-            if item < result.1 {
-                result = (index, item);
-            }
-        }
-        result
     }
 }
 
@@ -112,6 +61,9 @@ where
     }
 }
 
+// - Printing -----------------------------------------------------------------
+
+// Printing 3-dimensional fields nicely.
 impl<T, const SIZE: usize> Field<'_, T, 3, SIZE>
 where
     T: std::fmt::Debug,
@@ -126,12 +78,16 @@ where
                     if x == size[0] - 1 {
                         println!(
                             "{:?} ]",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                            self.values[self
+                                .lattice
+                                .calc_index_from_coords(LatticeCoords::new([x, y, t]))]
                         );
                     } else {
                         print!(
                             "{:?}, ",
-                            self.get_value_from_coords(LatticeCoords::new([x, y, t]))
+                            self.values[self
+                                .lattice
+                                .calc_index_from_coords(LatticeCoords::new([x, y, t]))]
                         );
                     }
                 }
@@ -140,6 +96,7 @@ where
     }
 }
 
+// Printing two-dimensional fields nicely.
 impl<T, const SIZE: usize> Field<'_, T, 2, SIZE>
 where
     T: std::fmt::Debug,
@@ -152,12 +109,16 @@ where
                 if x == size[0] - 1 {
                     println!(
                         "{:?} ]",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                        self.values[self
+                            .lattice
+                            .calc_index_from_coords(LatticeCoords::new([x, y]))]
                     );
                 } else {
                     print!(
                         "{:?}, ",
-                        self.get_value_from_coords(LatticeCoords::new([x, y]))
+                        self.values[self
+                            .lattice
+                            .calc_index_from_coords(LatticeCoords::new([x, y]))]
                     );
                 }
             }
@@ -165,7 +126,7 @@ where
     }
 }
 
-// ----------------------------------------------------------------------------
+// - Field3d ------------------------------------------------------------------
 
 /// Implements a filed of given Type T on a 3-dimensional lattice of size
 /// MAX_X * MAX_Y * MAX_T.
@@ -175,6 +136,8 @@ pub struct Field3d<'a, T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: u
 )
 where
     [(); MAX_X * MAX_Y * MAX_T]:;
+
+// - Deref --------------------------------------------------------------------
 
 // By implementing deref we can utilize all the functions of the tuple element
 // without implementing it ourselves.
@@ -201,6 +164,8 @@ where
     }
 }
 
+// - Printing -----------------------------------------------------------------
+
 impl<T, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     Field3d<'_, T, MAX_X, MAX_Y, MAX_T>
 where
@@ -212,6 +177,8 @@ where
         self.0.print_values_formated([MAX_X, MAX_Y, MAX_T]);
     }
 }
+
+// - Constructors for Field3d -------------------------------------------------
 
 impl<'a, T: 'a, const MAX_X: usize, const MAX_Y: usize, const MAX_T: usize>
     Field3d<'a, T, MAX_X, MAX_Y, MAX_T>
@@ -256,6 +223,8 @@ where
     }
 }
 
+// - Tests --------------------------------------------------------------------
+
 #[test]
 fn test_field_conversion() {
     let lattice: Lattice<3, 8> = Lattice::new([2, 2, 2]);
@@ -267,15 +236,4 @@ fn test_field_conversion() {
     let field: Field<i16, 3, 8> = Field::from_field(field8);
 
     assert_eq!(field16.values, field.values);
-}
-
-#[test]
-fn test_field_shift() {
-    let lattice: Lattice<4, 81> = Lattice::new([3, 3, 3, 3]);
-
-    let mut field: Field<i8, 4, 81> = Field::new(&lattice);
-
-    field.shift_values(3);
-
-    assert_eq!(field.values[80], -3);
 }
