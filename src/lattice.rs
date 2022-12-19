@@ -35,24 +35,6 @@ impl<const D: usize> LatticeCoords<D> {
         self.0
     }
 
-    /// Checks if the given coordinates are on a plane spanned by two coordinate
-    /// axis through the origin.
-    pub fn is_on_plane(&self, dim1: usize, dim2: usize) -> bool {
-        let mut others_zero: bool = true;
-        for (_, entry) in self
-            .0
-            .into_iter()
-            .enumerate()
-            .filter(|(i, _)| *i != dim1 && *i != dim2)
-        {
-            if entry != 0 {
-                others_zero = false;
-                break;
-            }
-        }
-        others_zero
-    }
-
     pub fn new(array: [usize; D]) -> Self {
         Self(array)
     }
@@ -215,16 +197,4 @@ fn test_big_dim_neighbour_list() {
             );
         }
     }
-}
-
-#[test]
-fn test_is_on_plane() {
-    let coord: LatticeCoords<3> = LatticeCoords::new([5, 0, 3]);
-    assert!(coord.is_on_plane(0, 2));
-    assert!(!coord.is_on_plane(0, 1));
-    assert!(!coord.is_on_plane(1, 2));
-    let coord: LatticeCoords<3> = LatticeCoords::new([0, 0, 3]);
-    assert!(coord.is_on_plane(0, 2));
-    assert!(!coord.is_on_plane(0, 1));
-    assert!(coord.is_on_plane(1, 2));
 }

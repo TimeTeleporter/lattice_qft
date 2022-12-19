@@ -11,7 +11,7 @@ use lattice_qft::{
     computation::{Computation, ComputationResult, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    observable::ObservableType,
+    observable::{ObservableType, ObservableValue},
 };
 
 const TEST_X: usize = 2;
@@ -19,10 +19,13 @@ const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 
-//const RANGE: usize = 16;
+const RANGE: usize = 24;
 
 const BURNIN: usize = 10_000;
-const ITERATIONS: usize = 1_000_000;
+const ITERATIONS: usize = 100_000_000;
+
+const WIDTH: usize = 1;
+const HEIGHT: usize = 1;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 
@@ -36,13 +39,14 @@ fn main() {
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
     for temp in [0.1] {
-        let observable: ObservableType = ObservableType::SizeNormalizedAction;
-        comps.push(Computation::new_simulation(
+        let observable: ObservableType =
+            ObservableType::SizeNormalizedAction(ObservableValue::default());
+        comps.push(Computation::new_wilson_test(
             &lattice,
             temp,
-            AlgorithmType::new_metropolis(),
-            BURNIN,
-            ITERATIONS,
+            RANGE,
+            WIDTH,
+            HEIGHT,
             observable.clone(),
         ));
         comps.push(Computation::new_wilson_sim(
@@ -51,8 +55,22 @@ fn main() {
             AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
-            2,
-            2,
+            WIDTH,
+            HEIGHT,
+            observable.clone(),
+        ));
+        comps.push(Computation::new_test(
+            &lattice,
+            temp,
+            RANGE,
+            observable.clone(),
+        ));
+        comps.push(Computation::new_simulation(
+            &lattice,
+            temp,
+            AlgorithmType::new_metropolis(),
+            BURNIN,
+            ITERATIONS,
             observable,
         ));
     }
