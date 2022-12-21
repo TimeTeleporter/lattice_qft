@@ -2,15 +2,7 @@ use std::fmt::Display;
 
 use rand::prelude::*;
 
-use crate::{
-    bonds::LinksField,
-    field::Field,
-    heightfield::{Action, HeightVariable},
-    pause,
-    wilson::WilsonField,
-};
-
-const VERBOSE: bool = false;
+use crate::fields::{Action, Field, HeightVariable, LinksField, WilsonField};
 
 // - AlgorithmType ------------------------------------------------------------
 
@@ -112,9 +104,6 @@ where
                 acceptance += 1;
             };
         }
-        if VERBOSE {
-            println!("Sweep");
-        }
         acceptance
     }
 }
@@ -165,9 +154,6 @@ where
             if Metropolis.wilson_single(field, index, temp, &mut rng) {
                 acceptance += 1;
             };
-        }
-        if VERBOSE {
-            println!("Sweep");
         }
         acceptance
     }
@@ -228,9 +214,6 @@ where
                 false => 1_i8.into(),
             },
         };
-        if VERBOSE {
-            println!("Mirror plane set on {plane} and {modifier}");
-        }
 
         // Initialize memory to save the activated links and set all to false
         let mut links: LinksField<D, SIZE> = LinksField::new(field.lattice);
@@ -271,26 +254,6 @@ where
 
         // For each cluster decide to flip it
         for cluster in clusters {
-            if VERBOSE {
-                println!("Looking at the cluster {:?}", cluster);
-                pause();
-                for &index in cluster.iter() {
-                    let neighbours: [usize; D * 2_usize] =
-                        field.lattice.get_neighbours_array(index);
-                    println!(
-                        "{index} has the neighbours {:?} and links {:?}",
-                        neighbours, links.values[index]
-                    );
-                    for (direction, &link) in links.values[index].iter().enumerate() {
-                        let neighbour = neighbours[direction];
-                        if link {
-                            assert!(cluster.contains(&neighbour));
-                            println!("We found {neighbour} to be also in the cluster");
-                        }
-                    }
-                }
-            }
-
             let coin: bool = rng.gen();
             if coin {
                 for index in cluster {

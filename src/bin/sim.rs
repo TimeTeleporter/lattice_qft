@@ -11,7 +11,7 @@ use lattice_qft::{
     computation::{Computation, ComputationResult, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    observable::{ObservableType, ObservableValue},
+    observable::ObservableType,
 };
 
 const TEST_X: usize = 2;
@@ -39,8 +39,7 @@ fn main() {
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
     for temp in [0.1] {
-        let observable: ObservableType =
-            ObservableType::SizeNormalizedAction(ObservableValue::default());
+        let observable: ObservableType = ObservableType::SizeNormalizedAction;
         comps.push(Computation::new_wilson_test(
             &lattice,
             temp,

@@ -108,22 +108,16 @@ pub const METRPLS_RESULTS_PATH: &str = "./data/metropolis_results.csv";
 pub const METRPLS_BINNING_PATH: &str = "./data/metropolis_binning.csv";
 
 pub mod algorithm;
-pub mod bonds;
 pub mod computation;
-pub mod error;
 pub mod export;
-pub mod field;
-pub mod heightfield;
+pub mod fields;
 pub mod lattice;
 pub mod observable;
-pub mod wilson;
 
 extern crate csv;
-extern crate nalgebra;
 extern crate rand;
 extern crate rayon;
 extern crate serde;
-extern crate varpro;
 
 // A method to pause a sim until enter
 use std::process::Command;
