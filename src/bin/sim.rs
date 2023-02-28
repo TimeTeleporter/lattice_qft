@@ -10,14 +10,16 @@ use lattice_qft::{
     algorithm::AlgorithmType,
     computation::{Computation, ComputationResult, Compute},
     export::CsvData,
-    lattice::Lattice3d,
+    lattice::{Lattice, Lattice3d},
     observable::ObservableType,
+    plot::PlotType,
 };
 
 const TEST_X: usize = 2;
 const TEST_Y: usize = 2;
 const TEST_T: usize = 2;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
+const PLOTSIZE: usize = TEST_X * TEST_Y;
 
 const RANGE: usize = 24;
 
@@ -35,9 +37,10 @@ const RESULTS_PATH: &str = "./data/results.csv";
 fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
+    let plot_lattice: Lattice<2, PLOTSIZE> = Lattice::new([TEST_X, TEST_Y]);
 
     // Initialise the simulations
-    let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
+    let mut comps: Vec<Computation<3, SIZE, PLOTSIZE>> = Vec::new();
     for temp in [0.1] {
         let observable: ObservableType = ObservableType::SizeNormalizedAction;
         comps.push(Computation::new_wilson_test(
@@ -57,6 +60,7 @@ fn main() {
             WIDTH,
             HEIGHT,
             observable.clone(),
+            Some(PlotType::ElectricField(&plot_lattice)),
         ));
         comps.push(Computation::new_test(
             &lattice,
@@ -71,11 +75,12 @@ fn main() {
             BURNIN,
             ITERATIONS,
             observable,
+            Some(PlotType::ElectricField(&plot_lattice)),
         ));
     }
 
     // Parallel over all temp data
-    let data: Vec<ComputationResult<3, SIZE>> = comps
+    let data: Vec<ComputationResult<3, SIZE, PLOTSIZE>> = comps
         .into_par_iter()
         .filter_map(|comp| comp.run().ok())
         .collect();

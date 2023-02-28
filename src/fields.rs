@@ -128,6 +128,7 @@ where
 
 // - Bonds --------------------------------------------------------------------
 
+#[derive(Debug, Clone)]
 /// Models a field that has values on the bonds between sites.
 pub struct BondsField<'a, T, const D: usize, const SIZE: usize>(
     Field<'a, [T; D * 2_usize], D, SIZE>,
@@ -251,6 +252,7 @@ where
 
 // - Links --------------------------------------------------------------------
 
+#[derive(Debug, Clone)]
 /// Models the activation of outgoing links from a lattice site
 pub struct LinksField<'a, const D: usize, const SIZE: usize>(BondsField<'a, bool, D, SIZE>)
 where
@@ -342,6 +344,7 @@ where
 
 // - WilsonField --------------------------------------------------------------
 
+#[derive(Debug, Clone)]
 pub struct WilsonField<'a, T, const SIZE: usize> {
     pub field: Field<'a, T, 3, SIZE>,
     links: LinksField<'a, 3, SIZE>,

@@ -113,6 +113,7 @@ pub mod export;
 pub mod fields;
 pub mod lattice;
 pub mod observable;
+pub mod plot;
 
 extern crate csv;
 extern crate rand;
