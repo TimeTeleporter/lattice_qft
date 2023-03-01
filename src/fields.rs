@@ -481,14 +481,24 @@ pub trait Action<T: HeightVariable<T>> {
     /// height variable at the indexed site can be given arbitrarily.
     fn assumed_local_action(&self, index: usize, value: T) -> T;
 
+    fn bond_difference(&self, index: usize, direction: usize) -> T;
+
     /// The action of the bond going from the indexed site in the given
     /// direction.
-    fn bond_action(&self, index: usize, direction: usize) -> T;
+    fn bond_action(&self, index: usize, direction: usize) -> T {
+        let diff: T = self.bond_difference(index, direction);
+        diff * diff
+    }
+
+    fn assumed_bond_difference(&self, index: usize, direction: usize, value: T) -> T;
 
     /// The action of the bond going from the indexed site in the given
     /// direction, where the value of the height variable at the indexed site
     /// can be given arbitrarily.
-    fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T;
+    fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T {
+        let diff: T = self.assumed_bond_difference(index, direction, value);
+        diff * diff
+    }
 }
 
 impl<'a, T, const D: usize, const SIZE: usize> Action<T> for Field<'a, T, D, SIZE>
@@ -519,14 +529,13 @@ where
         sum
     }
 
-    fn bond_action(&self, index: usize, direction: usize) -> T {
-        self.assumed_bond_action(index, direction, self.values[index])
+    fn bond_difference(&self, index: usize, direction: usize) -> T {
+        self.assumed_bond_difference(index, direction, self.values[index])
     }
 
-    fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T {
+    fn assumed_bond_difference(&self, index: usize, direction: usize, value: T) -> T {
         let neighbour_index: usize = self.lattice.values[index][direction];
-        let diff: T = value - self.values[neighbour_index];
-        diff * diff
+        value - self.values[neighbour_index]
     }
 }
 
@@ -556,11 +565,11 @@ where
         sum
     }
 
-    fn bond_action(&self, index: usize, direction: usize) -> T {
-        self.assumed_bond_action(index, direction, self.field.values[index])
+    fn bond_difference(&self, index: usize, direction: usize) -> T {
+        self.assumed_bond_difference(index, direction, self.field.values[index])
     }
 
-    fn assumed_bond_action(&self, index: usize, direction: usize, value: T) -> T {
+    fn assumed_bond_difference(&self, index: usize, direction: usize, value: T) -> T {
         if self.links.is_active(index, direction) {
             let direction_modifier: T = T::from(match direction {
                 1 => 1_i8,
@@ -572,11 +581,9 @@ where
                 false => -1_i8,
             });
             let neighbour_index: usize = self.field.lattice.values[index][direction];
-            let diff: T =
-                value - self.field.values[neighbour_index] + direction_modifier * spin_modifier;
-            diff * diff
+            value - self.field.values[neighbour_index] + direction_modifier * spin_modifier
         } else {
-            self.field.assumed_bond_action(index, direction, value)
+            self.field.assumed_bond_difference(index, direction, value)
         }
     }
 }

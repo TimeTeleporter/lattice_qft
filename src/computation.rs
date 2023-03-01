@@ -7,7 +7,7 @@ use crate::{
     fields::{Action, Field, HeightField, WilsonField},
     lattice::Lattice,
     observable::{Observable, ObservableType, ObservableValue},
-    plot::{ComputationField, Plot3d, PlotType},
+    plot::{ComputationField, Plot2d, PlotType},
 };
 
 // - Computation --------------------------------------------------------------
@@ -576,7 +576,7 @@ where
     comptype: Computation<'a, D, SIZE, PLOTSIZE>,
     observable: ObservableType,
     result: f64,
-    plot: Option<Plot3d>,
+    plot: Option<Plot2d>,
     error: Option<f64>,
 }
 
@@ -585,7 +585,7 @@ impl<'a, const D: usize, const SIZE: usize, const PLOTSIZE: usize>
 where
     [(); D * 2_usize]:,
 {
-    pub fn into_export(self) -> ComputationExport {
+    pub fn into_export(self) -> (ComputationExport, Option<Plot2d>) {
         let export: ComputationExport = ComputationExport {
             d: self.d,
             size: self.size,
@@ -599,7 +599,7 @@ where
             error: self.error,
         };
 
-        export
+        (export, self.plot)
     }
 }
 
