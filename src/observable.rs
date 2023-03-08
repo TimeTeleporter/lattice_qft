@@ -40,7 +40,7 @@ impl<T> ObservableValue<T> {
 
 // - ObservableType -----------------------------------------------------------
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ObservableType {
     Action,
     SizeNormalizedAction,

@@ -15,9 +15,9 @@ use lattice_qft::{
     plot::PlotType,
 };
 
-const TEST_X: usize = 10;
-const TEST_Y: usize = 10;
-const TEST_T: usize = 10;
+const TEST_X: usize = 20;
+const TEST_Y: usize = 20;
+const TEST_T: usize = 20;
 const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
 const PLOTSIZE: usize = TEST_X * TEST_Y;
 
@@ -26,8 +26,9 @@ const _RANGE: usize = 16;
 const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 1_000_000;
 
-const WIDTH: usize = 1;
-const HEIGHT: usize = 1;
+/// The measurements for the wilson loop
+const WIDTH: usize = 8;
+const HEIGHT: usize = 8;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 const PLOT_PATH: &str = "./data/plot.csv";
@@ -42,8 +43,17 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE, PLOTSIZE>> = Vec::new();
-    for temp in [0.1] {
+    for temp in [0.05] {
         let observable: ObservableType = ObservableType::SizeNormalizedAction;
+        comps.push(Computation::new_simulation(
+            &lattice,
+            temp,
+            AlgorithmType::new_metropolis(),
+            BURNIN,
+            ITERATIONS,
+            observable,
+            None, //Some(PlotType::ElectricField(&plot_lattice)),
+        ));
         comps.push(Computation::new_wilson_sim(
             &lattice,
             temp,
