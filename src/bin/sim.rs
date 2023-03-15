@@ -14,18 +14,18 @@ use lattice_qft::{
     observable::ObservableType,
 };
 
-const TEST_X: usize = 2;
-const TEST_Y: usize = 2;
-const TEST_T: usize = 2;
-const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
+const TEST_X: usize = 4;
+const TEST_Y: usize = 5;
+const TEST_T: usize = 6;
+const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 
-const RANGE: usize = 24;
+const RANGE: usize = 12;
 
 const BURNIN: usize = 10_000;
-const ITERATIONS: usize = 100_000_000;
+const ITERATIONS: usize = 1_000_000;
 
-const WIDTH: usize = 1;
-const HEIGHT: usize = 1;
+const WIDTH: usize = TEST_X / 3;
+const HEIGHT: usize = TEST_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 
@@ -87,4 +87,9 @@ fn main() {
             eprint!("{}", err);
         };
     }
+}
+
+#[test]
+fn test_const() {
+    assert_eq!(SIZE, TEST_X * TEST_Y * TEST_T);
 }
