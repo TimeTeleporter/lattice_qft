@@ -18,7 +18,7 @@ use lattice_qft::{
 const TEST_X: usize = 20;
 const TEST_Y: usize = 20;
 const TEST_T: usize = 20;
-const SIZE: usize = TEST_X * TEST_Y * TEST_Y; // 8 lattice points
+const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 const PLOTSIZE: usize = TEST_X * TEST_Y;
 
 const _RANGE: usize = 16;
@@ -27,8 +27,8 @@ const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 1_000_000;
 
 /// The measurements for the wilson loop
-const WIDTH: usize = 8;
-const HEIGHT: usize = 8;
+const WIDTH: usize = TEST_X / 3;
+const HEIGHT: usize = TEST_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 const PLOT_PATH: &str = "./data/plot.csv";

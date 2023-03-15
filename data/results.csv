@@ -54,3 +54,7 @@ d,size,x,y,t,temp,comptype,observable,result,error
 3,8000,20,20,20,0.1,8x8 Wilson Metropolis Simulation (1000000),action size normalized,0.5005395777750024,
 3,8000,20,20,20,0.05,Metropolis Simulation (1000000),action size normalized,0.4999231380250025,
 3,8000,20,20,20,0.05,8x8 Wilson Metropolis Simulation (1000000),action size normalized,0.5002506435125008,
+3,8000,20,20,20,0.05,Metropolis Simulation (1000000),action size normalized,0.49995244493749835,
+3,8000,20,20,20,0.05,6x20 Wilson Metropolis Simulation (1000000),action size normalized,0.5005607580624987,
+3,8000,20,20,20,0.05,Metropolis Simulation (1000000),action size normalized,0.4999646618749972,
+3,8000,20,20,20,0.05,6x20 Wilson Metropolis Simulation (1000000),action size normalized,0.5005656480875013,
