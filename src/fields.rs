@@ -130,15 +130,16 @@ where
 
 #[derive(Debug, Clone)]
 /// Models a field that has values on the bonds between sites.
-pub struct BondsField<'a, T, const D: usize, const SIZE: usize>(
-    Field<'a, [T; D * 2_usize], D, SIZE>,
-)
+pub struct BondsFieldNew<'a, T, const D: usize, const SIZE: usize>
 where
-    [(); D * 2_usize]:;
+    [(); D * 2_usize]:,
+{
+    field: Field<'a, [T; D], D, SIZE>,
+}
 
 // - Bonds - Constructors -----------------------------------------------------
 
-impl<'a, T, const D: usize, const SIZE: usize> BondsField<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> BondsFieldNew<'a, T, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
@@ -148,16 +149,18 @@ where
         T: Default,
     {
         let values: Vec<()> = vec![(); SIZE];
-        let values: Vec<[T; D * 2_usize]> = values
+        let values: Vec<[T; D]> = values
             .into_iter()
             .map(|_| {
-                let ary: [(); D * 2_usize] = [(); D * 2_usize];
-                let ary: [T; D * 2_usize] = ary.map(|_| T::default());
+                let ary: [(); D] = [(); D];
+                let ary: [T; D] = ary.map(|_| T::default());
                 ary
             })
             .collect();
 
-        BondsField(Field::<'a, [T; D * 2_usize], D, SIZE> { values, lattice })
+        BondsFieldNew {
+            field: Field::<'a, [T; D], D, SIZE> { values, lattice },
+        }
     }
 
     pub fn random(lattice: &'a Lattice<D, SIZE>) -> Self
@@ -165,37 +168,41 @@ where
         Standard: Distribution<T>,
     {
         let values: Vec<()> = vec![(); SIZE];
-        let values: Vec<[T; D * 2_usize]> = values
+        let values: Vec<[T; D]> = values
             .into_iter()
             .map(|_| {
-                let ary: [(); D * 2_usize] = [(); D * 2_usize];
-                let ary: [T; D * 2_usize] = ary.map(|_| random());
+                let ary: [(); D] = [(); D];
+                let ary: [T; D] = ary.map(|_| random());
                 ary
             })
             .collect();
 
-        BondsField(Field::<'a, [T; D * 2_usize], D, SIZE> { values, lattice })
+        BondsFieldNew {
+            field: Field::<'a, [T; D], D, SIZE> { values, lattice },
+        }
     }
 
     /// Convert a field of one type into a field of a different type losslessly.
-    pub fn from_field<U: Into<T>>(field: BondsField<'a, U, D, SIZE>) -> Self {
-        let lattice: &'a Lattice<D, SIZE> = field.lattice;
+    pub fn from_field<U: Into<T>>(bonds: BondsFieldNew<'a, U, D, SIZE>) -> Self {
+        let lattice: &'a Lattice<D, SIZE> = bonds.field.lattice;
 
-        let mut input: Vec<[U; D * 2_usize]> = field.0.values;
+        let mut input: Vec<[U; D]> = bonds.field.values;
         input.reverse();
 
-        let mut values: Vec<[T; D * 2_usize]> = Vec::with_capacity(SIZE);
+        let mut values: Vec<[T; D]> = Vec::with_capacity(SIZE);
         while let Some(ary) = input.pop() {
-            let ary: [T; D * 2_usize] = ary.map(|x| x.into());
+            let ary: [T; D] = ary.map(|x| x.into());
             values.push(ary);
         }
-        BondsField(Field::<'a, [T; D * 2_usize], D, SIZE> { values, lattice })
+        BondsFieldNew {
+            field: Field::<'a, [T; D], D, SIZE> { values, lattice },
+        }
     }
 }
 
 // - Bonds - Deref ------------------------------------------------------------
-
-impl<'a, T, const D: usize, const SIZE: usize> Deref for BondsField<'a, T, D, SIZE>
+/*
+impl<'a, T, const D: usize, const SIZE: usize> Deref for BondsFieldNew<'a, T, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
@@ -206,46 +213,45 @@ where
     }
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> DerefMut for BondsField<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> DerefMut for BondsFieldNew<'a, T, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
-}
+}*/
 
 // - Bonds - Auxilliary -------------------------------------------------------
 
-impl<'a, T, const D: usize, const SIZE: usize> BondsField<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> BondsFieldNew<'a, T, D, SIZE>
 where
-    T: Clone,
     [(); D * 2_usize]:,
 {
     /// Activate a link of the LinksField
-    pub fn set_value(&mut self, index: usize, direction: usize, value: T) {
-        let neighbour = self.lattice.get_neighbours_array(index)[direction];
-        self.0.values[index][direction] = value.clone();
-        self.0.values[neighbour][(direction + D) % (D * 2_usize)] = value;
-    }
-}
-
-impl<'a, T, const D: usize, const SIZE: usize> BondsField<'a, T, D, SIZE>
-where
-    T: PartialEq + std::fmt::Debug,
-    [(); D * 2_usize]:,
-{
-    /// A method to check if the links, which are saved on both of the
-    /// sites, are correct at both points.
-    pub fn check_coherence(&self) {
-        for (index, links) in self.values.iter().enumerate() {
-            for (direction, link) in links.iter().enumerate() {
-                assert_eq!(
-                    *link,
-                    self.values[self.lattice.get_neighbours_array(index)[direction]]
-                        [(direction + D) % (D * 2)]
-                );
+    pub fn set_value(&mut self, index: usize, direction: usize, value: T)
+    where
+        T: Clone,
+    {
+        match direction % (D * 2_usize) {
+            x if x < D => self.field.values[index]. = value.clone(),
+            x if x >= D && x < D * 2 => {
+                let neighbour: usize = self.field.lattice.values[index][direction];
+                &mut self.field.values[neighbour][direction % D]
             }
+            _ => panic!("Trying to fetch BoundsField value mut: direction out of bounds!"),
+        }
+    }
+
+    /// Returns a mutable reference to the desired value
+    pub fn get_value_mut(&mut self, index: usize, direction: usize) -> &mut T {
+        match direction % (D * 2_usize) {
+            x if x < D => &mut self.field.values[index][direction],
+            x if x >= D && x < D * 2 => {
+                let neighbour: usize = self.field.lattice.values[index][direction];
+                &mut self.field.values[neighbour][direction % D]
+            }
+            _ => panic!("Trying to fetch BoundsField value mut: direction out of bounds!"),
         }
     }
 }
@@ -254,7 +260,7 @@ where
 
 #[derive(Debug, Clone)]
 /// Models the activation of outgoing links from a lattice site
-pub struct LinksField<'a, const D: usize, const SIZE: usize>(BondsField<'a, bool, D, SIZE>)
+pub struct LinksField<'a, const D: usize, const SIZE: usize>(BondsFieldNew<'a, bool, D, SIZE>)
 where
     [(); D * 2_usize]:;
 

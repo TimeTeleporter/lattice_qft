@@ -133,6 +133,11 @@ where
             MAX_X, MAX_Y, MAX_T,
         ]))
     }
+
+    /// Creates a owned [Lattice2d] from a borrowed [Lattice3d]
+    pub fn to_lattice2d(&self) -> Lattice2d<MAX_X, MAX_Y> {
+        Lattice2d::new()
+    }
 }
 
 // By implementing deref we can utilize all the functions of the tuple element
@@ -143,6 +148,34 @@ where
     [(); MAX_X * MAX_Y * MAX_T]:,
 {
     type Target = Lattice<3, { MAX_X * MAX_Y * MAX_T }>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// The Lattice2d datatype controls lattice indices in order to aid initialize data on the lattice.
+/// For each data entry it has 4 neighbours, which we save in a array.
+pub struct Lattice2d<const MAX_X: usize, const MAX_Y: usize>(Lattice<2, { MAX_X * MAX_Y }>)
+where
+    [(); MAX_X * MAX_Y]:;
+
+impl<const MAX_X: usize, const MAX_Y: usize> Lattice2d<MAX_X, MAX_Y>
+where
+    [(); MAX_X * MAX_Y]:,
+{
+    pub fn new() -> Self {
+        Lattice2d(Lattice::<2, { MAX_X * MAX_Y }>::new([MAX_X, MAX_Y]))
+    }
+}
+
+// By implementing deref we can utilize all the functions of the tuple element
+// without implementing it ourselves.
+impl<const MAX_X: usize, const MAX_Y: usize> Deref for Lattice2d<MAX_X, MAX_Y>
+where
+    [(); MAX_X * MAX_Y]:,
+{
+    type Target = Lattice<2, { MAX_X * MAX_Y }>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -197,4 +230,10 @@ fn test_big_dim_neighbour_list() {
             );
         }
     }
+}
+
+#[test]
+fn test_lattice3d_lattice2d_conversion() {
+    let lattice3d: Lattice3d<3, 4, 5> = Lattice3d::new();
+    let _lattice2d = lattice3d.to_lattice2d();
 }

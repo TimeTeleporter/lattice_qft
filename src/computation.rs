@@ -5,9 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     algorithm::{Algorithm, AlgorithmType, WilsonAlgorithm},
     fields::{Action, Field, HeightField, WilsonField},
+    kahan::KahanSummation,
     lattice::Lattice,
-    observable::{Observable, ObservableType, ObservableValue},
-    plot::{ComputationField, Plot2d, PlotType},
 };
 
 // - Computation --------------------------------------------------------------
@@ -419,11 +418,11 @@ where
         field.values[SIZE - 1] = (self.range / 2) as i32;
 
         // The partition function is the sum over all Bolzmann weights
-        let mut partfn: ObservableValue<f64> = ObservableValue::default();
+        let mut partfn: KahanSummation<f64> = KahanSummation::default();
 
         // The observable is the sum over all weights (Bolzmann times observable),
         // devided by the partition function.
-        let mut test: ObservableValue<f64> = ObservableValue::default();
+        let mut test: KahanSummation<f64> = KahanSummation::default();
 
         let boundary: i32 = self.range as i32 - 1;
 
@@ -443,10 +442,10 @@ where
                 }
             }
             let bolz: f64 = (-field.action_observable(self.temp)).exp();
-            test.update(self.observable.observe(&field, self.temp) * bolz);
-            partfn.update(bolz);
+            test.add(self.observable.observe(&field, self.temp, SIZE, D) * bolz);
+            partfn.add(bolz);
         }
-        let result: f64 = test.result() / partfn.result();
+        let result: f64 = test.mean() / partfn.mean();
 
         let duration = time.elapsed().as_secs_f32();
         println!("{} Test took {duration} secs", self.temp);
@@ -519,11 +518,11 @@ where
         field.field.values[SIZE - 1] = (self.range / 2) as i32;
 
         // The partition function is the sum over all Bolzmann weights
-        let mut partfn: ObservableValue<f64> = ObservableValue::default();
+        let mut partfn: KahanSummation<f64> = KahanSummation::default();
 
         // The observable is the sum over all weights (Bolzmann times observable),
         // devided by the partition function.
-        let mut test: ObservableValue<f64> = ObservableValue::default();
+        let mut test: KahanSummation<f64> = KahanSummation::default();
 
         let boundary: i32 = self.range as i32 - 1;
 
@@ -543,11 +542,11 @@ where
                 }
             }
             let bolz: f64 = (-field.action_observable(self.temp)).exp();
-            test.update(self.observable.observe(&field.field, self.temp) * bolz);
-            partfn.update(bolz);
+            test.add(self.observable.observe(&field.field, self.temp, SIZE, D) * bolz);
+            partfn.add(bolz);
         }
 
-        let result: f64 = test.result() / partfn.result();
+        let result: f64 = test.mean() / partfn.mean();
 
         let duration = time.elapsed().as_secs_f32();
         println!("{} Test took {duration} secs", self.temp);

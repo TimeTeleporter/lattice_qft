@@ -5,16 +5,6 @@
 
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-use lattice_qft::{
-    //REL_TEMP_ARY,
-    algorithm::AlgorithmType,
-    computation::{Computation, ComputationResult, Compute},
-    export::{clean_csv, CsvData},
-    lattice::{Lattice, Lattice3d},
-    observable::ObservableType,
-    plot::PlotType,
-};
-
 const TEST_X: usize = 20;
 const TEST_Y: usize = 20;
 const TEST_T: usize = 20;
@@ -27,7 +17,7 @@ const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 1_000_000;
 
 /// The measurements for the wilson loop
-const WIDTH: usize = TEST_X / 3;
+const WIDTH: usize = TEST_X / 2;
 const HEIGHT: usize = TEST_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
@@ -39,7 +29,7 @@ const PLOT_PATH: &str = "./data/plot.csv";
 fn main() {
     // Initialize the lattice
     let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
-    let plot_lattice: Lattice<2, PLOTSIZE> = Lattice::new([TEST_X, TEST_Y]);
+    let plot_lattice = lattice.to_lattice2d();
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE, PLOTSIZE>> = Vec::new();
