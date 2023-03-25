@@ -7,7 +7,7 @@ use crate::{
     fields::{Action, Field, HeightField, WilsonField},
     kahan::KahanSummation,
     lattice::Lattice,
-    observable,
+    outputdata::OutputData,
 };
 
 // - Computation --------------------------------------------------------------
@@ -72,8 +72,7 @@ where
         algorithm: AlgorithmType,
         burnin: usize,
         iterations: usize,
-        observable: ObservableType,
-        plot_type: Option<PlotType<'a, PLOTSIZE>>,
+        output: Vec<OutputData<D, SIZE>>,
     ) -> Computation<'a, D, SIZE, PLOTSIZE> {
         Computation::Simulation(Simulation {
             lattice,
@@ -81,8 +80,7 @@ where
             algorithm,
             burnin,
             iterations,
-            observable,
-            plot_type,
+            output,
         })
     }
 
@@ -90,7 +88,7 @@ where
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         range: usize,
-        observable: ObservableType,
+        output: Vec<OutputData<D, SIZE>>,
     ) -> Computation<'a, D, SIZE, PLOTSIZE> {
         // 16 ^ 7 = 268’435’456
         let Some(permutations): Option<u64> = (range as u64)
@@ -100,7 +98,7 @@ where
             temp,
             range,
             permutations,
-            observable,
+            output,
         })
     }
 }
@@ -114,8 +112,7 @@ impl<'a, const SIZE: usize, const PLOTSIZE: usize> Computation<'a, 3, SIZE, PLOT
         iterations: usize,
         width: usize,
         height: usize,
-        observable: ObservableType,
-        plot_type: Option<PlotType<'a, PLOTSIZE>>,
+        output: Vec<OutputData<3, SIZE>>,
     ) -> Computation<'a, 3, SIZE, PLOTSIZE> {
         Computation::WilsonSim(WilsonSim {
             lattice,
@@ -125,8 +122,7 @@ impl<'a, const SIZE: usize, const PLOTSIZE: usize> Computation<'a, 3, SIZE, PLOT
             iterations,
             width,
             height,
-            observable,
-            plot_type,
+            output,
         })
     }
     pub fn new_wilson_test(
@@ -135,7 +131,7 @@ impl<'a, const SIZE: usize, const PLOTSIZE: usize> Computation<'a, 3, SIZE, PLOT
         range: usize,
         width: usize,
         height: usize,
-        observable: ObservableType,
+        output: Vec<OutputData<3, SIZE>>,
     ) -> Computation<'a, 3, SIZE, PLOTSIZE> {
         // 16 ^ 7 = 268’435’456
         let Some(permutations): Option<u64> = (range as u64)
@@ -147,7 +143,7 @@ impl<'a, const SIZE: usize, const PLOTSIZE: usize> Computation<'a, 3, SIZE, PLOT
             permutations,
             width,
             height,
-            observable,
+            output,
         })
     }
 }
@@ -203,8 +199,7 @@ where
     algorithm: AlgorithmType,
     burnin: usize,
     iterations: usize,
-    observable: ObservableType,
-    plot_type: Option<PlotType<'a, PLOTSIZE>>,
+    output: Vec<OutputData<'a, D, SIZE>>,
 }
 
 impl<'a, const SIZE: usize, const PLOTSIZE: usize> Compute<'a, 3, SIZE, PLOTSIZE>
@@ -302,8 +297,7 @@ pub struct WilsonSim<'a, const SIZE: usize, const PLOTSIZE: usize> {
     iterations: usize,
     width: usize,
     height: usize,
-    observable: ObservableType,
-    plot_type: Option<PlotType<'a, PLOTSIZE>>,
+    output: Vec<OutputData<'a, 3, SIZE>>,
 }
 
 impl<'a, const SIZE: usize, const PLOTSIZE: usize> Compute<'a, 3, SIZE, PLOTSIZE>
@@ -398,7 +392,7 @@ where
     temp: f64,
     range: usize,
     permutations: u64,
-    observable: ObservableType,
+    output: Vec<OutputData<'a, D, SIZE>>,
 }
 
 impl<'a, const D: usize, const SIZE: usize, const PLOTSIZE: usize> Compute<'a, D, SIZE, PLOTSIZE>
@@ -496,7 +490,7 @@ pub struct WilsonTest<'a, const SIZE: usize> {
     permutations: u64,
     width: usize,
     height: usize,
-    observable: ObservableType,
+    output: Vec<OutputData<'a, 3, SIZE>>,
 }
 
 impl<'a, const D: usize, const SIZE: usize, const PLOTSIZE: usize> Compute<'a, D, SIZE, PLOTSIZE>

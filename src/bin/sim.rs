@@ -6,6 +6,7 @@
 use lattice_qft::{
     computation::{Computation, ComputationResult},
     lattice::Lattice3d,
+    outputdata::OutputData,
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
@@ -38,27 +39,41 @@ fn main() {
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE, PLOTSIZE>> = Vec::new();
     for temp in [0.05] {
-        let observable: ObservableType = ObservableType::SizeNormalizedAction;
+        let observables: Vec<OutputData<3, SIZE>> = Vec::new();
+        observables.push(OutputData::new_action_observable(temp));
+        observables.push(OutputData::new_energy_plot(&lattice));
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
             AlgorithmType::new_metropolis(),
             BURNIN,
             ITERATIONS,
-            observable,
-            None, //Some(PlotType::ElectricField(&plot_lattice)),
+            observables.clone(),
         ));
         comps.push(Computation::new_wilson_sim(
             &lattice,
             temp,
-            AlgorithmType::new_metropolis(),
+            AlgorithmType::new_wilson_sim(),
             BURNIN,
             ITERATIONS,
             WIDTH,
             HEIGHT,
-            observable,
-            Some(PlotType::ElectricField(&plot_lattice)),
+            observables.clone(),
         ));
+        comps.push(Computation::new_test(
+            &lattice,
+            temp,
+            _RANGE,
+            observables.clone(),
+        ));
+        comps.push(Computation::new_wilson_test(
+            &lattice,
+            temp,
+            _RANGE,
+            WIDTH,
+            HEIGHT,
+            observables,
+        ))
     }
 
     // Parallel over all temp data
@@ -69,6 +84,7 @@ fn main() {
 
     println!("All calcualtions done");
 
+    /*
     for entry in data {
         let (export, opt) = entry.into_export();
 
@@ -87,5 +103,5 @@ fn main() {
         if let Err(err) = export.read_write_csv(RESULTS_PATH) {
             eprint!("{}", err);
         };
-    }
+    }*/
 }
