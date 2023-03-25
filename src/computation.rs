@@ -7,6 +7,7 @@ use crate::{
     fields::{Action, Field, HeightField, WilsonField},
     kahan::KahanSummation,
     lattice::Lattice,
+    observable,
 };
 
 // - Computation --------------------------------------------------------------
@@ -600,44 +601,121 @@ where
     comptype: Computation<'a, D, SIZE, PLOTSIZE>,
     observable: ObservableType,
     result: f64,
-    plot: Option<Plot2d>,
     error: Option<f64>,
 }
 
-impl<'a, const D: usize, const SIZE: usize, const PLOTSIZE: usize>
-    ComputationResult<'a, D, SIZE, PLOTSIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn into_export(self) -> (ComputationExport, Option<Plot2d>) {
-        let export: ComputationExport = ComputationExport {
-            d: self.d,
-            size: self.size,
-            x: self.x,
-            y: self.y,
-            t: self.t,
-            temp: self.temp,
-            comptype: self.comptype.to_string(),
-            observable: self.observable.to_string(),
-            result: self.result,
-            error: self.error,
+impl<'a, const SIZE: usize, const PLOTSIZE: usize> ComputationResult<'a, 3, SIZE, PLOTSIZE> {
+    pub fn into_export(self, index: usize) -> ComputationSummary {
+        let size_ary: [usize; 3] = match self.comptype {
+            Computation::Simulation(sim) => sim.lattice.size,
+            Computation::Test(test) => test.lattice.size,
+            Computation::WilsonSim(wilson_sim) => wilson_sim.lattice.size,
+            Computation::WilsonTest(wilson_test) => wilson_test.lattice.size,
         };
 
-        (export, self.plot)
+        let mut export: ComputationSummary = ComputationSummary::new(index)
+            .set_size(size_ary)
+            .set_computation(self.temp, self.comptype.to_string(), self.observable)
+            .set_result(self.result);
+
+        if let Some(error) = self.error {
+            export = export.set_error(error);
+        }
+
+        export
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 /// We export the [`ComputationResult`] in a csv file with this formating
-pub struct ComputationExport {
-    d: usize,
-    size: usize,
+pub struct ComputationSummary {
+    index: usize,
+    d: Option<usize>,
+    size: Option<usize>,
     x: Option<usize>,
     y: Option<usize>,
     t: Option<usize>,
-    temp: f64,
-    comptype: String,
-    observable: String,
-    result: f64,
+    temp: Option<f64>,
+    comptype: Option<String>,
+    observable: Option<String>,
+    result: Option<f64>,
     error: Option<f64>,
+    energy_data: bool,
+    bonds_data: bool,
+}
+
+impl ComputationSummary {
+    pub fn new(index: usize) -> Self {
+        ComputationSummary {
+            index,
+            d: None,
+            size: None,
+            x: None,
+            y: None,
+            t: None,
+            temp: None,
+            comptype: None,
+            observable: None,
+            result: None,
+            error: None,
+            energy_data: false,
+            bonds_data: false,
+        }
+    }
+
+    pub fn set_size<const D: usize>(mut self, size_ary: [usize; D]) -> Self
+    where
+        [(); D]:,
+    {
+        self.d = Some(D);
+        self.size = Some(size_ary.iter().sum());
+        match D {
+            1 => self.x = Some(size_ary[0]),
+            2 => {
+                self.x = Some(size_ary[0]);
+                self.y = Some(size_ary[1]);
+            }
+            3 => {
+                self.x = Some(size_ary[0]);
+                self.y = Some(size_ary[1]);
+                self.t = Some(size_ary[2]);
+            }
+            _ => {}
+        }
+        self
+    }
+
+    pub fn set_computation(mut self, temp: f64, comptype: String, observable: String) -> Self {
+        self.temp = Some(temp);
+        self.comptype = Some(comptype);
+        self.observable = Some(observable);
+        self
+    }
+
+    pub fn set_result(mut self, result: f64) -> Self {
+        self.result = Some(result);
+        self
+    }
+
+    pub fn set_error(mut self, error: f64) -> Self {
+        self.error = Some(error);
+        self
+    }
+
+    pub fn set_energy_data(mut self) -> Self {
+        self.energy_data = true;
+        self
+    }
+
+    pub fn set_bonds_data(mut self) -> Self {
+        self.bonds_data = true;
+        self
+    }
+}
+
+pub struct ComputationData {
+    x: Option<usize>,
+    y: Option<usize>,
+    z: Option<usize>,
+    data: Option<f64>,
 }

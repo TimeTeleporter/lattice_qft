@@ -3,7 +3,7 @@
 use std::{
     collections::VecDeque,
     fmt::Display,
-    ops::{Add, Deref, DerefMut, Div, Mul, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 use rand::{distributions::Standard, prelude::*};
@@ -126,6 +126,21 @@ where
     }
 }
 
+// - Field - Tests ------------------------------------------------------------
+
+#[test]
+fn test_field_conversion() {
+    let lattice: Lattice<3, 8> = Lattice::new([2, 2, 2]);
+
+    let field8: Field<i8, 3, 8> = Field::new(&lattice);
+
+    let field16: Field<i16, 3, 8> = Field::new(&lattice);
+
+    let field: Field<i16, 3, 8> = Field::from_field(field8);
+
+    assert_eq!(field16.values, field.values);
+}
+
 // - Bonds --------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
@@ -228,16 +243,22 @@ impl<'a, T, const D: usize, const SIZE: usize> BondsFieldNew<'a, T, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    /// Activate a link of the LinksField
+    /// Sets the value of the indexed bond to a given value
     pub fn set_value(&mut self, index: usize, direction: usize, value: T)
     where
         T: Clone,
     {
+        let mut entry = self.get_value_mut(index, direction);
+        *entry = value;
+    }
+
+    /// Returns a reference to the desired value
+    pub fn get_value(&self, index: usize, direction: usize) -> &T {
         match direction % (D * 2_usize) {
-            x if x < D => self.field.values[index]. = value.clone(),
+            x if x < D => &self.field.values[index][direction],
             x if x >= D && x < D * 2 => {
                 let neighbour: usize = self.field.lattice.values[index][direction];
-                &mut self.field.values[neighbour][direction % D]
+                &self.field.values[neighbour][direction % D]
             }
             _ => panic!("Trying to fetch BoundsField value mut: direction out of bounds!"),
         }
@@ -256,35 +277,86 @@ where
     }
 }
 
+#[test]
+fn test_bonds_field_constructors() {
+    const D: usize = 3;
+    const SIZE_ARY: [usize; D] = [3, 4, 5];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+
+    let bonds: BondsFieldNew<i8, D, SIZE> = BondsFieldNew::new(&lattice);
+    for ary in bonds.field.values {
+        for entry in ary {
+            assert_eq!(entry, 0);
+        }
+    }
+
+    let bonds: BondsFieldNew<i32, D, SIZE> = BondsFieldNew::from_field(bonds);
+    for ary in bonds.field.values {
+        for entry in ary {
+            assert_eq!(entry, 0);
+        }
+    }
+}
+
+#[test]
+fn test_bonds_field_set_value() {
+    const D: usize = 3;
+    const SIZE_ARY: [usize; D] = [3, 4, 5];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    let mut bonds: BondsFieldNew<i32, D, SIZE> = BondsFieldNew::new(&lattice);
+
+    let index: usize = 5;
+    let direction: usize = 2;
+    let value: i32 = 29;
+    bonds.set_value(index, direction, value);
+    let check: i32 = *bonds.get_value(index, direction);
+    assert_eq!(check, value);
+    let direction: usize = 3;
+    bonds.set_value(index, direction, value);
+    let check: i32 = *bonds.get_value(index, direction);
+    assert_eq!(check, value);
+}
+
 // - Links --------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
 /// Models the activation of outgoing links from a lattice site
-pub struct LinksField<'a, const D: usize, const SIZE: usize>(BondsFieldNew<'a, bool, D, SIZE>)
+pub struct LinksField<'a, const D: usize, const SIZE: usize>
 where
-    [(); D * 2_usize]:;
+    [(); D * 2_usize]:,
+{
+    bonds: BondsFieldNew<'a, bool, D, SIZE>,
+}
 
 impl<'a, const D: usize, const SIZE: usize> LinksField<'a, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    /// Constructor for a new LinksField on the lattice initialized to be false everywhere.
+    /// Constructor for a new LinksField on the lattice initialized to be false
+    /// everywhere
     pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
         assert_eq!(bool::default(), false);
-        LinksField(BondsField::<bool, D, SIZE>::new(lattice))
+        LinksField {
+            bonds: BondsFieldNew::<bool, D, SIZE>::new(lattice),
+        }
     }
 }
-
+// - Links - Deref ------------------------------------------------------------
+/*
 impl<'a, const D: usize, const SIZE: usize> Deref for LinksField<'a, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    type Target = BondsField<'a, bool, D, SIZE>;
+    type Target = BondsFieldNew<'a, bool, D, SIZE>;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.bonds
     }
 }
+*/
+// - Links - Auxilliary -------------------------------------------------------
 
 impl<'a, const D: usize, const SIZE: usize> LinksField<'a, D, SIZE>
 where
@@ -292,11 +364,11 @@ where
 {
     /// Activate a link of the LinksField
     pub fn activate(&mut self, index: usize, direction: usize) {
-        self.0.set_value(index, direction, true);
+        self.bonds.set_value(index, direction, true);
     }
 
     pub fn is_active(&self, index: usize, direction: usize) -> bool {
-        self.values[index][direction]
+        self.bonds.get_value(index, direction).clone()
     }
 
     /// Return collection of all clusters
@@ -329,6 +401,8 @@ where
 
             // ...check each neighbour...
             for (direction, neighbour) in self
+                .bonds
+                .field
                 .lattice
                 .get_neighbours_array(check)
                 .into_iter()
@@ -336,7 +410,7 @@ where
             {
                 // ...if it hasn't been visited and the link is active,
                 // add it to the checklist and mark it as visited.
-                if unvisited[neighbour] && self.values[check][direction] {
+                if unvisited[neighbour] && self.bonds.field.values[check][direction] {
                     checklist.push_back(neighbour);
                     unvisited[neighbour] = false;
                 }
@@ -346,6 +420,83 @@ where
         cluster.shrink_to_fit();
         cluster
     }
+}
+
+// - Links - Tests ------------------------------------------------------------
+
+#[test]
+fn test_links_field() {
+    const D: usize = 3;
+    const SIZE_ARY: [usize; D] = [4, 5, 3];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
+
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    let mut links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
+
+    // Setting the link at [0, 2, 1] (index = 28) in the third direction
+    // (direction = 2).
+    assert_eq!(links_field.is_active(28, 2), false);
+    assert_eq!(links_field.is_active(48, 5), false);
+    links_field.activate(28, 2);
+    //links_field.print_values_formated(SIZE_ARY);
+    assert_eq!(links_field.is_active(28, 2), true);
+    assert_eq!(links_field.is_active(48, 5), true);
+
+    // Setting the link at [2, 1, 0] (index = 6) in the negatice first direction
+    // (direction = 3).
+    assert_eq!(links_field.is_active(6, 3), false);
+    assert_eq!(links_field.is_active(5, 0), false);
+    links_field.activate(6, 3);
+    assert_eq!(links_field.is_active(6, 3), true);
+    assert_eq!(links_field.is_active(5, 0), true);
+}
+
+#[test]
+fn test_all_links_deactivated() {
+    const D: usize = 3;
+    const SIZE_ARY: [usize; D] = [4, 5, 3];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
+
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    let links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
+
+    let clusters: Vec<Vec<usize>> = links_field.collect_clusters();
+
+    let mut test: Vec<Vec<usize>> = Vec::new();
+    for index in 0..SIZE {
+        let mut vect: Vec<usize> = Vec::new();
+        vect.push(index);
+        test.push(vect);
+    }
+
+    assert_eq!(test, clusters);
+}
+
+#[test]
+fn test_all_links_active() {
+    const D: usize = 3;
+    const SIZE_ARY: [usize; D] = [4, 5, 3];
+    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
+
+    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
+    let mut links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
+
+    for links in links_field.bonds.field.values.iter_mut() {
+        for link in links.iter_mut() {
+            *link = true;
+        }
+    }
+
+    let clusters: Vec<Vec<usize>> = links_field.collect_clusters();
+
+    let mut test: Vec<Vec<usize>> = Vec::new();
+    let mut cluster: Vec<usize> = Vec::with_capacity(SIZE);
+    for index in 0..SIZE {
+        cluster.push(index);
+    }
+    test.push(cluster);
+
+    assert_eq!(test.len(), clusters.len());
 }
 
 // - WilsonField --------------------------------------------------------------
@@ -382,7 +533,6 @@ impl<'a, T, const SIZE: usize> WilsonField<'a, T, SIZE> {
                 links.activate(index, 1);
             }
         }
-        links.check_coherence();
         WilsonField {
             field,
             links,
@@ -594,98 +744,6 @@ where
     }
 }
 
-// - Field - Tests ------------------------------------------------------------
-
-#[test]
-fn test_field_conversion() {
-    let lattice: Lattice<3, 8> = Lattice::new([2, 2, 2]);
-
-    let field8: Field<i8, 3, 8> = Field::new(&lattice);
-
-    let field16: Field<i16, 3, 8> = Field::new(&lattice);
-
-    let field: Field<i16, 3, 8> = Field::from_field(field8);
-
-    assert_eq!(field16.values, field.values);
-}
-
-// - Links - Tests ------------------------------------------------------------
-
-#[test]
-fn test_links_field() {
-    const D: usize = 3;
-    const SIZE_ARY: [usize; D] = [4, 5, 3];
-    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
-
-    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
-    let mut links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
-
-    // Setting the link at [0, 2, 1] (index = 28) in the third direction
-    // (direction = 2).
-    assert_eq!(links_field.values[28][2], false);
-    assert_eq!(links_field.values[48][5], false);
-    links_field.activate(28, 2);
-    //links_field.print_values_formated(SIZE_ARY);
-    assert_eq!(links_field.values[28][2], true);
-    assert_eq!(links_field.values[48][5], true);
-
-    // Setting the link at [2, 1, 0] (index = 6) in the negatice first direction
-    // (direction = 3).
-    assert_eq!(links_field.values[6][3], false);
-    assert_eq!(links_field.values[5][0], false);
-    links_field.activate(6, 3);
-    assert_eq!(links_field.values[6][3], true);
-    assert_eq!(links_field.values[5][0], true);
-}
-
-#[test]
-fn test_all_links_deactivated() {
-    const D: usize = 3;
-    const SIZE_ARY: [usize; D] = [4, 5, 3];
-    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
-
-    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
-    let links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
-
-    let clusters: Vec<Vec<usize>> = links_field.collect_clusters();
-
-    let mut test: Vec<Vec<usize>> = Vec::new();
-    for index in 0..SIZE {
-        let mut vect: Vec<usize> = Vec::new();
-        vect.push(index);
-        test.push(vect);
-    }
-
-    assert_eq!(test, clusters);
-}
-
-#[test]
-fn test_all_links_active() {
-    const D: usize = 3;
-    const SIZE_ARY: [usize; D] = [4, 5, 3];
-    const SIZE: usize = SIZE_ARY[0] * SIZE_ARY[1] * SIZE_ARY[2];
-
-    let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
-    let mut links_field: LinksField<D, SIZE> = LinksField::new(&lattice);
-
-    for links in links_field.0 .0.values.iter_mut() {
-        for link in links.iter_mut() {
-            *link = true;
-        }
-    }
-
-    let clusters: Vec<Vec<usize>> = links_field.collect_clusters();
-
-    let mut test: Vec<Vec<usize>> = Vec::new();
-    let mut cluster: Vec<usize> = Vec::with_capacity(SIZE);
-    for index in 0..SIZE {
-        cluster.push(index);
-    }
-    test.push(cluster);
-
-    assert_eq!(test.len(), clusters.len());
-}
-
 // - HeightField - Tests ------------------------------------------------------
 
 #[test]
@@ -710,14 +768,14 @@ fn test_wilson_field_action() {
     let lattice: Lattice<3, SIZE> = Lattice::new(SIZE_ARY);
     let field: Field<i8, 3, SIZE> = Field::random(&lattice);
     let field: Field<i32, 3, SIZE> = Field::from_field(field);
-    let field: WilsonField<i32, SIZE> = WilsonField::from_field(field, 1, 1);
+    let wilson: WilsonField<i32, SIZE> = WilsonField::from_field(field, 1, 1);
 
     // Checking only the given links to be active
     for index in 0..SIZE {
         for direction in 0..(3 * 2_usize) {
             match (index, direction) {
-                (0, 1) | (2, 4) => assert!(field.links.values[index][direction]),
-                (_, _) => assert!(!field.links.values[index][direction]),
+                (0, 1) | (2, 4) => assert!(wilson.links.bonds.field.values[index][direction]),
+                (_, _) => assert!(!wilson.links.bonds.field.values[index][direction]),
             }
         }
     }
@@ -725,11 +783,12 @@ fn test_wilson_field_action() {
     // Checking that each bond only ever evaluates to one value.
     for index in 0..SIZE {
         for direction in 0..(3 * 2_usize) {
-            let neighbour_index: usize = field.field.lattice.get_neighbours_array(index)[direction];
+            let neighbour_index: usize =
+                wilson.field.lattice.get_neighbours_array(index)[direction];
             let inverse_direction: usize = (direction + 3) % 6;
             assert_eq!(
-                field.bond_action(index, direction),
-                field.bond_action(neighbour_index, inverse_direction)
+                wilson.bond_action(index, direction),
+                wilson.bond_action(neighbour_index, inverse_direction)
             );
         }
     }

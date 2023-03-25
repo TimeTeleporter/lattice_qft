@@ -3,6 +3,10 @@
 #![feature(generic_arg_infer)]
 #![feature(split_array)]
 
+use lattice_qft::{
+    computation::{Computation, ComputationResult},
+    lattice::Lattice3d,
+};
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 const TEST_X: usize = 20;

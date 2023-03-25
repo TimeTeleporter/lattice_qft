@@ -1,9 +1,11 @@
 //! This module implements a data structure to save the field configuration
 //! data of the Markov chain Monte Carlo in order to calculate observables
 //! and create plots.
+//!
+//! It implements a
 
 use crate::{
-    fields::{BondsField, Field},
+    fields::{Action, BondsFieldNew, Field, HeightVariable},
     kahan::KahanSummation,
     lattice::Lattice,
 };
@@ -13,15 +15,16 @@ where
     [(); D * 2_usize]:,
 {
     fn new(lattice: &Lattice<D, SIZE>) -> Self;
-    fn update<T: Into<f64>>(&mut self, field: &Field<T, D, SIZE>);
+    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>);
 }
 
 #[derive(Debug)]
-pub struct EnergyObservableField<'a, const D: usize, const SIZE: usize>(
-    BondsField<'a, KahanSummation<f64>, D, SIZE>,
-)
+pub struct EnergyObservableField<'a, const D: usize, const SIZE: usize>
 where
-    [(); D * 2_usize]:;
+    [(); D * 2_usize]:,
+{
+    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
+}
 
 impl<'a, const D: usize, const SIZE: usize> ObservableField<D, SIZE>
     for EnergyObservableField<'a, D, SIZE>
@@ -29,13 +32,47 @@ where
     [(); D * 2_usize]:,
 {
     fn new(lattice: &Lattice<D, SIZE>) -> Self {
-        EnergyObservableField(BondsField::new(lattice))
+        EnergyObservableField {
+            bonds: BondsFieldNew::new(lattice),
+        }
     }
 
-    fn update<T: Into<f64>>(&mut self, field: &Field<T, D, SIZE>) {
+    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>) {
         for index in 0..SIZE {
             for direction in 0..D {
-                self.0.set_value(index, direction, value)
+                let action = field.bond_action(index, direction);
+                self.bonds
+                    .get_value_mut(index, direction)
+                    .add(action.into());
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct DifferenceObservableField<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
+}
+
+impl<'a, const D: usize, const SIZE: usize> ObservableField<D, SIZE>
+    for DifferenceObservableField<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    fn new(lattice: &Lattice<D, SIZE>) -> Self {
+        DifferenceObservableField {
+            bonds: BondsFieldNew::new(lattice),
+        }
+    }
+
+    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>) {
+        for index in 0..SIZE {
+            for direction in 0..D {
+                let diff = field.bond_difference(index, direction);
+                self.bonds.get_value_mut(index, direction).add(diff.into());
             }
         }
     }
