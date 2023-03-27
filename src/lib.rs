@@ -3,6 +3,7 @@
 #![feature(adt_const_params)]
 #![feature(split_array)]
 #![feature(is_some_with)]
+#![feature(let_chains)]
 
 pub const LONG_TEMP_ARY: [f64; 81] = [
     0.000001,

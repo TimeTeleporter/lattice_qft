@@ -251,7 +251,7 @@ where
     where
         T: Clone,
     {
-        let mut entry = self.get_value_mut(index, direction);
+        let entry = self.get_value_mut(index, direction);
         *entry = value;
     }
 
@@ -288,8 +288,8 @@ fn test_bonds_field_constructors() {
     let lattice: Lattice<D, SIZE> = Lattice::new(SIZE_ARY);
 
     let bonds: BondsFieldNew<i8, D, SIZE> = BondsFieldNew::new(&lattice);
-    for ary in bonds.field.values {
-        for entry in ary {
+    for ary in bonds.field.values.iter() {
+        for &entry in ary {
             assert_eq!(entry, 0);
         }
     }
@@ -802,12 +802,12 @@ fn test_wilson_field_action() {
     }
 }
 
-pub trait ObservableField<const D: usize, const SIZE: usize>
+pub trait ObservableField<'a, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
 {
-    fn new(lattice: &Lattice<D, SIZE>) -> Self;
-    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>);
+    fn new(lattice: &'a Lattice<D, SIZE>) -> Self;
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A);
 }
 
 #[derive(Debug, Clone)]
@@ -818,18 +818,18 @@ where
     bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
 }
 
-impl<'a, const D: usize, const SIZE: usize> ObservableField<D, SIZE>
+impl<'a, const D: usize, const SIZE: usize> ObservableField<'a, D, SIZE>
     for EnergyObservableField<'a, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn new(lattice: &Lattice<D, SIZE>) -> Self {
+    fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
         EnergyObservableField {
             bonds: BondsFieldNew::new(lattice),
         }
     }
 
-    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>) {
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let action = field.bond_action(index, direction);
@@ -849,18 +849,18 @@ where
     bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
 }
 
-impl<'a, const D: usize, const SIZE: usize> ObservableField<D, SIZE>
+impl<'a, const D: usize, const SIZE: usize> ObservableField<'a, D, SIZE>
     for DifferenceObservableField<'a, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn new(lattice: &Lattice<D, SIZE>) -> Self {
+    fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
         DifferenceObservableField {
             bonds: BondsFieldNew::new(lattice),
         }
     }
 
-    fn update<T: HeightVariable<T>>(&mut self, field: &Field<T, D, SIZE>) {
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let diff = field.bond_difference(index, direction);
@@ -875,6 +875,6 @@ fn test_observable_bond_field() {
     const D: usize = 3;
     const SIZE: usize = 4 * 5 * 6;
     let lattice: Lattice<D, SIZE> = Lattice::new([4, 5, 6]);
-    let diff_field: EnergyObservableField<D, SIZE> = EnergyObservableField::new(&lattice);
-    let energy_field: EnergyObservableField<D, SIZE> = EnergyObservableField::new(&lattice);
+    let _diff_field: EnergyObservableField<D, SIZE> = EnergyObservableField::new(&lattice);
+    let _energy_field: EnergyObservableField<D, SIZE> = EnergyObservableField::new(&lattice);
 }
