@@ -3,20 +3,11 @@
 //! and create plots.
 
 use crate::{
-    fields::{
-        Action, DifferenceObservableField, EnergyObservableField, HeightVariable, ObservableField,
-    },
+    computation::FieldExport3d,
+    fields::{Action, BondsFieldNew, Field, HeightVariable, WilsonField},
     kahan::KahanSummation,
     lattice::Lattice,
 };
-
-// - DataOutput --------------------------------------------------------------
-
-pub trait UpdateOutputData<const D: usize, const SIZE: usize> {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:;
-}
 
 // - OutputData ---------------------------------------------------------------
 
@@ -60,26 +51,7 @@ where
     }
 }
 
-impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for OutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
-    {
-        match self {
-            OutputData::Observable(obs) => obs.update(field),
-            OutputData::Plot(plt) => plt.update(field),
-        }
-    }
-}
-
-// - OutputData - Observable --------------------------------------------------
-
-pub trait Observe {
-    fn result(self) -> f64;
-}
+// - OutputData - ObservableOutputData ----------------------------------------
 
 #[derive(Debug, Clone)]
 pub enum ObservableOutputData<const D: usize, const SIZE: usize>
@@ -103,38 +75,58 @@ where
     }
 }
 
-impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ObservableOutputData<D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
+// - OutputData - ObservableOutputData - ActionObservableNew ------------------
+
+#[derive(Debug, Clone)]
+pub struct ActionObservableNew {
+    value: KahanSummation<f64>,
+    temp: f64,
+}
+
+impl ActionObservableNew {
+    fn new(temp: f64) -> Self {
+        ActionObservableNew {
+            value: KahanSummation::new(),
+            temp,
+        }
+    }
+}
+
+// - OutputData - TestActionObservable - TestActionObservable -----------------
+
+/// The partition function is the sum over all Bolzmann weights. The observable
+/// is the sum over all weights (Bolzmann times observable), devided by the
+/// partition function.
+#[derive(Debug, Clone)]
+pub struct TestActionObservable {
+    partfn: KahanSummation<f64>,
+    obs: KahanSummation<f64>,
+    temp: f64,
+}
+
+impl TestActionObservable {
+    fn new(temp: f64) -> Self {
+        TestActionObservable {
+            partfn: KahanSummation::new(),
+            obs: KahanSummation::new(),
+            temp,
+        }
+    }
+
+    pub fn wilson_update<'a, T: HeightVariable<T>, const SIZE: usize>(
+        &mut self,
+        wilson: &'a WilsonField<T, SIZE>,
+    ) where
+        WilsonField<'a, T, SIZE>: Action<T>,
     {
-        match self {
-            ObservableOutputData::Action(act) => {
-                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(act, field)
-            }
-            ObservableOutputData::TestAction(act) => {
-                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(act, field)
-            }
-        }
+        let bolz: f64 = (-wilson.action_observable(self.temp)).exp();
+        self.obs
+            .add(wilson.field.action_observable(self.temp) * bolz);
+        self.partfn.add(bolz);
     }
 }
 
-impl<const D: usize, const SIZE: usize> Observe for ObservableOutputData<D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn result(self) -> f64 {
-        match self {
-            ObservableOutputData::Action(obs) => obs.result(),
-            ObservableOutputData::TestAction(obs) => obs.result(),
-        }
-    }
-}
-
-// - OutputData - Plot --------------------------------------------------------
+// - OutputData - PlotOutputData ----------------------------------------------
 
 #[derive(Debug, Clone)]
 pub enum PlotOutputData<'a, const D: usize, const SIZE: usize>
@@ -158,6 +150,90 @@ where
     }
 }
 
+// - OutputData - PlotOutputData - EnergyPlotOutputData -----------------------
+
+#[derive(Debug, Clone)]
+pub struct EnergyPlotOutputData<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
+}
+
+impl<'a, const D: usize, const SIZE: usize> EnergyPlotOutputData<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
+        EnergyPlotOutputData {
+            bonds: BondsFieldNew::new(lattice),
+        }
+    }
+}
+
+// - OutputData - PlotOutputData - DifferencePlotOutputData -------------------
+
+#[derive(Debug, Clone)]
+pub struct DifferencePlotOutputData<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
+}
+
+impl<'a, const D: usize, const SIZE: usize> DifferencePlotOutputData<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
+        DifferencePlotOutputData {
+            bonds: BondsFieldNew::new(lattice),
+        }
+    }
+}
+
+// - UpdateOutputData ---------------------------------------------------------
+
+pub trait UpdateOutputData<const D: usize, const SIZE: usize> {
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    where
+        [(); D * 2_usize]:;
+}
+
+impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for OutputData<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    where
+        [(); D * 2_usize]:,
+    {
+        match self {
+            OutputData::Observable(obs) => obs.update(field),
+            OutputData::Plot(plt) => plt.update(field),
+        }
+    }
+}
+
+impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ObservableOutputData<D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    where
+        [(); D * 2_usize]:,
+    {
+        match self {
+            ObservableOutputData::Action(act) => {
+                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(act, field)
+            }
+            ObservableOutputData::TestAction(act) => {
+                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(act, field)
+            }
+        }
+    }
+}
+
 impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
     for PlotOutputData<'a, D, SIZE>
 where
@@ -174,23 +250,6 @@ where
     }
 }
 
-// - OutputData - Observable - Action -----------------------------------------
-
-#[derive(Debug, Clone)]
-pub struct ActionObservableNew {
-    value: KahanSummation<f64>,
-    temp: f64,
-}
-
-impl ActionObservableNew {
-    fn new(temp: f64) -> Self {
-        ActionObservableNew {
-            value: KahanSummation::new(),
-            temp,
-        }
-    }
-}
-
 impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ActionObservableNew
 where
     [(); D * 2_usize]:,
@@ -200,40 +259,6 @@ where
         [(); D * 2_usize]:,
     {
         self.value.add(field.action_observable(self.temp))
-    }
-}
-
-impl Observe for ActionObservableNew {
-    fn result(self) -> f64 {
-        self.value.mean()
-    }
-}
-
-// - OutputData - Observable - Test Action ------------------------------------
-
-/// The partition function is the sum over all Bolzmann weights. The observable
-/// is the sum over all weights (Bolzmann times observable), devided by the
-/// partition function.
-#[derive(Debug, Clone)]
-pub struct TestActionObservable {
-    partfn: KahanSummation<f64>,
-    obs: KahanSummation<f64>,
-    temp: f64,
-}
-
-impl TestActionObservable {
-    fn new(temp: f64) -> Self {
-        TestActionObservable {
-            partfn: KahanSummation::new(),
-            obs: KahanSummation::new(),
-            temp,
-        }
-    }
-}
-
-impl Observe for TestActionObservable {
-    fn result(self) -> f64 {
-        self.obs.mean() / self.partfn.mean()
     }
 }
 
@@ -251,52 +276,20 @@ where
     }
 }
 
-// - OutputData - Plot - Energy -----------------------------------------------
-
-#[derive(Debug, Clone)]
-pub struct EnergyPlotOutputData<'a, const D: usize, const SIZE: usize>(
-    EnergyObservableField<'a, D, SIZE>,
-)
-where
-    [(); D * 2_usize]:;
-
-impl<'a, const D: usize, const SIZE: usize> EnergyPlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
-        EnergyPlotOutputData(EnergyObservableField::new(lattice))
-    }
-}
-
 impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
     for EnergyPlotOutputData<'a, D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
-    {
-        self.0.update(field)
-    }
-}
-
-// - OutputData - Plot - Difference -------------------------------------------
-
-#[derive(Debug, Clone)]
-pub struct DifferencePlotOutputData<'a, const D: usize, const SIZE: usize>(
-    DifferenceObservableField<'a, D, SIZE>,
-)
-where
-    [(); D * 2_usize]:;
-
-impl<'a, const D: usize, const SIZE: usize> DifferencePlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
-        DifferencePlotOutputData(DifferenceObservableField::new(lattice))
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
+        for index in 0..SIZE {
+            for direction in 0..D {
+                let action = field.bond_action(index, direction);
+                self.bonds
+                    .get_value_mut(index, direction)
+                    .add(action.into());
+            }
+        }
     }
 }
 
@@ -305,11 +298,69 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
-    {
-        self.0.update(field)
+    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
+        for index in 0..SIZE {
+            for direction in 0..D {
+                let diff = field.bond_difference(index, direction);
+                self.bonds.get_value_mut(index, direction).add(diff.into());
+            }
+        }
+    }
+}
+
+// - Observe ------------------------------------------------------------------
+
+pub trait Observe {
+    fn result(self) -> f64;
+}
+
+impl<const D: usize, const SIZE: usize> Observe for ObservableOutputData<D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    fn result(self) -> f64 {
+        match self {
+            ObservableOutputData::Action(obs) => obs.result(),
+            ObservableOutputData::TestAction(obs) => obs.result(),
+        }
+    }
+}
+
+impl Observe for ActionObservableNew {
+    fn result(self) -> f64 {
+        self.value.mean()
+    }
+}
+
+impl Observe for TestActionObservable {
+    fn result(self) -> f64 {
+        self.obs.mean() / self.partfn.mean()
+    }
+}
+
+// - Plotting -----------------------------------------------------------------
+
+pub trait Plotting {
+    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>>;
+}
+
+impl<'a, const SIZE: usize> Plotting for EnergyPlotOutputData<'a, 3, SIZE> {
+    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
+        let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
+        for field in self.bonds.into_sub_fields().into_iter() {
+            ary.push(Field::<'a, f64, 3, SIZE>::from_field(field).into_export());
+        }
+        ary
+    }
+}
+
+impl<'a, const SIZE: usize> Plotting for DifferencePlotOutputData<'a, 3, SIZE> {
+    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
+        let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
+        for field in self.bonds.into_sub_fields().into_iter() {
+            ary.push(Field::<'a, f64, 3, SIZE>::from_field(field).into_export());
+        }
+        ary
     }
 }
 

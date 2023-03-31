@@ -1,9 +1,8 @@
-# Import required libraries
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-from matplotlib.colors import Normalize
 import csv
+
+index: int = 1
 
 x = []
 y = []
@@ -26,33 +25,4 @@ with open('data/plot.csv') as csv_file:
             line_count += 1
     print(f'Processed {line_count} lines.')
 
-colors = []
-for index in range(len(x)):
-    colors.append(u[index] * u[index] + v[index] * v[index])
-
-
-norm = Normalize()
-norm.autoscale(colors)
-
-colormap = cm.plasma
-
-# Shifting the values
-xmax = max(x)
-ymax = max(y)
-
-for index in range(len(x)):
-    x[index] = (x[index] + (xmax / 2)) % (xmax + 1)
-    y[index] = (y[index] + (xmax / 3)) % (ymax + 1)
-
-# Plotting Vector Field with quiver() function
-plt.quiver(x, y, u, v, color=colormap(norm(colors)), scale_units='xy', scale=max((max(u), max(v))),
-           width=0.01, headwidth=1, headlength=1)
-plt.title('Vector Field')
-
-# Setting boundary limits
-plt.xlim(min(x), max(x))
-plt.ylim(min(y), max(y))
-
-# Show plot with grid
-plt.grid()
-plt.show()
+x_max = max(x)

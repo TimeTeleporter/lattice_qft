@@ -1,8 +1,10 @@
 //! This module implements Kahan summation according to [https://en.wikipedia.org/wiki/Kahan_summation_algorithm].
 use std::ops::{Add, Sub};
 
+use serde::{Deserialize, Serialize};
+
 /// A data structure using Kahan summation of floating point numbers to update a running average.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct KahanSummation<T> {
     value: T,
     kahan: T,
@@ -43,6 +45,16 @@ impl<T> KahanSummation<T> {
         T: Into<f64> + Clone,
     {
         self.value.clone().into() / self.entries as f64
+    }
+}
+
+impl Into<f64> for KahanSummation<f64> {
+    /// For this usecase we implement the [Into] trait as taking the mean of
+    /// the [KahanSummation].
+    ///
+    /// > !Beware that you might want to use a different implementation!
+    fn into(self) -> f64 {
+        self.mean()
     }
 }
 

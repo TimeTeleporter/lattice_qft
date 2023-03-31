@@ -9,16 +9,16 @@ use lattice_qft::{
     computation::{Computation, ComputationSummary, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    outputdata::{ObservableOutputData, Observe, OutputData, PlotOutputData},
+    outputdata::{ObservableOutputData, Observe, OutputData, PlotOutputData, Plotting},
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const TEST_X: usize = 2;
-const TEST_Y: usize = 2;
-const TEST_T: usize = 2;
+const TEST_X: usize = 10;
+const TEST_Y: usize = 10;
+const TEST_T: usize = 10;
 const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 
-const RANGE: usize = 16;
+const _RANGE: usize = 12;
 
 const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 100_000;
@@ -28,7 +28,7 @@ const WIDTH: usize = TEST_X / 2;
 const HEIGHT: usize = TEST_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
-const _PLOT_PATH: &str = "./data/plot.csv";
+const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -42,8 +42,8 @@ fn main() {
     for temp in [0.1] {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
-        let mut test_observables: Vec<OutputData<3, SIZE>> = Vec::new();
-        test_observables.push(OutputData::new_test_action_observable(temp));
+        observables.push(OutputData::new_difference_plot(&lattice));
+        observables.push(OutputData::new_energy_plot(&lattice));
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
@@ -62,20 +62,6 @@ fn main() {
             HEIGHT,
             observables,
         ));
-        comps.push(Computation::new_test(
-            &lattice,
-            temp,
-            RANGE,
-            test_observables.clone(),
-        ));
-        comps.push(Computation::new_wilson_test(
-            &lattice,
-            temp,
-            RANGE,
-            WIDTH,
-            HEIGHT,
-            test_observables,
-        ))
     }
 
     // Parallel over all temp data
@@ -86,34 +72,60 @@ fn main() {
 
     println!("All calcualtions done");
 
-    for computation in data {
-        let index: usize = match ComputationSummary::fetch_csv_data(RESULTS_PATH) {
-            Ok(data) => {
-                let mut index: usize = 0;
-                if let Some(comp) = data.last() {
-                    index = comp.index
+    for (_, computation) in data.into_iter().enumerate() {
+        let index: usize =
+            match ComputationSummary::fetch_csv_data(RESULTS_PATH).and_then(|summary| {
+                summary
+                    .last()
+                    .map(|last| last.index + 1)
+                    .ok_or("No last element, starting anew.".into())
+            }) {
+                Ok(index) => index,
+                Err(err) => {
+                    eprint!("{}", err);
+                    0
                 }
-                index
-            }
-            Err(err) => {
-                eprintln!("{err}");
-                0
-            }
-        };
+            };
 
         let (mut new, outputs) = ComputationSummary::from_computation(computation, index);
 
         for output in outputs.into_iter() {
-            new = match output {
+            match output {
                 OutputData::Observable(ObservableOutputData::Action(obs)) => {
-                    new.set_action(obs.result(), None)
+                    new = new.set_action(obs.result(), None);
                 }
                 OutputData::Observable(ObservableOutputData::TestAction(obs)) => {
-                    new.set_action(obs.result(), None)
+                    new = new.set_action(obs.result(), None);
                 }
-                OutputData::Plot(PlotOutputData::Difference(_)) => todo!(),
-                OutputData::Plot(PlotOutputData::Energy(_)) => todo!(),
-            };
+                OutputData::Plot(PlotOutputData::Difference(obs)) => {
+                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"difference_"
+                            + &index.to_string()
+                            + &"_"
+                            + &direction.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.read_write_csv(path) {
+                            eprint!("{}", err);
+                        };
+                    }
+                    new = new.set_bonds_data();
+                }
+                OutputData::Plot(PlotOutputData::Energy(obs)) => {
+                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"energy_"
+                            + &index.to_string()
+                            + &"_"
+                            + &direction.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.read_write_csv(path) {
+                            eprint!("{}", err);
+                        };
+                    }
+                    new = new.set_bonds_data();
+                }
+            }
         }
 
         if let Err(err) = new.read_write_csv(RESULTS_PATH) {

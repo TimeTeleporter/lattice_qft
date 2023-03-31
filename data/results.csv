@@ -1,21 +1,3 @@
 index,d,size,x,y,t,temp,comptype,action,action_error,energy_data,bonds_data
-0,3,6,2,2,2,0.05,Metropolis Simulation (100000),3.4949120000000002,,false,false
-0,3,6,2,2,2,0.05,1x2 Wilson Metropolis Simulation (100000),3.5418040000000004,,false,false
-0,3,6,2,2,2,0.05,Test (0 - 8),3.088273809383533,,false,false
-0,3,6,2,2,2,0.05,1x2 Wilson Test (0 - 8),3.088273809383533,,false,false
-0,3,6,2,2,2,0.1,Metropolis Simulation (100000),3.495292,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Metropolis Simulation (100000),3.582634,,false,false
-0,3,6,2,2,2,0.1,Test (0 - 8),3.41550030724925,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Test (0 - 8),3.41550030724925,,false,false
-0,3,6,2,2,2,0.1,Metropolis Simulation (100000),3.50542,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Metropolis Simulation (100000),3.594574,,false,false
-0,3,6,2,2,2,0.1,Test (0 - 8),3.41550030724925,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Test (0 - 8),3.41550030724925,,false,false
-0,3,6,2,2,2,0.1,Metropolis Simulation (100000),3.50654,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Metropolis Simulation (100000),3.5843460000000005,,false,false
-0,3,6,2,2,2,0.1,Test (0 - 16),3.499998518508621,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Test (0 - 16),3.499998518508621,,false,false
-0,3,6,2,2,2,0.1,Metropolis Simulation (100000),3.5058840000000004,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Metropolis Simulation (100000),3.581316,,false,false
-0,3,6,2,2,2,0.1,Test (0 - 16),3.499998518508621,,false,false
-0,3,6,2,2,2,0.1,1x2 Wilson Test (0 - 16),3.6249990815924273,,false,false
+0,3,30,10,10,10,0.1,Metropolis Simulation (100000),499.43506,,false,true
+1,3,30,10,10,10,0.1,5x10 Wilson Metropolis Simulation (100000),503.487088,,false,true

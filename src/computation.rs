@@ -6,7 +6,7 @@ use crate::{
     algorithm::{Algorithm, AlgorithmType, WilsonAlgorithm},
     fields::{Field, HeightField, WilsonField},
     lattice::Lattice,
-    outputdata::{OutputData, UpdateOutputData},
+    outputdata::{ActionObservableNew, OutputData, UpdateOutputData},
 };
 
 // - Computation --------------------------------------------------------------
@@ -85,11 +85,12 @@ where
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         range: usize,
-        output: Vec<OutputData<'a, D, SIZE>>,
     ) -> Computation<'a, D, SIZE> {
         // 16 ^ 7 = 268’435’456
         let Some(permutations): Option<u64> = (range as u64)
             .checked_pow(SIZE as u32 - 1) else { panic!("Permutations overflow.")};
+        let mut output: Vec<OutputData<D, SIZE>> = Vec::new();
+        output.push(OutputData::new_test_action_observable(temp));
         Computation::Test(Test {
             lattice,
             temp,
@@ -128,11 +129,12 @@ impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
         range: usize,
         width: usize,
         height: usize,
-        output: Vec<OutputData<'a, 3, SIZE>>,
     ) -> Computation<'a, 3, SIZE> {
         // 16 ^ 7 = 268’435’456
         let Some(permutations): Option<u64> = (range as u64)
             .checked_pow(SIZE as u32 - 1) else { panic!("Permutations overflow.")};
+        let mut output: Vec<OutputData<'a, 3, SIZE>> = Vec::new();
+        output.push(OutputData::new_test_action_observable(temp));
         Computation::WilsonTest(WilsonTest {
             lattice,
             temp,
@@ -437,7 +439,17 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
                 }
             }
             for data in self.output.iter_mut() {
-                data.update(&wilson);
+                match data {
+                    OutputData::Observable(obs) => match obs {
+                        crate::outputdata::ObservableOutputData::Action(obs) => {
+                            <ActionObservableNew as UpdateOutputData<3, SIZE>>::update(obs, &wilson)
+                        }
+                        crate::outputdata::ObservableOutputData::TestAction(tes) => {
+                            tes.wilson_update(&wilson)
+                        }
+                    },
+                    OutputData::Plot(plt) => plt.update(&wilson),
+                };
             }
         }
 
@@ -570,11 +582,30 @@ impl ComputationSummary {
         self
     }
 }
-/*
-pub struct ComputationData {
-    x: Option<usize>,
-    y: Option<usize>,
-    z: Option<usize>,
-    data: Option<f64>,
+
+// - Field - Exporting --------------------------------------------------------
+
+#[derive(Serialize, Deserialize)]
+pub struct FieldExport3d<T>
+where
+    T: Serialize,
+{
+    x: usize,
+    y: usize,
+    t: usize,
+    val: T,
 }
-*/
+
+impl<'a, T, const SIZE: usize> Field<'a, T, 3, SIZE>
+where
+    T: Serialize,
+{
+    pub fn into_export(self) -> Vec<FieldExport3d<T>> {
+        let mut ary: Vec<FieldExport3d<T>> = Vec::new();
+        for (index, val) in self.values.into_iter().enumerate() {
+            let [x, y, t] = self.lattice.calc_coords_from_index(index).into_array();
+            ary.push(FieldExport3d { x, y, t, val })
+        }
+        ary
+    }
+}
