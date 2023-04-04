@@ -13,9 +13,9 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const TEST_X: usize = 10;
-const TEST_Y: usize = 10;
-const TEST_T: usize = 10;
+const TEST_X: usize = 80;
+const TEST_Y: usize = 80;
+const TEST_T: usize = 80;
 const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 
 const _RANGE: usize = 12;
@@ -123,7 +123,7 @@ fn main() {
                             eprint!("{}", err);
                         };
                     }
-                    new = new.set_bonds_data();
+                    new = new.set_energy_data();
                 }
             }
         }
