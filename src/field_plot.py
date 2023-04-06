@@ -3,12 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 
-difference_path = 'data/plot_data/difference_'
-energy_path = 'data/plot_data/energy_'
-
+data_path: str = 'data/plot_data/'
+images_path: str = 'images/'
 results_path: str = 'data/results.csv'
 
-indices = [0, 1]
+indices = [5]
+
+plot_difference: bool = True
+plot_energy: bool = True
 
 for index in indices:
     # We specify the index that we want to plot
@@ -22,7 +24,7 @@ for index in indices:
     action: float
     # action_error: float
     energy_data: bool
-    bonds_data: bool
+    difference_data: bool
 
     # Then we read the result data of the given index
     with open(results_path) as csv_file:
@@ -43,27 +45,30 @@ for index in indices:
                 action = float(row[8])
                 # action_error: float = float(row[9])
                 energy_data = (row[10] == 'true')
-                bonds_data = (row[11] == 'true')
+                difference_data = (row[11] == 'true')
             line_count += 1
 
-    paths = []
-    if bonds_data:
-        paths.append(difference_path)
-    if energy_data:
-        paths.append(energy_path)
+    plots = []
+    if difference_data & plot_difference:
+        plots.append('difference')
+    if energy_data & plot_energy:
+        plots.append('energy')
 
-    for obs in paths:
+    for plot in plots:
         # Next we plot the fields for each direction
         for direction in range(d):
-            path: str = obs + str(index) + '_' + str(direction) + '.csv'
-            print('Printing to ' + path)
+            data: str = data_path + plot + '_' + \
+                str(index) + '_' + str(direction) + '.csv'
+            image: str = images_path + plot + '_' + \
+                str(index) + '_' + str(direction) + '.png'
+            print('Plotting ' + data + ' to ' + image)
 
             x = []
             y = []
             t = []
             v = []
 
-            with open(path) as csv_file:
+            with open(data) as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=',')
                 line_count = 0
                 for row in csv_reader:
@@ -87,17 +92,21 @@ for index in indices:
             Z = np.zeros([max_x, max_y])
 
             for i in range(len(x)):
-                #Z[x[i], y[i]] += x[i]
-                Z[x[i], y[i]] += v[i]
+                x_plot = int(y[i] + int(max_y / 2)) % max_y
+                y_plot = int(x[i] + int(max_x / 4)) % max_x
+                Z[x_plot, y_plot] += v[i]
 
+            """
             for entry in Z:
                 entry = entry
+            """
 
             fig, ax = plt.subplots()
 
-            ax.imshow(Z)
+            pos = ax.imshow(Z)
             ax.set_xlabel('x')
             ax.set_ylabel('y')
 
-            fig.savefig('images/difference_' + str(index) +
-                        '_' + str(direction) + '.png')
+            fig.colorbar(pos, ax=ax)
+
+            fig.savefig(image)

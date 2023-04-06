@@ -480,7 +480,7 @@ pub struct ComputationSummary {
     action: Option<f64>,
     action_error: Option<f64>,
     energy_data: bool,
-    bonds_data: bool,
+    difference_data: bool,
 }
 
 impl ComputationSummary {
@@ -497,7 +497,7 @@ impl ComputationSummary {
             action: None,
             action_error: None,
             energy_data: false,
-            bonds_data: false,
+            difference_data: false,
         }
     }
 
@@ -578,7 +578,7 @@ impl ComputationSummary {
     }
 
     pub fn set_bonds_data(mut self) -> Self {
-        self.bonds_data = true;
+        self.difference_data = true;
         self
     }
 }
