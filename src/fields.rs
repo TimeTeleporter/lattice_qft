@@ -639,7 +639,7 @@ impl<'a, T: HeightVariable<T>, const SIZE: usize> HeightField<T, 3, SIZE>
 
 /// This trait implements methods on fields with height variables to calculate
 /// some kind of action.
-pub trait Action<T: HeightVariable<T>> {
+pub trait Action<T: HeightVariable<T>, const D: usize> {
     /// Calculates the square sum over all lattice bond differences
     fn integer_action(&self) -> T;
 
@@ -677,9 +677,14 @@ pub trait Action<T: HeightVariable<T>> {
         let diff: T = self.assumed_bond_difference(index, direction, value);
         diff * diff
     }
+
+    /// Never ever use this function to calculate the action
+    fn get_value(&self, index: usize) -> T;
+
+    fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> T;
 }
 
-impl<'a, T, const D: usize, const SIZE: usize> Action<T> for Field<'a, T, D, SIZE>
+impl<'a, T, const D: usize, const SIZE: usize> Action<T, D> for Field<'a, T, D, SIZE>
 where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
@@ -715,9 +720,17 @@ where
         let neighbour_index: usize = self.lattice.values[index][direction];
         value - self.values[neighbour_index]
     }
+
+    fn get_value(&self, index: usize) -> T {
+        self.values[index]
+    }
+
+    fn get_value_from_coords(&self, coords: LatticeCoords<D>) -> T {
+        self.values[self.lattice.calc_index_from_coords(coords)]
+    }
 }
 
-impl<'a, T, const SIZE: usize> Action<T> for WilsonField<'a, T, SIZE>
+impl<'a, T, const SIZE: usize> Action<T, 3> for WilsonField<'a, T, SIZE>
 where
     T: HeightVariable<T>,
 {
@@ -763,6 +776,14 @@ where
         } else {
             self.field.assumed_bond_difference(index, direction, value)
         }
+    }
+
+    fn get_value(&self, index: usize) -> T {
+        self.field.values[index]
+    }
+
+    fn get_value_from_coords(&self, coords: LatticeCoords<3>) -> T {
+        self.field.values[self.field.lattice.calc_index_from_coords(coords)]
     }
 }
 

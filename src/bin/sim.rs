@@ -44,6 +44,7 @@ fn main() {
         observables.push(OutputData::new_action_observable(temp));
         observables.push(OutputData::new_difference_plot(&lattice));
         observables.push(OutputData::new_energy_plot(&lattice));
+        observables.push(OutputData::new_correlation_plot(&lattice));
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
@@ -124,6 +125,20 @@ fn main() {
                         };
                     }
                     new = new.set_energy_data();
+                }
+                OutputData::Plot(PlotOutputData::Correlation(obs)) => {
+                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"correlation_"
+                            + &index.to_string()
+                            + &"_"
+                            + &direction.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.read_write_csv(path) {
+                            eprint!("{}", err);
+                        };
+                    }
+                    new = new.set_correlation_data();
                 }
             }
         }

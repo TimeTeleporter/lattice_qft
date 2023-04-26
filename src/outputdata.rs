@@ -49,6 +49,10 @@ where
     pub fn new_test_action_observable(temp: f64) -> Self {
         OutputData::Observable(ObservableOutputData::new_test_action_observable(temp))
     }
+
+    pub fn new_correlation_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
+        OutputData::Plot(PlotOutputData::new_correlation_plot(lattice))
+    }
 }
 
 // - OutputData - ObservableOutputData ----------------------------------------
@@ -117,7 +121,7 @@ impl TestActionObservable {
         &mut self,
         wilson: &'a WilsonField<T, SIZE>,
     ) where
-        WilsonField<'a, T, SIZE>: Action<T>,
+        WilsonField<'a, T, SIZE>: Action<T, 3>,
     {
         let bolz: f64 = (-wilson.action_observable(self.temp)).exp();
         self.obs
@@ -135,6 +139,7 @@ where
 {
     Energy(EnergyPlotOutputData<'a, D, SIZE>),
     Difference(DifferencePlotOutputData<'a, D, SIZE>),
+    Correlation(CorrelationPlotOutputData<'a, D, SIZE>),
 }
 
 impl<'a, const D: usize, const SIZE: usize> PlotOutputData<'a, D, SIZE>
@@ -147,6 +152,10 @@ where
 
     fn new_difference_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
         PlotOutputData::Difference(DifferencePlotOutputData::new(lattice))
+    }
+
+    fn new_correlation_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
+        PlotOutputData::Correlation(CorrelationPlotOutputData::new(lattice))
     }
 }
 
@@ -192,10 +201,43 @@ where
     }
 }
 
+// - OutputData - PlotOutputData - CorrelationPlotOutputData -------------------
+
+/// Implements averaging of time slize differences over configurations. For
+/// each configuration, we first build the time slices for each index in time
+/// direction. Then we sum over all differences who are the same distance
+/// appart. This sum then gets saved.
+#[derive(Debug, Clone)]
+pub struct CorrelationPlotOutputData<'a, const D: usize, const SIZE: usize>
+where
+    [(); D * 2_usize]:,
+{
+    lattice: &'a Lattice<D, SIZE>,
+    correlations: Vec<KahanSummation<f64>>,
+}
+
+impl<'a, const D: usize, const SIZE: usize> CorrelationPlotOutputData<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
+        let max_t: usize = lattice.size[2];
+        let mut correlations: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
+        for t in 0..(max_t - 1) {
+            correlations.push(KahanSummation::new())
+        }
+
+        CorrelationPlotOutputData {
+            lattice,
+            correlations,
+        }
+    }
+}
+
 // - UpdateOutputData ---------------------------------------------------------
 
 pub trait UpdateOutputData<const D: usize, const SIZE: usize> {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:;
 }
@@ -204,7 +246,7 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for Output
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:,
     {
@@ -219,7 +261,7 @@ impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for Observable
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:,
     {
@@ -239,13 +281,14 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:,
     {
         match self {
             PlotOutputData::Energy(energy) => energy.update(field),
             PlotOutputData::Difference(diff) => diff.update(field),
+            PlotOutputData::Correlation(corr) => corr.update(field),
         }
     }
 }
@@ -254,7 +297,7 @@ impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ActionObse
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:,
     {
@@ -266,7 +309,7 @@ impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for TestAction
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
     where
         [(); D * 2_usize]:,
     {
@@ -281,7 +324,7 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let action = field.bond_action(index, direction);
@@ -298,11 +341,41 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T>>(&mut self, field: &A) {
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let diff = field.bond_difference(index, direction);
                 self.bonds.get_value_mut(index, direction).add(diff.into());
+            }
+        }
+    }
+}
+
+impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
+    for CorrelationPlotOutputData<'a, D, SIZE>
+where
+    [(); D * 2_usize]:,
+{
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
+        const TIME_DIMENSION: usize = 2;
+        let max_t: usize = self.lattice.size[TIME_DIMENSION];
+        let mut time_slices: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
+        for _slice in 0..max_t {
+            time_slices.push(KahanSummation::new());
+        }
+        for index in 0..SIZE {
+            let t: usize = self.lattice.calc_coords_from_index(index).into_array()[TIME_DIMENSION];
+            time_slices[t].add(field.get_value(index).into());
+        }
+        let time_slices: Vec<f64> = time_slices.into_iter().map(|x| x.sum()).collect();
+        // Might want to consider using parallel iter mut here
+        for (step, corr) in self.correlations.iter_mut().enumerate() {
+            let step: usize = step + 1; // There is no zero step
+            for start in 0..max_t {
+                let offset: usize = (start + step) % max_t;
+                let diff: f64 = time_slices[start] - time_slices[offset];
+                let value: f64 = diff * diff;
+                corr.add(value);
             }
         }
     }
