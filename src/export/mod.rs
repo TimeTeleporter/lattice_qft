@@ -98,3 +98,19 @@ impl CsvData for Vec<FieldExport3d<f64>> {
         Ok(())
     }
 }
+
+impl CsvData for f64 {}
+impl CsvData for Vec<f64> {
+    fn read_write_csv(mut self, path: &str) -> Result<(), Box<dyn Error>> {
+        // Initialize data storage
+        let mut storage: Vec<f64> = <f64 as CsvData>::fetch_csv_data(path)?;
+
+        // Append the new entry
+        storage.append(&mut self);
+
+        // Write to the file
+        write_to_csv(path, storage)?;
+
+        Ok(())
+    }
+}

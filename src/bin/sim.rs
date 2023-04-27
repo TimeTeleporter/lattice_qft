@@ -13,9 +13,9 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const TEST_X: usize = 50;
-const TEST_Y: usize = 50;
-const TEST_T: usize = 50;
+const TEST_X: usize = 20;
+const TEST_Y: usize = 20;
+const TEST_T: usize = 20;
 const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 
 const _RANGE: usize = 12;
@@ -24,7 +24,7 @@ const BURNIN: usize = 10_000;
 const ITERATIONS: usize = 100_000;
 
 /// The measurements for the wilson loop
-const WIDTH: usize = TEST_X / 5;
+const WIDTH: usize = TEST_X / 3;
 const HEIGHT: usize = TEST_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
@@ -42,8 +42,8 @@ fn main() {
     for temp in [0.1] {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
-        observables.push(OutputData::new_difference_plot(&lattice));
-        observables.push(OutputData::new_energy_plot(&lattice));
+        //observables.push(OutputData::new_difference_plot(&lattice));
+        //observables.push(OutputData::new_energy_plot(&lattice));
         observables.push(OutputData::new_correlation_plot(&lattice));
         comps.push(Computation::new_simulation(
             &lattice,

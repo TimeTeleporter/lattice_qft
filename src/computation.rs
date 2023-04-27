@@ -481,6 +481,7 @@ pub struct ComputationSummary {
     action_error: Option<f64>,
     energy_data: bool,
     difference_data: bool,
+    correlation_data: bool,
 }
 
 impl ComputationSummary {
@@ -498,6 +499,7 @@ impl ComputationSummary {
             action_error: None,
             energy_data: false,
             difference_data: false,
+            correlation_data: false,
         }
     }
 
@@ -579,6 +581,11 @@ impl ComputationSummary {
 
     pub fn set_bonds_data(mut self) -> Self {
         self.difference_data = true;
+        self
+    }
+
+    pub fn set_correlation_data(mut self) -> Self {
+        self.correlation_data = true;
         self
     }
 }

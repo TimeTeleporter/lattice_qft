@@ -413,11 +413,11 @@ impl Observe for TestActionObservable {
 
 // - Plotting -----------------------------------------------------------------
 
-pub trait Plotting {
-    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>>;
+pub trait Plotting<T> {
+    fn plot(self) -> Vec<Vec<T>>;
 }
 
-impl<'a, const SIZE: usize> Plotting for EnergyPlotOutputData<'a, 3, SIZE> {
+impl<'a, const SIZE: usize> Plotting<FieldExport3d<f64>> for EnergyPlotOutputData<'a, 3, SIZE> {
     fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
         let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
         for field in self.bonds.into_sub_fields().into_iter() {
@@ -427,12 +427,20 @@ impl<'a, const SIZE: usize> Plotting for EnergyPlotOutputData<'a, 3, SIZE> {
     }
 }
 
-impl<'a, const SIZE: usize> Plotting for DifferencePlotOutputData<'a, 3, SIZE> {
+impl<'a, const SIZE: usize> Plotting<FieldExport3d<f64>> for DifferencePlotOutputData<'a, 3, SIZE> {
     fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
         let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
         for field in self.bonds.into_sub_fields().into_iter() {
             ary.push(Field::<'a, f64, 3, SIZE>::from_field(field).into_export());
         }
+        ary
+    }
+}
+
+impl<'a, const SIZE: usize> Plotting<f64> for CorrelationPlotOutputData<'a, 3, SIZE> {
+    fn plot(self) -> Vec<Vec<f64>> {
+        let mut ary: Vec<Vec<f64>> = Vec::new();
+        ary.push(self.correlations.into_iter().map(|x| x.sum()).collect());
         ary
     }
 }
