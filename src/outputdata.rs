@@ -177,7 +177,7 @@ where
         const TIME_DIMENSION: usize = 2;
         let max_t: usize = lattice.size[TIME_DIMENSION];
         let mut correlations: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
-        for _t in 0..(max_t - 1) {
+        for _t in 0..max_t {
             correlations.push(KahanSummation::new())
         }
 
@@ -293,29 +293,36 @@ where
 {
     fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
         const TIME_DIMENSION: usize = 2;
+        const X_INDEX: usize = 0;
+        const X_INDEX_T_COORD: usize = 0;
+        assert_eq!(
+            X_INDEX_T_COORD,
+            self.lattice.calc_coords_from_index(X_INDEX).into_array()[TIME_DIMENSION]
+        );
         let max_t: usize = self.lattice.size[TIME_DIMENSION];
-        // Preparing the slices to be calculated
-        let mut time_slices: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
-        for _slice in 0..max_t {
-            time_slices.push(KahanSummation::new());
+        // Preparing the correlation function
+        let mut correlation_function: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
+        for _t in 0..max_t {
+            correlation_function.push(KahanSummation::new());
         }
-        // Adding to the corresponding slices
+        // For each lattice site, we calculate the difference squared and
+        // associate it to a point of the correlation function.
+        let x_value: T = field.get_value(X_INDEX);
         for index in 0..SIZE {
             let t: usize = self.lattice.calc_coords_from_index(index).into_array()[TIME_DIMENSION];
-            time_slices[t].add(field.get_value(index).into());
+            let diff: T = x_value - field.get_value(index);
+            let squared: T = diff * diff;
+            correlation_function[t].add(squared.into());
         }
-        // Calculating the slices
-        let time_slices: Vec<f64> = time_slices.into_iter().map(|x| x.sum()).collect();
-        // Calculating the correlation function
-        for (step, corr) in self.correlations.iter_mut().enumerate() {
-            let step: usize = step + 1; // There is no zero step
-            for start in 0..max_t {
-                let offset: usize = (start + step) % max_t;
-                let diff: f64 = time_slices[start] - time_slices[offset];
-                let value: f64 = diff * diff;
-                corr.add(value);
-            }
-        }
+        // Converting into a Vec
+        let correlation_function: Vec<f64> =
+            correlation_function.into_iter().map(|x| x.sum()).collect();
+
+        let _ = self
+            .correlations
+            .iter_mut()
+            .enumerate()
+            .map(|(step, corr)| corr.add(correlation_function[step]));
     }
 }
 
