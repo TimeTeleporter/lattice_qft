@@ -6,7 +6,7 @@ use crate::{
     algorithm::{Algorithm, AlgorithmType, WilsonAlgorithm},
     fields::{Field, HeightField, WilsonField},
     lattice::Lattice,
-    outputdata::{ActionObservableNew, OutputData, UpdateOutputData},
+    outputdata::{OutputData, UpdateOutputData},
 };
 
 // - Computation --------------------------------------------------------------
@@ -439,17 +439,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
                 }
             }
             for data in self.output.iter_mut() {
-                match data {
-                    OutputData::Observable(obs) => match obs {
-                        crate::outputdata::ObservableOutputData::Action(obs) => {
-                            <ActionObservableNew as UpdateOutputData<3, SIZE>>::update(obs, &wilson)
-                        }
-                        crate::outputdata::ObservableOutputData::TestAction(tes) => {
-                            tes.wilson_update(&wilson)
-                        }
-                    },
-                    OutputData::Plot(plt) => plt.update(&wilson),
-                };
+                data.update(&wilson);
             }
         }
 

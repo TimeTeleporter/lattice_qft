@@ -9,3 +9,5 @@ index,d,size,x,y,t,temp,comptype,action,action_error,energy_data,difference_data
 7,3,150,50,50,50,0.1,10x50 Wilson Metropolis Simulation (100000),62541.998428,,true,true,false
 8,3,60,20,20,20,0.1,Metropolis Simulation (100000),3999.248118,,false,false,true
 9,3,60,20,20,20,0.1,6x20 Wilson Metropolis Simulation (100000),4008.66608,,false,false,true
+10,3,12,4,4,4,0.1,Metropolis Simulation (100000),31.479954000000003,,false,false,true
+11,3,12,4,4,4,0.1,1x4 Wilson Metropolis Simulation (100000),31.68135,,false,false,true

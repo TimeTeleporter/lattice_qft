@@ -26,8 +26,11 @@ pub enum OutputData<'a, const D: usize, const SIZE: usize>
 where
     [(); D * 2_usize]:,
 {
-    Observable(ObservableOutputData<D, SIZE>),
-    Plot(PlotOutputData<'a, D, SIZE>),
+    ActionObservable(ActionObservableNew),
+    EnergyPlot(EnergyPlotOutputData<'a, D, SIZE>),
+    DifferencePlot(DifferencePlotOutputData<'a, D, SIZE>),
+    TestActionObservable(TestActionObservable),
+    CorrelationData(CorrelationPlotOutputData<'a, D, SIZE>),
 }
 
 impl<'a, const D: usize, const SIZE: usize> OutputData<'a, D, SIZE>
@@ -35,51 +38,27 @@ where
     [(); D * 2_usize]:,
 {
     pub fn new_action_observable(temp: f64) -> Self {
-        OutputData::Observable(ObservableOutputData::new_action_observable(temp))
+        OutputData::ActionObservable(ActionObservableNew::new(temp))
     }
 
     pub fn new_energy_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        OutputData::Plot(PlotOutputData::new_energy_plot(lattice))
+        OutputData::EnergyPlot(EnergyPlotOutputData::new(lattice))
     }
 
     pub fn new_difference_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        OutputData::Plot(PlotOutputData::new_difference_plot(lattice))
+        OutputData::DifferencePlot(DifferencePlotOutputData::new(lattice))
     }
 
     pub fn new_test_action_observable(temp: f64) -> Self {
-        OutputData::Observable(ObservableOutputData::new_test_action_observable(temp))
+        OutputData::TestActionObservable(TestActionObservable::new(temp))
     }
 
     pub fn new_correlation_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        OutputData::Plot(PlotOutputData::new_correlation_plot(lattice))
+        OutputData::CorrelationData(CorrelationPlotOutputData::new(lattice))
     }
 }
 
-// - OutputData - ObservableOutputData ----------------------------------------
-
-#[derive(Debug, Clone)]
-pub enum ObservableOutputData<const D: usize, const SIZE: usize>
-where
-    [(); D * 2_usize]:,
-{
-    Action(ActionObservableNew),
-    TestAction(TestActionObservable),
-}
-
-impl<const D: usize, const SIZE: usize> ObservableOutputData<D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn new_action_observable(temp: f64) -> Self {
-        ObservableOutputData::Action(ActionObservableNew::new(temp))
-    }
-
-    fn new_test_action_observable(temp: f64) -> Self {
-        ObservableOutputData::TestAction(TestActionObservable::new(temp))
-    }
-}
-
-// - OutputData - ObservableOutputData - ActionObservableNew ------------------
+// - OutputData - ActionObservableNew ------------------
 
 #[derive(Debug, Clone)]
 pub struct ActionObservableNew {
@@ -96,7 +75,7 @@ impl ActionObservableNew {
     }
 }
 
-// - OutputData - TestActionObservable - TestActionObservable -----------------
+// - OutputData - TestActionObservable -----------------
 
 /// The partition function is the sum over all Bolzmann weights. The observable
 /// is the sum over all weights (Bolzmann times observable), devided by the
@@ -130,36 +109,7 @@ impl TestActionObservable {
     }
 }
 
-// - OutputData - PlotOutputData ----------------------------------------------
-
-#[derive(Debug, Clone)]
-pub enum PlotOutputData<'a, const D: usize, const SIZE: usize>
-where
-    [(); D * 2_usize]:,
-{
-    Energy(EnergyPlotOutputData<'a, D, SIZE>),
-    Difference(DifferencePlotOutputData<'a, D, SIZE>),
-    Correlation(CorrelationPlotOutputData<'a, D, SIZE>),
-}
-
-impl<'a, const D: usize, const SIZE: usize> PlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn new_energy_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        PlotOutputData::Energy(EnergyPlotOutputData::new(lattice))
-    }
-
-    fn new_difference_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        PlotOutputData::Difference(DifferencePlotOutputData::new(lattice))
-    }
-
-    fn new_correlation_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        PlotOutputData::Correlation(CorrelationPlotOutputData::new(lattice))
-    }
-}
-
-// - OutputData - PlotOutputData - EnergyPlotOutputData -----------------------
+// - OutputData - EnergyPlotOutputData -----------------------
 
 #[derive(Debug, Clone)]
 pub struct EnergyPlotOutputData<'a, const D: usize, const SIZE: usize>
@@ -180,7 +130,7 @@ where
     }
 }
 
-// - OutputData - PlotOutputData - DifferencePlotOutputData -------------------
+// - OutputData - DifferencePlotOutputData -------------------
 
 #[derive(Debug, Clone)]
 pub struct DifferencePlotOutputData<'a, const D: usize, const SIZE: usize>
@@ -201,7 +151,7 @@ where
     }
 }
 
-// - OutputData - PlotOutputData - CorrelationPlotOutputData -------------------
+// - OutputData - CorrelationPlotOutputData -------------------
 
 /// Implements averaging of time slize differences over configurations. For
 /// each configuration, we first build the time slices for each index in time
@@ -223,7 +173,7 @@ where
     pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
         let max_t: usize = lattice.size[2];
         let mut correlations: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
-        for t in 0..(max_t - 1) {
+        for _t in 0..(max_t - 1) {
             correlations.push(KahanSummation::new())
         }
 
@@ -251,44 +201,25 @@ where
         [(); D * 2_usize]:,
     {
         match self {
-            OutputData::Observable(obs) => obs.update(field),
-            OutputData::Plot(plt) => plt.update(field),
-        }
-    }
-}
-
-impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ObservableOutputData<D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
-    {
-        match self {
-            ObservableOutputData::Action(act) => {
-                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(act, field)
+            OutputData::ActionObservable(obs) => {
+                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(obs, field)
             }
-            ObservableOutputData::TestAction(act) => {
-                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(act, field)
+            OutputData::TestActionObservable(obs) => {
+                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(obs, field)
             }
-        }
-    }
-}
-
-impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
-    for PlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
-    where
-        [(); D * 2_usize]:,
-    {
-        match self {
-            PlotOutputData::Energy(energy) => energy.update(field),
-            PlotOutputData::Difference(diff) => diff.update(field),
-            PlotOutputData::Correlation(corr) => corr.update(field),
+            OutputData::EnergyPlot(plt) => {
+                <EnergyPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(plt, field)
+            }
+            OutputData::DifferencePlot(plt) => {
+                <DifferencePlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
+                    plt, field,
+                )
+            }
+            OutputData::CorrelationData(dat) => {
+                <CorrelationPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
+                    dat, field,
+                )
+            }
         }
     }
 }
@@ -385,18 +316,6 @@ where
 
 pub trait Observe {
     fn result(self) -> f64;
-}
-
-impl<const D: usize, const SIZE: usize> Observe for ObservableOutputData<D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn result(self) -> f64 {
-        match self {
-            ObservableOutputData::Action(obs) => obs.result(),
-            ObservableOutputData::TestAction(obs) => obs.result(),
-        }
-    }
 }
 
 impl Observe for ActionObservableNew {

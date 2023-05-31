@@ -9,13 +9,13 @@ use lattice_qft::{
     computation::{Computation, ComputationSummary, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    outputdata::{ObservableOutputData, Observe, OutputData, PlotOutputData, Plotting},
+    outputdata::{Observe, OutputData, Plotting},
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const TEST_X: usize = 20;
-const TEST_Y: usize = 20;
-const TEST_T: usize = 20;
+const TEST_X: usize = 4;
+const TEST_Y: usize = 4;
+const TEST_T: usize = 4;
 const SIZE: usize = TEST_X * TEST_Y * TEST_T;
 
 const _RANGE: usize = 12;
@@ -92,13 +92,13 @@ fn main() {
 
         for output in outputs.into_iter() {
             match output {
-                OutputData::Observable(ObservableOutputData::Action(obs)) => {
+                OutputData::ActionObservable(obs) => {
                     new = new.set_action(obs.result(), None);
                 }
-                OutputData::Observable(ObservableOutputData::TestAction(obs)) => {
+                OutputData::TestActionObservable(obs) => {
                     new = new.set_action(obs.result(), None);
                 }
-                OutputData::Plot(PlotOutputData::Difference(obs)) => {
+                OutputData::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
                             + &"difference_"
@@ -112,7 +112,7 @@ fn main() {
                     }
                     new = new.set_bonds_data();
                 }
-                OutputData::Plot(PlotOutputData::Energy(obs)) => {
+                OutputData::EnergyPlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
                             + &"energy_"
@@ -126,7 +126,7 @@ fn main() {
                     }
                     new = new.set_energy_data();
                 }
-                OutputData::Plot(PlotOutputData::Correlation(obs)) => {
+                OutputData::CorrelationData(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
                             + &"correlation_"
