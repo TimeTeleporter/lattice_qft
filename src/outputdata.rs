@@ -153,10 +153,13 @@ where
 
 // - OutputData - CorrelationPlotOutputData -------------------
 
-/// Implements averaging of time slize differences over configurations. For
-/// each configuration, we first build the time slices for each index in time
-/// direction. Then we sum over all differences who are the same distance
-/// appart. This sum then gets saved.
+/// Implements the averaging of correlation functions over configurations. When
+/// calling the update function, the correlation length
+///
+/// $$C(t) = \sum_y (h_{x, t_0} - h_{y, t_0 + t})^2$$
+///
+/// gets calculated for each $t \in \{0, t_{max} - 1\}$, for a arbitrarily
+/// chosen $x$ and $t_0$.
 #[derive(Debug, Clone)]
 pub struct CorrelationPlotOutputData<'a, const D: usize, const SIZE: usize>
 where
@@ -171,7 +174,8 @@ where
     [(); D * 2_usize]:,
 {
     pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
-        let max_t: usize = lattice.size[2];
+        const TIME_DIMENSION: usize = 2;
+        let max_t: usize = lattice.size[TIME_DIMENSION];
         let mut correlations: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
         for _t in 0..(max_t - 1) {
             correlations.push(KahanSummation::new())
@@ -290,16 +294,19 @@ where
     fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
         const TIME_DIMENSION: usize = 2;
         let max_t: usize = self.lattice.size[TIME_DIMENSION];
+        // Preparing the slices to be calculated
         let mut time_slices: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
         for _slice in 0..max_t {
             time_slices.push(KahanSummation::new());
         }
+        // Adding to the corresponding slices
         for index in 0..SIZE {
             let t: usize = self.lattice.calc_coords_from_index(index).into_array()[TIME_DIMENSION];
             time_slices[t].add(field.get_value(index).into());
         }
+        // Calculating the slices
         let time_slices: Vec<f64> = time_slices.into_iter().map(|x| x.sum()).collect();
-        // Might want to consider using parallel iter mut here
+        // Calculating the correlation function
         for (step, corr) in self.correlations.iter_mut().enumerate() {
             let step: usize = step + 1; // There is no zero step
             for start in 0..max_t {
