@@ -9,23 +9,23 @@ use lattice_qft::{
     computation::{Computation, ComputationSummary, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    outputdata::{Observe, OutputData, Plotting},
+    outputdata::{return_correlation_lengths, Observe, OutputData, Plotting},
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const TEST_X: usize = 4;
-const TEST_Y: usize = 4;
-const TEST_T: usize = 4;
-const SIZE: usize = TEST_X * TEST_Y * TEST_T;
+const MAX_X: usize = 20;
+const MAX_Y: usize = 20;
+const MAX_T: usize = 20;
+const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 const _RANGE: usize = 12;
 
 const BURNIN: usize = 10_000;
-const ITERATIONS: usize = 100_000;
+const ITERATIONS: usize = 1_000_000;
 
 /// The measurements for the wilson loop
-const WIDTH: usize = TEST_X / 3;
-const HEIGHT: usize = TEST_T;
+const _WIDTH: usize = MAX_X / 3;
+const _HEIGHT: usize = MAX_T;
 
 const RESULTS_PATH: &str = "./data/results.csv";
 const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
@@ -35,11 +35,11 @@ const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
 /// in order to test that it converges to the desired distribution.
 fn main() {
     // Initialize the lattice
-    let lattice: Lattice3d<TEST_X, TEST_Y, TEST_T> = Lattice3d::new();
+    let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in [0.1] {
+    for temp in lattice_qft::TEMP_ARY {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         //observables.push(OutputData::new_difference_plot(&lattice));
@@ -53,6 +53,7 @@ fn main() {
             ITERATIONS,
             observables.clone(),
         ));
+        /*
         comps.push(Computation::new_wilson_sim(
             &lattice,
             temp,
@@ -63,6 +64,14 @@ fn main() {
             HEIGHT,
             observables,
         ));
+        comps.push(Computation::new_simulation(
+            &lattice,
+            temp,
+            AlgorithmType::new_cluster(),
+            BURNIN,
+            ITERATIONS,
+            observables.clone(),
+        ));*/
     }
 
     // Parallel over all temp data
@@ -88,15 +97,15 @@ fn main() {
                 }
             };
 
-        let (mut new, outputs) = ComputationSummary::from_computation(computation, index);
+        let (mut summary, outputs) = ComputationSummary::from_computation(computation, index);
 
         for output in outputs.into_iter() {
             match output {
                 OutputData::ActionObservable(obs) => {
-                    new = new.set_action(obs.result(), None);
+                    summary = summary.set_action(obs.result(), None);
                 }
                 OutputData::TestActionObservable(obs) => {
-                    new = new.set_action(obs.result(), None);
+                    summary = summary.set_action(obs.result(), None);
                 }
                 OutputData::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
@@ -110,7 +119,7 @@ fn main() {
                             eprint!("{}", err);
                         };
                     }
-                    new = new.set_bonds_data();
+                    summary = summary.set_bonds_data();
                 }
                 OutputData::EnergyPlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
@@ -124,26 +133,32 @@ fn main() {
                             eprint!("{}", err);
                         };
                     }
-                    new = new.set_energy_data();
+                    summary = summary.set_energy_data();
                 }
                 OutputData::CorrelationData(obs) => {
-                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                    if let Some(plot) = obs.plot().into_iter().next() {
+                        let (correlation_length12, correlation_length23, correlation_lenght13) =
+                            return_correlation_lengths(plot.clone(), MAX_T);
+
                         let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
                             + &"correlation_"
                             + &index.to_string()
-                            + &"_"
-                            + &direction.to_string()
                             + &".csv");
                         if let Err(err) = plot.read_write_csv(path) {
                             eprint!("{}", err);
                         };
+
+                        summary = summary.set_correlation_data().set_correlation_lenght(
+                            correlation_length12,
+                            correlation_length23,
+                            correlation_lenght13,
+                        );
                     }
-                    new = new.set_correlation_data();
                 }
             }
         }
 
-        if let Err(err) = new.read_write_csv(RESULTS_PATH) {
+        if let Err(err) = summary.read_write_csv(RESULTS_PATH) {
             eprint!("{}", err);
         };
     }

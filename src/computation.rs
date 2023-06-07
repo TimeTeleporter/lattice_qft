@@ -472,6 +472,9 @@ pub struct ComputationSummary {
     energy_data: bool,
     difference_data: bool,
     correlation_data: bool,
+    correlation_length12: Option<f64>,
+    correlation_length23: Option<f64>,
+    correlation_length13: Option<f64>,
 }
 
 impl ComputationSummary {
@@ -490,6 +493,9 @@ impl ComputationSummary {
             energy_data: false,
             difference_data: false,
             correlation_data: false,
+            correlation_length12: None,
+            correlation_length23: None,
+            correlation_length13: None,
         }
     }
 
@@ -576,6 +582,18 @@ impl ComputationSummary {
 
     pub fn set_correlation_data(mut self) -> Self {
         self.correlation_data = true;
+        self
+    }
+
+    pub fn set_correlation_lenght(
+        mut self,
+        correlation_length12: Option<f64>,
+        correlation_length23: Option<f64>,
+        correlation_length13: Option<f64>,
+    ) -> Self {
+        self.correlation_length12 = correlation_length12;
+        self.correlation_length23 = correlation_length23;
+        self.correlation_length13 = correlation_length13;
         self
     }
 }

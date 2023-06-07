@@ -116,4 +116,3 @@ for index in indices:
                 fig.colorbar(pos, ax=ax)
 
                 fig.savefig(image)
-        if plot == 'correlation':

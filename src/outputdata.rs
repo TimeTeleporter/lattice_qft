@@ -318,11 +318,9 @@ where
         let correlation_function: Vec<f64> =
             correlation_function.into_iter().map(|x| x.sum()).collect();
 
-        let _ = self
-            .correlations
-            .iter_mut()
-            .enumerate()
-            .map(|(step, corr)| corr.add(correlation_function[step]));
+        for (step, corr) in self.correlations.iter_mut().enumerate() {
+            corr.add(correlation_function[step])
+        }
     }
 }
 
@@ -373,7 +371,7 @@ impl<'a, const SIZE: usize> Plotting<FieldExport3d<f64>> for DifferencePlotOutpu
 impl<'a, const SIZE: usize> Plotting<f64> for CorrelationPlotOutputData<'a, 3, SIZE> {
     fn plot(self) -> Vec<Vec<f64>> {
         let mut ary: Vec<Vec<f64>> = Vec::new();
-        ary.push(self.correlations.into_iter().map(|x| x.sum()).collect());
+        ary.push(self.correlations.into_iter().map(|x| x.mean()).collect());
         ary
     }
 }
@@ -389,4 +387,68 @@ fn test_observable_array() {
     observables.push(OutputData::new_action_observable(temp));
     observables.push(OutputData::new_energy_plot(&lattice));
     observables.push(OutputData::new_difference_plot(&lattice));
+}
+
+pub fn return_correlation_lengths(
+    correlation_fn: Vec<f64>,
+    max_t: usize,
+) -> (Option<f64>, Option<f64>, Option<f64>) {
+    let Some(x_max): Option<f64> = correlation_fn.clone().into_iter().reduce(f64::max) else {
+        return (None, None, None);
+    };
+
+    let correlation_fn: Vec<f64> = correlation_fn
+        .into_iter()
+        .map(|x| x_max - x + 1.0)
+        .collect();
+
+    let p1: f64 = 2.0 * std::f64::consts::PI / (max_t as f64);
+
+    let corr12: f64 = calculate_correlation_length(correlation_fn.clone(), p1, 2.0 * p1);
+    let corr23: f64 = calculate_correlation_length(correlation_fn.clone(), 2.0 * p1, 3.0 * p1);
+    let corr13: f64 = calculate_correlation_length(correlation_fn, p1, 3.0 * p1);
+
+    (Some(corr12), Some(corr23), Some(corr13))
+}
+
+fn calculate_correlation_length(correlation_fn: Vec<f64>, p1: f64, p2: f64) -> f64 {
+    let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(correlation_fn.clone(), p1);
+    let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(correlation_fn, p2);
+
+    let cos1: f64 = p1.cos();
+    let cos2: f64 = p2.cos();
+
+    let g1_re2: f64 = g1_re * g1_re;
+    let g2_re2: f64 = g2_re * g2_re;
+    let g1_im2: f64 = g1_im * g1_im;
+    let g2_im2: f64 = g2_im * g2_im;
+    let g_re_mix: f64 = g1_re * g2_re;
+    let g_im_mix: f64 = g1_im * g2_im;
+
+    let abs: f64 = g1_re2 - 2.0 * g_re_mix + g2_re2 + g1_im2 - 2.0 * g_im_mix + g2_im2;
+
+    let cosh_re: f64 =
+        g1_re2 * cos1 - g_re_mix * cos1 - g_re_mix * cos2 + g2_re2 * cos2 + g1_im2 * cos1
+            - g_im_mix * cos1
+            - g_im_mix * cos2
+            + g2_im2 * cos2;
+
+    let cosh = cosh_re / abs;
+
+    f64::acos(cosh)
+}
+
+fn discrete_fourier_transform(correlation_fn: Vec<f64>, momentum: f64) -> (f64, f64) {
+    let real: f64 = correlation_fn
+        .clone()
+        .into_iter()
+        .enumerate()
+        .map(|(x, g_x)| g_x * f64::cos(momentum * (x as f64)))
+        .sum();
+    let imaginary: f64 = correlation_fn
+        .into_iter()
+        .enumerate()
+        .map(|(x, g_x)| g_x * f64::sin(momentum * (x as f64)))
+        .sum();
+    (real, imaginary)
 }
