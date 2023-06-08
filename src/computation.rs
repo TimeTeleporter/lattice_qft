@@ -541,7 +541,7 @@ impl ComputationSummary {
         [(); D]:,
     {
         self.d = Some(D);
-        self.size = Some(size_ary.iter().sum());
+        self.size = Some(size_ary.iter().product());
         match D {
             1 => self.x = Some(size_ary[0]),
             2 => {

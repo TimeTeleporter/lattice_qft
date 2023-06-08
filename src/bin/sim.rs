@@ -13,9 +13,9 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const MAX_X: usize = 20;
-const MAX_Y: usize = 20;
-const MAX_T: usize = 20;
+const MAX_X: usize = 40;
+const MAX_Y: usize = 40;
+const MAX_T: usize = 40;
 const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 const _RANGE: usize = 12;
