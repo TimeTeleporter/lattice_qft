@@ -44,7 +44,7 @@ where
     /// This abstract method takes references to self, a field and and a temp
     /// and performes a Markov chain step from one field configuration to the
     /// next. It returns a statistic as a usize.
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize;
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64, rng: &mut ThreadRng) -> usize;
 }
 
 // Deconstructs the method call to their own struct.
@@ -53,10 +53,10 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64, rng: &mut ThreadRng) -> usize {
         match self {
-            AlgorithmType::Metropolis(algo) => algo.field_sweep(field, temp),
-            AlgorithmType::Cluster(algo) => algo.field_sweep(field, temp),
+            AlgorithmType::Metropolis(algo) => algo.field_sweep(field, temp, rng),
+            AlgorithmType::Cluster(algo) => algo.field_sweep(field, temp, rng),
         }
     }
 }
@@ -96,11 +96,10 @@ where
     T: HeightVariable<T>,
     [(); D * 2_usize]:,
 {
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
-        let mut rng = ThreadRng::default();
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64, rng: &mut ThreadRng) -> usize {
         let mut acceptance: usize = 0;
         for index in 0..SIZE {
-            if Metropolis.metropolis_single(field, index, temp, &mut rng) {
+            if Metropolis.metropolis_single(field, index, temp, rng) {
                 acceptance += 1;
             };
         }
@@ -202,9 +201,7 @@ where
     [(); D * 2_usize]:,
 {
     /// Implementation of the cluster algorithm.
-    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64) -> usize {
-        let mut rng = ThreadRng::default();
-
+    fn field_sweep(&self, field: &mut Field<T, D, SIZE>, temp: f64, rng: &mut ThreadRng) -> usize {
         // Set the mirror plane randomly on a height value
         let plane: T = field.values[rng.gen_range(0..SIZE)];
         let modifier: T = match rng.gen::<bool>() {

@@ -2,7 +2,7 @@
 //! data of the Markov chain Monte Carlo in order to calculate observables
 //! and create plots.
 
-use rand::Rng;
+use rand::{rngs::ThreadRng, Rng};
 
 use crate::{
     computation::FieldExport3d,
@@ -193,7 +193,7 @@ where
 // - UpdateOutputData ---------------------------------------------------------
 
 pub trait UpdateOutputData<const D: usize, const SIZE: usize> {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, rng: &mut ThreadRng)
     where
         [(); D * 2_usize]:;
 }
@@ -202,28 +202,30 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for Output
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, rng: &mut ThreadRng)
     where
         [(); D * 2_usize]:,
     {
         match self {
             OutputData::ActionObservable(obs) => {
-                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(obs, field)
+                <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
             }
             OutputData::TestActionObservable(obs) => {
-                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(obs, field)
+                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
             }
             OutputData::EnergyPlot(plt) => {
-                <EnergyPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(plt, field)
+                <EnergyPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
+                    plt, field, rng,
+                )
             }
             OutputData::DifferencePlot(plt) => {
                 <DifferencePlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
-                    plt, field,
+                    plt, field, rng,
                 )
             }
             OutputData::CorrelationData(dat) => {
                 <CorrelationPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
-                    dat, field,
+                    dat, field, rng,
                 )
             }
         }
@@ -234,7 +236,7 @@ impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for ActionObse
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng)
     where
         [(); D * 2_usize]:,
     {
@@ -246,7 +248,7 @@ impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for TestAction
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A)
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng)
     where
         [(); D * 2_usize]:,
     {
@@ -261,7 +263,7 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let action = field.bond_action(index, direction);
@@ -278,7 +280,7 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng) {
         for index in 0..SIZE {
             for direction in 0..D {
                 let diff = field.bond_difference(index, direction);
@@ -293,9 +295,7 @@ impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
 where
     [(); D * 2_usize]:,
 {
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
-        let mut rng = rand::thread_rng();
-
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, rng: &mut ThreadRng) {
         // Defining the first three dimensions
         const X_DIM: usize = 0;
         const Y_DIM: usize = 1;

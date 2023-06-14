@@ -1,5 +1,6 @@
 use std::{error::Error, fmt::Display, time::Instant};
 
+use rand::rngs::ThreadRng;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -78,6 +79,7 @@ where
             burnin,
             iterations,
             output,
+            duration: None,
         })
     }
 
@@ -97,6 +99,7 @@ where
             range,
             permutations,
             output,
+            duration: None,
         })
     }
 }
@@ -121,6 +124,7 @@ impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
             width,
             height,
             output,
+            duration: None,
         })
     }
     pub fn new_wilson_test(
@@ -143,6 +147,7 @@ impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
             width,
             height,
             output,
+            duration: None,
         })
     }
 }
@@ -184,6 +189,7 @@ where
     burnin: usize,
     iterations: usize,
     output: Vec<OutputData<'a, D, SIZE>>,
+    duration: Option<f32>,
 }
 
 impl<'a, const D: usize, const SIZE: usize> Compute<'a, D, SIZE> for Simulation<'a, D, SIZE>
@@ -191,6 +197,8 @@ where
     [(); D * 2_usize]:,
 {
     fn run(mut self) -> Result<Computation<'a, D, SIZE>, Box<dyn Error>> {
+        let mut rng = ThreadRng::default();
+
         let time = Instant::now();
         let field: Field<i8, D, SIZE> = Field::random(self.lattice);
         let mut field: Field<i32, D, SIZE> = Field::from_field(field);
@@ -198,7 +206,7 @@ where
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for step in 0..(self.burnin) {
             //println!("Sweep {_step}");
-            self.algorithm.field_sweep(&mut field, self.temp);
+            self.algorithm.field_sweep(&mut field, self.temp, &mut rng);
             if step % 10 == 0 {
                 field.normalize_random();
             }
@@ -217,10 +225,10 @@ where
                 println!("{} {: <12} 75%", self.temp, "Simulation:");
             }
             //println!("Sweep {_step}");
-            self.algorithm.field_sweep(&mut field, self.temp);
+            self.algorithm.field_sweep(&mut field, self.temp, &mut rng);
 
             for data in self.output.iter_mut() {
-                data.update(&field);
+                data.update(&field, &mut rng);
             }
 
             if step % 10 == 0 {
@@ -233,6 +241,8 @@ where
             "{} {:?} Simulation took {duration} secs",
             self.temp, self.algorithm
         );
+
+        self.duration = Some(duration);
 
         Ok(self.into_computation())
     }
@@ -254,10 +264,12 @@ pub struct WilsonSim<'a, const SIZE: usize> {
     width: usize,
     height: usize,
     output: Vec<OutputData<'a, 3, SIZE>>,
+    duration: Option<f32>,
 }
 
 impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonSim<'a, SIZE> {
     fn run(mut self) -> Result<Computation<'a, 3, SIZE>, Box<dyn Error>> {
+        let mut rng = ThreadRng::default();
         let time = Instant::now();
         let field: Field<i8, 3, SIZE> = Field::random(self.lattice);
         let field: Field<i32, 3, SIZE> = Field::from_field(field);
@@ -287,7 +299,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonSim<'a, SIZE> {
             }
             self.algorithm.wilson_sweep(&mut wilson, self.temp);
             for data in self.output.iter_mut() {
-                data.update(&wilson.field)
+                data.update(&wilson.field, &mut rng)
             }
             if step % 10 == 0 {
                 wilson.normalize_random();
@@ -299,6 +311,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonSim<'a, SIZE> {
             "{} {:?} Simulation took {duration} secs",
             self.temp, self.algorithm
         );
+        self.duration = Some(duration);
 
         Ok(self.into_computation())
     }
@@ -320,6 +333,7 @@ where
     range: usize,
     permutations: u64,
     output: Vec<OutputData<'a, D, SIZE>>,
+    duration: Option<f32>,
 }
 
 impl<'a, const D: usize, const SIZE: usize> Compute<'a, D, SIZE> for Test<'a, D, SIZE>
@@ -329,6 +343,7 @@ where
     /// This function calculates the observables over all configurations, which
     /// only works for small lattices.
     fn run(mut self) -> Result<Computation<'a, D, SIZE>, Box<dyn Error>> {
+        let mut rng = ThreadRng::default();
         let time = Instant::now();
 
         let field: Field<i8, D, SIZE> = Field::new(self.lattice);
@@ -367,12 +382,14 @@ where
                 }
             }
             for data in self.output.iter_mut() {
-                data.update(&field);
+                data.update(&field, &mut rng);
             }
         }
 
         let duration = time.elapsed().as_secs_f32();
         println!("{} Test took {duration} secs", self.temp);
+
+        self.duration = Some(duration);
 
         Ok(self.into_computation())
     }
@@ -393,12 +410,14 @@ pub struct WilsonTest<'a, const SIZE: usize> {
     width: usize,
     height: usize,
     output: Vec<OutputData<'a, 3, SIZE>>,
+    duration: Option<f32>,
 }
 
 impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
     /// This function calculates the observables over all configurations, which
     /// only works for small lattices.
     fn run(mut self) -> Result<Computation<'a, 3, SIZE>, Box<dyn Error>> {
+        let mut rng = ThreadRng::default();
         let time = Instant::now();
 
         let field: Field<i8, 3, SIZE> = Field::new(self.lattice);
@@ -439,12 +458,14 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
                 }
             }
             for data in self.output.iter_mut() {
-                data.update(&wilson);
+                data.update(&wilson, &mut rng);
             }
         }
 
         let duration = time.elapsed().as_secs_f32();
         println!("{} Test took {duration} secs", self.temp);
+
+        self.duration = Some(duration);
 
         Ok(self.into_computation())
     }
@@ -467,6 +488,7 @@ pub struct ComputationSummary {
     t: Option<usize>,
     temp: Option<f64>,
     comptype: Option<String>,
+    comptime: Option<f32>,
     action: Option<f64>,
     action_error: Option<f64>,
     energy_data: bool,
@@ -488,6 +510,7 @@ impl ComputationSummary {
             t: None,
             temp: None,
             comptype: None,
+            comptime: None,
             action: None,
             action_error: None,
             energy_data: false,
@@ -508,28 +531,28 @@ impl ComputationSummary {
             Computation::Simulation(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype);
+                    .set_computation(comp.temp, comptype, comp.duration);
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::Test(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype);
+                    .set_computation(comp.temp, comptype, comp.duration);
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonSim(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype);
+                    .set_computation(comp.temp, comptype, comp.duration);
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonTest(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype);
+                    .set_computation(comp.temp, comptype, comp.duration);
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
@@ -558,9 +581,10 @@ impl ComputationSummary {
         self
     }
 
-    pub fn set_computation(mut self, temp: f64, comptype: String) -> Self {
+    pub fn set_computation(mut self, temp: f64, comptype: String, duration: Option<f32>) -> Self {
         self.temp = Some(temp);
         self.comptype = Some(comptype);
+        self.comptime = duration;
         self
     }
 
