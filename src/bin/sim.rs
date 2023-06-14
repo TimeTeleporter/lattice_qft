@@ -13,9 +13,11 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const MAX_X: usize = 40;
-const MAX_Y: usize = 40;
-const MAX_T: usize = 40;
+const CUBE: usize = 54;
+
+const MAX_X: usize = CUBE;
+const MAX_Y: usize = CUBE;
+const MAX_T: usize = CUBE;
 const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 const _RANGE: usize = 12;
@@ -39,7 +41,7 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in [0.1] {
+    for temp in lattice_qft::TEMP_ARY {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         //observables.push(OutputData::new_difference_plot(&lattice));
