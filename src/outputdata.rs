@@ -2,11 +2,13 @@
 //! data of the Markov chain Monte Carlo in order to calculate observables
 //! and create plots.
 
+use rand::Rng;
+
 use crate::{
     computation::FieldExport3d,
     fields::{Action, BondsFieldNew, Field, HeightVariable, WilsonField},
     kahan::KahanSummation,
-    lattice::Lattice,
+    lattice::{Lattice, LatticeCoords},
 };
 
 // - OutputData ---------------------------------------------------------------
@@ -292,14 +294,26 @@ where
     [(); D * 2_usize]:,
 {
     fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A) {
-        const TIME_DIMENSION: usize = 2;
-        const X_INDEX: usize = 0;
-        const X_INDEX_T_COORD: usize = 0;
-        assert_eq!(
-            X_INDEX_T_COORD,
-            self.lattice.calc_coords_from_index(X_INDEX).into_array()[TIME_DIMENSION]
-        );
-        let max_t: usize = self.lattice.size[TIME_DIMENSION];
+        let mut rng = rand::thread_rng();
+
+        // Defining the first three dimensions
+        const X_DIM: usize = 0;
+        const Y_DIM: usize = 1;
+        const T_DIM: usize = 2;
+
+        // Reading the extents of the dimensions
+        let max_x: usize = self.lattice.size[X_DIM];
+        let max_y: usize = self.lattice.size[Y_DIM];
+        let max_t: usize = self.lattice.size[T_DIM];
+
+        // Building the array to get the index of our starting timeslice point
+        let mut ary: [usize; D] = [0; D];
+        ary[0] = rng.gen_range(0..max_x);
+        ary[1] = rng.gen_range(0..max_y);
+
+        // Index of the point on the starting timeslice (slice zero)
+        let x_index: usize = self.lattice.calc_index_from_coords(LatticeCoords::new(ary));
+
         // Preparing the correlation function
         let mut correlation_function: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
         for _t in 0..max_t {
@@ -307,9 +321,9 @@ where
         }
         // For each lattice site, we calculate the difference squared and
         // associate it to a point of the correlation function.
-        let x_value: T = field.get_value(X_INDEX);
+        let x_value: T = field.get_value(x_index);
         for index in 0..SIZE {
-            let t: usize = self.lattice.calc_coords_from_index(index).into_array()[TIME_DIMENSION];
+            let t: usize = self.lattice.calc_coords_from_index(index).into_array()[T_DIM];
             let diff: T = x_value - field.get_value(index);
             let squared: T = diff * diff;
             correlation_function[t].add(squared.into());

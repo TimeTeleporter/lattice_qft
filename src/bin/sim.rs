@@ -39,7 +39,7 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in lattice_qft::TEMP_ARY {
+    for temp in [0.1] {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         //observables.push(OutputData::new_difference_plot(&lattice));
