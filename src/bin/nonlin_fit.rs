@@ -25,7 +25,7 @@ fn main() {
                 .map_err(|err| {
                     eprint!("{}", err);
                 })
-                //.or::<Box<dyn Error>>(Ok(fit_result_nan(res.index)))
+                //.or::<Box<dyn Error>>(Ok(FitResult::new(index, f64::NAN, f64::NAN, f64::NAN, f64::NAN)))
                 .ok()
         })
         .collect();
@@ -41,6 +41,7 @@ fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
     match catch_unwind(move || {
         let y_values = get_correlation_fn(index).unwrap();
         let n: usize = y_values.len();
+        let n: f64 = n as f64;
 
         // Edit the data
         let Some(x_max): Option<f64> = y_values.clone().into_iter().reduce(f64::max) else {
@@ -59,23 +60,26 @@ fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
             x.map(|x| (m * (x - n / 2.0)).cosh())
         }
 
+        let nonlin_fn_n_given = move |x: &DVector<f64>, m: f64| nonlin_fn(x, m, n);
+
         // Derivative with respect to m
         fn nonlin_fn_dm(x: &DVector<f64>, m: f64, n: f64) -> DVector<f64> {
             x.map(|x| (m * (x - n / 2.0)).sinh() * (x - n / 2.0))
         }
 
-        // Derivative with respect to n
+        let nonlin_fn_dm_n_given = move |x: &DVector<f64>, m: f64| nonlin_fn_dm(x, m, n);
+
+        /* Derivative with respect to n
         fn nonlin_fn_dn(x: &DVector<f64>, m: f64, n: f64) -> DVector<f64> {
             x.map(|x| -1.0 * (m * (x - n / 2.0)).sinh() * (m / 2.0))
-        }
+        }*/
 
-        let model = SeparableModelBuilder::<f64>::new(&["m", "n"])
-            .function(&["m", "n"], nonlin_fn)
-            .partial_deriv("m", nonlin_fn_dm)
-            .partial_deriv("n", nonlin_fn_dn)
+        let model = SeparableModelBuilder::<f64>::new(&["m"])
+            .function(&["m"], nonlin_fn_n_given)
+            .partial_deriv("m", nonlin_fn_dm_n_given)
             .invariant_function(|x| DVector::from_element(x.len(), 1.0))
             .independent_variable(x)
-            .initial_parameters(vec![0.1, n as f64])
+            .initial_parameters(vec![0.1])
             .build()
             .unwrap();
 
@@ -96,7 +100,8 @@ fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
             .ok_or("Unable to compute the coefficients")
             .unwrap();
 
-        FitResult::new(index, alpha[0], alpha[1], coeff[0], coeff[1])
+        // FitResult::new(index, alpha[0], alpha[1], coeff[0], coeff[1])
+        FitResult::new(index, alpha[0], n, coeff[0], coeff[1])
     }) {
         Ok(fit) => Ok(fit),
         Err(err) => {
@@ -108,9 +113,4 @@ fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
             Err(format!("nonlin regression paniced: {}", err_msg).into())
         }
     }
-}
-
-#[allow(unused)]
-fn fit_result_nan(index: usize) -> FitResult {
-    FitResult::new(index, f64::NAN, f64::NAN, f64::NAN, f64::NAN)
 }

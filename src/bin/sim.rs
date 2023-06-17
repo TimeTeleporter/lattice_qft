@@ -13,7 +13,7 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const CUBE: usize = 36;
+const CUBE: usize = 54;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
