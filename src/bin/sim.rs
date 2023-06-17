@@ -9,11 +9,11 @@ use lattice_qft::{
     computation::{Computation, ComputationSummary, Compute},
     export::CsvData,
     lattice::Lattice3d,
-    outputdata::{return_correlation_lengths, Observe, OutputData, Plotting},
+    outputdata::{Observe, OutputData, Plotting},
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const CUBE: usize = 54;
+const CUBE: usize = 36;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
@@ -29,9 +29,6 @@ const ITERATIONS: usize = 1_000_000;
 const _WIDTH: usize = MAX_X / 3;
 const _HEIGHT: usize = MAX_T;
 
-const RESULTS_PATH: &str = "./data/results.csv";
-const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
-
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
 /// in order to test that it converges to the desired distribution.
@@ -41,7 +38,7 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in lattice_qft::TEMP_ARY {
+    for temp in lattice_qft::SMALL_TEMP_ARY {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         //observables.push(OutputData::new_difference_plot(&lattice));
@@ -55,25 +52,6 @@ fn main() {
             ITERATIONS,
             observables.clone(),
         ));
-        /*
-        comps.push(Computation::new_wilson_sim(
-            &lattice,
-            temp,
-            AlgorithmType::new_metropolis(),
-            BURNIN,
-            ITERATIONS,
-            WIDTH,
-            HEIGHT,
-            observables,
-        ));
-        comps.push(Computation::new_simulation(
-            &lattice,
-            temp,
-            AlgorithmType::new_cluster(),
-            BURNIN,
-            ITERATIONS,
-            observables.clone(),
-        ));*/
     }
 
     // Parallel over all temp data
@@ -84,21 +62,24 @@ fn main() {
 
     println!("All calcualtions done");
 
+    // Parse the results
     for (_, computation) in data.into_iter().enumerate() {
-        let index: usize =
-            match ComputationSummary::fetch_csv_data(RESULTS_PATH).and_then(|summary| {
+        // Fetching the index to append to
+        let index: usize = match ComputationSummary::fetch_csv_data(lattice_qft::RESULTS_PATH, true)
+            .and_then(|summary| {
                 summary
                     .last()
                     .map(|last| last.index + 1)
                     .ok_or("No last element, starting anew.".into())
             }) {
-                Ok(index) => index,
-                Err(err) => {
-                    eprint!("{}", err);
-                    0
-                }
-            };
+            Ok(index) => index,
+            Err(err) => {
+                eprint!("{}", err);
+                0
+            }
+        };
 
+        // Building the computation summary and handling outputs.
         let (mut summary, outputs) = ComputationSummary::from_computation(computation, index);
 
         for output in outputs.into_iter() {
@@ -111,13 +92,13 @@ fn main() {
                 }
                 OutputData::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
-                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                        let path: &str = &(lattice_qft::PLOT_PATH_INCOMPLETE.to_owned()
                             + &"difference_"
                             + &index.to_string()
                             + &"_"
                             + &direction.to_string()
                             + &".csv");
-                        if let Err(err) = plot.read_write_csv(path) {
+                        if let Err(err) = plot.read_write_csv(path, true) {
                             eprint!("{}", err);
                         };
                     }
@@ -125,13 +106,13 @@ fn main() {
                 }
                 OutputData::EnergyPlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
-                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                        let path: &str = &(lattice_qft::PLOT_PATH_INCOMPLETE.to_owned()
                             + &"energy_"
                             + &index.to_string()
                             + &"_"
                             + &direction.to_string()
                             + &".csv");
-                        if let Err(err) = plot.read_write_csv(path) {
+                        if let Err(err) = plot.read_write_csv(path, true) {
                             eprint!("{}", err);
                         };
                     }
@@ -139,28 +120,20 @@ fn main() {
                 }
                 OutputData::CorrelationData(obs) => {
                     if let Some(plot) = obs.plot().into_iter().next() {
-                        let (correlation_length12, correlation_length23, correlation_lenght13) =
-                            return_correlation_lengths(plot.clone(), MAX_T);
-
-                        let path: &str = &(PLOT_PATH_INCOMPLETE.to_owned()
+                        let path: &str = &(lattice_qft::PLOT_PATH_INCOMPLETE.to_owned()
                             + &"correlation_"
                             + &index.to_string()
                             + &".csv");
-                        if let Err(err) = plot.read_write_csv(path) {
+                        if let Err(err) = plot.read_write_csv(path, false) {
                             eprint!("{}", err);
                         };
-
-                        summary = summary.set_correlation_data().set_correlation_lenght(
-                            correlation_length12,
-                            correlation_length23,
-                            correlation_lenght13,
-                        );
+                        summary = summary.set_correlation_data();
                     }
                 }
             }
         }
 
-        if let Err(err) = summary.read_write_csv(RESULTS_PATH) {
+        if let Err(err) = summary.read_write_csv(lattice_qft::RESULTS_PATH, true) {
             eprint!("{}", err);
         };
     }

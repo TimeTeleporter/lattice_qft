@@ -481,22 +481,19 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
 /// We export the [`ComputationResult`] in a csv file with this formating
 pub struct ComputationSummary {
     pub index: usize,
-    d: Option<usize>,
-    size: Option<usize>,
-    x: Option<usize>,
-    y: Option<usize>,
-    t: Option<usize>,
-    temp: Option<f64>,
-    comptype: Option<String>,
-    comptime: Option<f32>,
-    action: Option<f64>,
-    action_error: Option<f64>,
-    energy_data: bool,
-    difference_data: bool,
-    correlation_data: bool,
-    correlation_length12: Option<f64>,
-    correlation_length23: Option<f64>,
-    correlation_length13: Option<f64>,
+    pub d: Option<usize>,
+    pub size: Option<usize>,
+    pub x: Option<usize>,
+    pub y: Option<usize>,
+    pub t: Option<usize>,
+    pub temp: Option<f64>,
+    pub comptype: Option<String>,
+    pub comptime: Option<f32>,
+    pub action: Option<f64>,
+    pub action_error: Option<f64>,
+    pub energy_data: bool,
+    pub difference_data: bool,
+    pub correlation_data: bool,
 }
 
 impl ComputationSummary {
@@ -516,9 +513,6 @@ impl ComputationSummary {
             energy_data: false,
             difference_data: false,
             correlation_data: false,
-            correlation_length12: None,
-            correlation_length23: None,
-            correlation_length13: None,
         }
     }
 
@@ -606,18 +600,6 @@ impl ComputationSummary {
 
     pub fn set_correlation_data(mut self) -> Self {
         self.correlation_data = true;
-        self
-    }
-
-    pub fn set_correlation_lenght(
-        mut self,
-        correlation_length12: Option<f64>,
-        correlation_length23: Option<f64>,
-        correlation_length13: Option<f64>,
-    ) -> Self {
-        self.correlation_length12 = correlation_length12;
-        self.correlation_length23 = correlation_length23;
-        self.correlation_length13 = correlation_length13;
         self
     }
 }

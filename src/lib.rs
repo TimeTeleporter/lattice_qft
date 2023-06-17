@@ -102,10 +102,15 @@ pub const REL_TEMP_ARY: [f64; 31] = [
     1.2589, 1.5848, 1.9952, 2.5118, 3.1622, 3.9810, 5.0118, 6.3095, 7.9432, 10.0,
 ];
 
-pub const CLUSTER_RESULTS_PATH: &str = "./data/cluster_results.csv";
-pub const CLUSTER_BINNING_PATH: &str = "./data/cluster_binning.csv";
-pub const METRPLS_RESULTS_PATH: &str = "./data/metropolis_results.csv";
-pub const METRPLS_BINNING_PATH: &str = "./data/metropolis_binning.csv";
+pub const SMALL_TEMP_ARY: [f64; 21] = [
+    0.02, 0.025118, 0.031622, 0.039810, 0.050118, 0.063095, 0.079432, 0.1, 0.12589, 0.15848,
+    0.19952, 0.25118, 0.31622, 0.39810, 0.50118, 0.63095, 0.79432, 1.0, 1.2589, 1.5848, 2.0,
+];
+
+pub const RESULTS_PATH: &str = "./data/results.csv";
+pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
+pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
+pub const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
 
 pub mod algorithm;
 pub mod computation;
