@@ -6,6 +6,8 @@ use std::panic::catch_unwind;
 use varpro::prelude::*;
 use varpro::solvers::levmar::{LevMarProblemBuilder, LevMarSolver};
 
+const SYMMETRIZE: bool = true;
+
 fn main() {
     // Read the result data
     let results: Vec<ComputationSummary> =
@@ -39,8 +41,19 @@ fn main() {
 
 fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
     match catch_unwind(move || {
-        let y_values = get_correlation_fn(index).unwrap();
+        let mut y_values = get_correlation_fn(index).unwrap();
         let n: usize = y_values.len();
+
+        if SYMMETRIZE {
+            let mut new_y_values: Vec<f64> = Vec::new();
+            new_y_values.push(y_values[0]);
+            for i in 1..n {
+                new_y_values.push((y_values[i] + y_values[n - i]) / 2.0)
+            }
+            assert_eq!(n, new_y_values.len());
+            y_values = new_y_values;
+        }
+
         let n: f64 = n as f64;
 
         // Edit the data

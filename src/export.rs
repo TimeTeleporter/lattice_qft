@@ -119,11 +119,19 @@ pub struct FitResult {
     n: f64,
     a: f64,
     b: f64,
+    corr: f64,
 }
 
 impl FitResult {
     pub fn new(index: usize, m: f64, n: f64, a: f64, b: f64) -> FitResult {
-        FitResult { index, m, n, a, b }
+        FitResult {
+            index,
+            m,
+            n,
+            a,
+            b,
+            corr: 1.0 / m,
+        }
     }
 }
 

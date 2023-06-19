@@ -89,6 +89,8 @@ fn calculate_correlation_length(correlation_fn: Vec<f64>, p1: f64, p2: f64) -> f
 
     let cosh = cosh_re / abs;
 
+    assert!(!cosh.is_nan());
+
     f64::acosh(cosh)
 }
 
