@@ -308,22 +308,27 @@ where
 
         // Building the array to get the index of our starting timeslice point
         let mut ary: [usize; D] = [0; D];
-        ary[0] = rng.gen_range(0..max_x);
-        ary[1] = rng.gen_range(0..max_y);
+        ary[X_DIM] = rng.gen_range(0..max_x);
+        ary[Y_DIM] = rng.gen_range(0..max_y);
+        // We also choose a random t for the reference time slice
+        ary[T_DIM] = rng.gen_range(0..max_t);
 
         // Index of the point on the starting timeslice (slice zero)
         let x_index: usize = self.lattice.calc_index_from_coords(LatticeCoords::new(ary));
 
         // Preparing the correlation function
         let mut correlation_function: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
-        for _t in 0..max_t {
+        for _ in 0..max_t {
             correlation_function.push(KahanSummation::new());
         }
         // For each lattice site, we calculate the difference squared and
         // associate it to a point of the correlation function.
         let x_value: T = field.get_value(x_index);
         for index in 0..SIZE {
-            let t: usize = self.lattice.calc_coords_from_index(index).into_array()[T_DIM];
+            // Find the distance in t direction to the reference point
+            let t: usize = (self.lattice.calc_coords_from_index(index).into_array()[T_DIM] + max_x
+                - ary[T_DIM])
+                % max_x;
             let diff: T = x_value - field.get_value(index);
             let squared: T = diff * diff;
             correlation_function[t].add(squared.into());
