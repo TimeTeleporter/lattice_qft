@@ -2,7 +2,7 @@ use std::error::Error;
 
 use lattice_qft::{
     computation::ComputationSummary,
-    export::{clean_csv, get_correlation_fn, CorrelationLengths, CsvData},
+    export::{get_correlation_fn, CorrelationLengths, CsvData},
 };
 use num_complex::Complex64;
 
@@ -29,9 +29,7 @@ fn main() {
         })
         .collect();
 
-    if let Err(err) = clean_csv(lattice_qft::RESULTS_CORR_PATH)
-        .and(fitted.read_write_csv(lattice_qft::RESULTS_CORR_PATH, true))
-    {
+    if let Err(err) = fitted.overwrite_csv(lattice_qft::RESULTS_CORR_PATH) {
         eprint!("{}", err);
     }
 }

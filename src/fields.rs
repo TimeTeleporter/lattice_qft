@@ -427,7 +427,7 @@ where
             {
                 // ...if it hasn't been visited and the link is active,
                 // add it to the checklist and mark it as visited.
-                if unvisited[neighbour] && self.bonds.field.values[check][direction] {
+                if unvisited[neighbour] && self.is_active(check, direction) {
                     checklist.push_back(neighbour);
                     unvisited[neighbour] = false;
                 }

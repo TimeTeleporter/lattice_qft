@@ -1,5 +1,5 @@
 use lattice_qft::computation::ComputationSummary;
-use lattice_qft::export::{clean_csv, get_correlation_fn, CsvData, FitResult};
+use lattice_qft::export::{get_correlation_fn, CsvData, FitResult};
 use nalgebra::DVector;
 use std::error::Error;
 use std::panic::catch_unwind;
@@ -32,9 +32,7 @@ fn main() {
         })
         .collect();
 
-    if let Err(err) = clean_csv(lattice_qft::RESULTS_FIT_PATH)
-        .and(fitted.read_write_csv(lattice_qft::RESULTS_FIT_PATH, true))
-    {
+    if let Err(err) = fitted.overwrite_csv(lattice_qft::RESULTS_FIT_PATH) {
         eprint!("{}", err);
     }
 }

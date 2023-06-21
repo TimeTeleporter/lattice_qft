@@ -13,16 +13,16 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const CUBE: usize = 16;
+const CUBE: usize = 36;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
-const _RANGE: usize = 12;
+const _RANGE: usize = CUBE;
 
-const BURNIN: usize = 10_000;
+const BURNIN: usize = 100_000;
 const ITERATIONS: usize = 1_000_000;
 
 /// The measurements for the wilson loop
@@ -38,7 +38,7 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in lattice_qft::SMALL_TEMP_ARY {
+    for temp in lattice_qft::INVESTIGATE_ARY2 {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         //observables.push(OutputData::new_difference_plot(&lattice));
@@ -124,7 +124,7 @@ fn main() {
                             + &"correlation_"
                             + &index.to_string()
                             + &".csv");
-                        if let Err(err) = plot.read_write_csv(path, false) {
+                        if let Err(err) = plot.overwrite_csv(path) {
                             eprint!("{}", err);
                         };
                         summary = summary.set_correlation_data();

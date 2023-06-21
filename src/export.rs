@@ -22,15 +22,8 @@ where
     }
 
     fn overwrite_csv(self, path: &str) -> Result<(), Box<dyn Error>> {
-        // Initialize data storage
-        let mut storage: Vec<Self> = Vec::new();
-
-        // Append the new entry
-        storage.push(self);
-
-        write_to_csv(path, storage)?;
-
-        Ok(())
+        clean_csv(path)?;
+        self.read_write_csv(path, false)
     }
 
     fn fetch_csv_data(path: &str, has_headers: bool) -> Result<Vec<Self>, Box<dyn Error>> {

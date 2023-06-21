@@ -107,6 +107,10 @@ pub const SMALL_TEMP_ARY: [f64; 21] = [
     0.19952, 0.25118, 0.31622, 0.39810, 0.50118, 0.63095, 0.79432, 1.0, 1.2589, 1.5848, 2.0,
 ];
 
+pub const INVESTIGATE_ARY: [f64; 10] = [0.2, 0.24, 0.28, 0.33, 0.39, 0.46, 0.55, 0.64, 0.76, 0.9];
+
+pub const INVESTIGATE_ARY2: [f64; 10] = [0.2, 0.22, 0.25, 0.27, 0.3, 0.33, 0.37, 0.41, 0.45, 0.5];
+
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
@@ -130,4 +134,34 @@ use std::process::Command;
 
 pub fn pause() {
     let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
+}
+
+#[test]
+fn get_log_ary() {
+    const TESTING: bool = true;
+
+    // Define the array boundries
+    const LOWER: f64 = 0.2;
+    const UPPER: f64 = 0.5;
+    const STEPS: usize = 10;
+
+    // Convert them to log scale
+    let lower_log: f64 = LOWER.log10();
+    let upper_log: f64 = UPPER.log10();
+
+    if TESTING {
+        dbg!(lower_log);
+        dbg!(upper_log);
+    }
+    let diff: f64 = upper_log - lower_log;
+    let step_size: f64 = diff / ((STEPS - 1) as f64);
+
+    let ary: [f64; STEPS] = core::array::from_fn(|i| i)
+        .map(|step| lower_log + step_size * (step as f64))
+        .map(|x| f64::powf(10.0, x))
+        .map(|x| (x * 100.0).round() / 100.0);
+
+    if TESTING {
+        dbg!(ary);
+    };
 }
