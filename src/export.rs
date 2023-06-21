@@ -142,22 +142,35 @@ pub struct CorrelationLengths {
     index: usize,
     m12: f64,
     m23: f64,
+    m34: f64,
     m13: f64,
+    m24: f64,
+    m14: f64,
     corr12: f64,
     corr23: f64,
+    corr34: f64,
     corr13: f64,
+    corr24: f64,
+    corr14: f64,
 }
 
 impl CorrelationLengths {
-    pub fn new(index: usize, m12: f64, m23: f64, m13: f64) -> CorrelationLengths {
+    pub fn new(index: usize, ary: [f64; 6]) -> CorrelationLengths {
+        let [m12, m23, m34, m13, m24, m14] = ary;
         CorrelationLengths {
             index,
             m12,
             m23,
+            m34,
             m13,
+            m24,
+            m14,
             corr12: 1.0 / m12,
             corr23: 1.0 / m23,
+            corr34: 1.0 / m34,
             corr13: 1.0 / m13,
+            corr24: 1.0 / m24,
+            corr14: 1.0 / m14,
         }
     }
 }

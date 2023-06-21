@@ -102,7 +102,9 @@ fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
             .unwrap();
 
         // This thing panics, we need to catch it.
-        let (solved_problem, report) = LevMarSolver::new().minimize(problem);
+        let (solved_problem, report) = LevMarSolver::new()
+            .with_xtol(f64::EPSILON)
+            .minimize(problem);
         if !report.termination.was_successful() {
             panic!("termination was not successful");
         }
