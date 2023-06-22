@@ -4,6 +4,8 @@
 
 use std::ops::Deref;
 
+use rand::{rngs::ThreadRng, Rng};
+
 /// D-Dimensional coordinate array to simplify the conversation to and from index.
 #[derive(Debug, Clone, Copy)]
 pub struct LatticeCoords<const D: usize>([usize; D]);
@@ -113,6 +115,10 @@ where
         }
 
         LatticeCoords(coords_ary)
+    }
+
+    pub fn get_random_lattice_point_index(&self, rng: &mut ThreadRng) -> usize {
+        rng.gen_range(0..SIZE)
     }
 }
 
