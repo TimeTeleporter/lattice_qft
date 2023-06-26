@@ -130,7 +130,7 @@ impl FitResult {
 
 impl CsvData for FitResult {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CorrelationLengths {
     index: usize,
     m12: f64,
@@ -139,7 +139,7 @@ pub struct CorrelationLengths {
     m13: f64,
     m24: f64,
     m14: f64,
-    corr12: f64,
+    pub corr12: f64,
     corr23: f64,
     corr34: f64,
     corr13: f64,

@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     algorithm::{Algorithm, AlgorithmType, WilsonAlgorithm},
+    export::CsvData,
     fields::{Field, HeightField, WilsonField},
     lattice::Lattice,
-    outputdata::{OutputData, UpdateOutputData},
+    outputdata::{Observe, OutputData, OutputDataType, Plotting, UpdateOutputData},
 };
 
 // - Computation --------------------------------------------------------------
@@ -176,6 +177,83 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for Computation<'a, 3, SIZE> {
     }
 }
 
+pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE>>) {
+    for (_, computation) in data.into_iter().enumerate() {
+        // Fetching the index to append to
+        let index: usize = match ComputationSummary::fetch_csv_data(crate::RESULTS_PATH, true)
+            .and_then(|summary| {
+                summary
+                    .last()
+                    .map(|last| last.index + 1)
+                    .ok_or("No last element, starting anew.".into())
+            }) {
+            Ok(index) => index,
+            Err(err) => {
+                eprint!("{}", err);
+                0
+            }
+        };
+
+        // Building the computation summary and handling outputs.
+        let (mut summary, outputs) = ComputationSummary::from_computation(computation, index);
+
+        for output in outputs.into_iter() {
+            match output.data {
+                OutputDataType::ActionObservable(obs) => {
+                    summary = summary.set_action(obs.result());
+                }
+                OutputDataType::TestActionObservable(obs) => {
+                    summary = summary.set_action(obs.result());
+                }
+                OutputDataType::DifferencePlot(obs) => {
+                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                        let path: &str = &(crate::PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"difference_"
+                            + &index.to_string()
+                            + &"_"
+                            + &direction.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.read_write_csv(path, true) {
+                            eprint!("{}", err);
+                        };
+                    }
+                    summary = summary.set_bonds_data();
+                }
+                OutputDataType::EnergyPlot(obs) => {
+                    for (direction, plot) in obs.plot().into_iter().enumerate() {
+                        let path: &str = &(crate::PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"energy_"
+                            + &index.to_string()
+                            + &"_"
+                            + &direction.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.read_write_csv(path, true) {
+                            eprint!("{}", err);
+                        };
+                    }
+                    summary = summary.set_energy_data();
+                }
+                OutputDataType::CorrelationData(obs) => {
+                    if let Some(plot) = obs.plot().into_iter().next() {
+                        let path: &str = &(crate::PLOT_PATH_INCOMPLETE.to_owned()
+                            + &"correlation_"
+                            + &index.to_string()
+                            + &".csv");
+                        if let Err(err) = plot.overwrite_csv(path) {
+                            eprint!("{}", err);
+                        };
+                        summary = summary.set_correlation_data();
+                    }
+                }
+            }
+        }
+
+        if let Err(err) = summary.read_write_csv(crate::RESULTS_PATH, true) {
+            eprint!("{}", err);
+        };
+    }
+}
+
 // - Simulation ---------------------------------------------------------------
 
 #[derive(Debug, Clone)]
@@ -203,6 +281,8 @@ where
         let field: Field<i8, D, SIZE> = Field::random(self.lattice);
         let mut field: Field<i32, D, SIZE> = Field::from_field(field);
 
+        println!("{} {: <12} Started", self.temp, "Burnin:");
+
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for step in 0..(self.burnin) {
             //println!("Sweep {_step}");
@@ -227,9 +307,10 @@ where
             //println!("Sweep {_step}");
             self.algorithm.field_sweep(&mut field, self.temp, &mut rng);
 
-            for data in self.output.iter_mut() {
-                data.update(&field, &mut rng);
-            }
+            self.output
+                .iter_mut()
+                .filter(|data| data.is_step_for_next_update(step))
+                .for_each(|data| data.update(&field, &mut rng));
 
             if step % 10 == 0 {
                 field.normalize_random();
@@ -490,10 +571,10 @@ pub struct ComputationSummary {
     pub comptype: Option<String>,
     pub comptime: Option<f32>,
     pub action: Option<f64>,
-    pub action_error: Option<f64>,
     pub energy_data: bool,
     pub difference_data: bool,
     pub correlation_data: bool,
+    pub corr12: Option<f64>,
 }
 
 impl ComputationSummary {
@@ -509,10 +590,10 @@ impl ComputationSummary {
             comptype: None,
             comptime: None,
             action: None,
-            action_error: None,
             energy_data: false,
             difference_data: false,
             correlation_data: false,
+            corr12: None,
         }
     }
 
@@ -582,9 +663,8 @@ impl ComputationSummary {
         self
     }
 
-    pub fn set_action(mut self, result: f64, error: Option<f64>) -> Self {
+    pub fn set_action(mut self, result: f64) -> Self {
         self.action = Some(result);
-        self.action_error = error;
         self
     }
 
@@ -600,6 +680,11 @@ impl ComputationSummary {
 
     pub fn set_correlation_data(mut self) -> Self {
         self.correlation_data = true;
+        self
+    }
+
+    pub fn set_correlation_length(mut self, corr12: f64) -> Self {
+        self.corr12 = Some(corr12);
         self
     }
 }

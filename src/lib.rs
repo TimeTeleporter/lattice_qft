@@ -3,6 +3,7 @@
 #![feature(adt_const_params)]
 #![feature(split_array)]
 #![feature(let_chains)]
+#![feature(result_option_inspect)]
 
 pub const LONG_TEMP_ARY: [f64; 81] = [
     0.000001,
@@ -111,16 +112,15 @@ pub const INVESTIGATE_ARY: [f64; 10] = [0.2, 0.24, 0.28, 0.33, 0.39, 0.46, 0.55,
 
 pub const INVESTIGATE_ARY2: [f64; 10] = [0.2, 0.22, 0.25, 0.27, 0.3, 0.33, 0.37, 0.41, 0.45, 0.5];
 
-pub const INVESTIGATE_ARY3_LOWER: [f64; 15] = [
-    0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34,
-];
-pub const INVESTIGATE_ARY3_UPPER: [f64; 15] = [
-    0.35, 0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
+pub const INVESTIGATE_ARY3: [f64; 30] = [
+    0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35,
+    0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
 ];
 
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
+pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
 pub const PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/";
 
 pub mod algorithm;
