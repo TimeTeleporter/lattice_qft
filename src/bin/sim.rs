@@ -12,7 +12,8 @@ use lattice_qft::{
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-const CUBE: usize = 16;
+// 16, 24, 36, 54
+const CUBE: usize = 54;
 
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
@@ -27,8 +28,6 @@ const ITERATIONS: usize = 200_000;
 /// The measurements for the wilson loop
 const _WIDTH: usize = MAX_X / 3;
 const _HEIGHT: usize = MAX_T;
-
-const REPETITIONS: usize = 10;
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -62,15 +61,12 @@ fn main() {
             observables.clone(),
         ));
     }
+    // Parallel over all temp data
+    let data: Vec<Computation<3, SIZE>> = comps
+        .clone()
+        .into_par_iter()
+        .filter_map(|comp| comp.run().ok())
+        .collect();
 
-    for _rep in 0..REPETITIONS {
-        // Parallel over all temp data
-        let data: Vec<Computation<3, SIZE>> = comps
-            .clone()
-            .into_par_iter()
-            .filter_map(|comp| comp.run().ok())
-            .collect();
-
-        lattice_qft::computation::parse_simulation_results(data);
-    }
+    lattice_qft::computation::parse_simulation_results(data);
 }
