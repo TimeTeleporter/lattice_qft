@@ -81,8 +81,10 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn get_correlation_fn(index: usize) -> Result<Vec<f64>, Box<dyn Error>> {
-    let path: &str =
-        &(crate::PLOT_PATH_INCOMPLETE.to_owned() + &"correlation_" + &index.to_string() + &".csv");
+    let path: &str = &(crate::CORRELATION_PLOT_PATH_INCOMPLETE.to_owned()
+        + &"correlation_"
+        + &index.to_string()
+        + &".csv");
     f64::fetch_csv_data(path, false)
 }
 
@@ -108,11 +110,11 @@ impl<T: CsvData> CsvData for Vec<T> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FitResult {
     index: usize,
-    m: f64,
-    n: f64,
-    a: f64,
-    b: f64,
-    corr: f64,
+    pub m: f64,
+    pub n: f64,
+    pub a: f64,
+    pub b: f64,
+    pub corr: f64,
 }
 
 impl FitResult {
