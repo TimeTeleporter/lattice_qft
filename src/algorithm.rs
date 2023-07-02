@@ -191,7 +191,6 @@ impl Metropolis {
 }
 
 // - Cluster ------------------------------------------------------------------
-
 #[derive(Debug, Clone)]
 pub struct Cluster;
 

@@ -159,6 +159,8 @@ pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
 pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
 pub const CORRELATION_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/correlation_data/";
+pub const COMPOUNDED_CORRELATION_PLOT_PATH_INCOMPLETE: &str =
+    "./data/plot_data/compounded_correlation_data/";
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_data/";
 pub const ENERGY_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/energy_data/";
 pub const OTHER_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/other_data/";
