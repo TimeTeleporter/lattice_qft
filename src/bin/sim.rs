@@ -6,26 +6,25 @@
 
 use lattice_qft::{
     algorithm::AlgorithmType,
-    computation::{Computation, Compute},
+    computation::{parse_simulation_results, Computation, Compute},
     lattice::Lattice3d,
     outputdata::OutputData,
 };
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
-// 16, 24, 36, 54
-const CUBE: usize = 54;
+// Simulation parameters
+const BURNIN: usize = 200_000;
+const ITERATIONS: usize = 200_000;
 
+// Lattice sizes (16, 24, 36, 54)
+const CUBE: usize = 54;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
 const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
+// The measurements for the wilson loop
 const _RANGE: usize = CUBE;
-
-const BURNIN: usize = 200_000;
-const ITERATIONS: usize = 200_000;
-
-/// The measurements for the wilson loop
 const _WIDTH: usize = MAX_X / 3;
 const _HEIGHT: usize = MAX_T;
 
@@ -44,7 +43,7 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in lattice_qft::INVESTIGATE_ARY3 {
+    for temp in [0.4] {
         let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
         observables.push(OutputData::new_action_observable(temp));
         observables.push(
@@ -55,7 +54,7 @@ fn main() {
         comps.push(Computation::new_simulation(
             &lattice,
             temp,
-            AlgorithmType::new_metropolis(),
+            AlgorithmType::new_newnewcluster(),
             BURNIN,
             ITERATIONS,
             observables.clone(),
@@ -68,5 +67,5 @@ fn main() {
         .filter_map(|comp| comp.run().ok())
         .collect();
 
-    lattice_qft::computation::parse_simulation_results(data);
+    parse_simulation_results(data);
 }
