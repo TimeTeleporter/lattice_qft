@@ -24,6 +24,7 @@ fn main() {
         let temp: Option<f64> = summary.temp;
         let max_t: Option<usize> = summary.t;
         let index: usize = summary.index;
+        let comptype: Option<String> = summary.comptype.clone();
 
         let mut corr_fn: Option<Vec<KahanSummation<f64>>> = get_correlation_fn(index)
             .map_err(|err| eprintln!("Index {} no correlation function: {}", index, err))
@@ -46,7 +47,9 @@ fn main() {
         }
 
         results
-            .drain_filter(|entry| entry.temp == temp && entry.t == max_t)
+            .drain_filter(|entry| {
+                entry.temp == temp && entry.t == max_t && entry.comptype == comptype
+            })
             .for_each(|entry| {
                 if let Some(corr12) = entry.corr12 {
                     corr.add(corr12);

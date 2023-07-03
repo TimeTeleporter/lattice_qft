@@ -13,11 +13,12 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const BURNIN: usize = 200_000;
-const ITERATIONS: usize = 200_000;
+const REPETITIONS: usize = 10;
+const BURNIN: usize = 100_000;
+const ITERATIONS: usize = 20_000;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 54;
+const CUBE: usize = 36;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -34,7 +35,7 @@ const _HEIGHT: usize = MAX_T;
 fn main() {
     // Setting the global thread pool
     rayon::ThreadPoolBuilder::new()
-        .num_threads(16)
+        .num_threads(18)
         .build_global()
         .unwrap();
 
@@ -43,29 +44,31 @@ fn main() {
 
     // Initialise the simulations
     let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-    for temp in [0.4] {
-        let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
-        observables.push(OutputData::new_action_observable(temp));
-        observables.push(
-            OutputData::new_correlation_plot(&lattice)
-                .set_frequency(10)
-                .set_repetitions(10),
-        );
-        comps.push(Computation::new_simulation(
-            &lattice,
-            temp,
-            AlgorithmType::new_newnewcluster(),
-            BURNIN,
-            ITERATIONS,
-            observables.clone(),
-        ));
-    }
-    // Parallel over all temp data
-    let data: Vec<Computation<3, SIZE>> = comps
-        .clone()
-        .into_par_iter()
-        .filter_map(|comp| comp.run().ok())
-        .collect();
+    for _rep in 0..REPETITIONS {
+        for temp in lattice_qft::INVESTIGATE_ARY4 {
+            let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
+            observables.push(OutputData::new_action_observable(temp));
+            observables.push(
+                OutputData::new_correlation_plot(&lattice)
+                    .set_frequency(1000)
+                    .set_repetitions(1000),
+            );
+            comps.push(Computation::new_simulation(
+                &lattice,
+                temp,
+                AlgorithmType::new_newnewcluster(),
+                BURNIN,
+                ITERATIONS,
+                observables.clone(),
+            ));
+        }
+        // Parallel over all temp data
+        let data: Vec<Computation<3, SIZE>> = comps
+            .clone()
+            .into_par_iter()
+            .filter_map(|comp| comp.run().ok())
+            .collect();
 
-    parse_simulation_results(data);
+        parse_simulation_results(data);
+    }
 }

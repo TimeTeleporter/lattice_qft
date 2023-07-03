@@ -107,11 +107,13 @@ where
         }
     }
 
+    /// Sets the steps that are ignored until the next observation
     pub fn set_frequency(mut self, frequency: usize) -> Self {
         self.frequency = frequency;
         self
     }
 
+    /// Sets the numbers of observations done when a observation occurs
     pub fn set_repetitions(mut self, repetitions: usize) -> Self {
         self.repetitions = repetitions;
         self

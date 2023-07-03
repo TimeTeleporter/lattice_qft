@@ -19,6 +19,9 @@ varpro = "0.6.0"
 opt-level = 3
 overflow-checks = true
 
+[profile.release]
+opt-level = 3
+
 [[bin]]
 name = "sim"
 path = "src/bin/sim.rs"

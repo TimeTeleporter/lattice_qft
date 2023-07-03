@@ -154,6 +154,11 @@ pub const INVESTIGATE_ARY3_6: [f64; 180] = [
     0.46, 0.47, 0.48, 0.49,
 ];
 
+pub const INVESTIGATE_ARY4: [f64; 18] = [
+    0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38,
+    0.39, 0.40,
+];
+
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";

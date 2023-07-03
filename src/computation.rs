@@ -267,7 +267,7 @@ where
     burnin: usize,
     iterations: usize,
     output: Vec<OutputData<'a, D, SIZE>>,
-    duration: Option<f32>,
+    duration: Option<u64>,
 }
 
 impl<'a, const D: usize, const SIZE: usize> Compute<'a, D, SIZE> for Simulation<'a, D, SIZE>
@@ -323,7 +323,7 @@ where
             }
         }
 
-        let duration: f32 = time.elapsed().as_secs_f32();
+        let duration: u64 = time.elapsed().as_secs();
         println!(
             "{} {:?} Simulation took {duration} secs",
             self.temp, self.algorithm
@@ -351,7 +351,7 @@ pub struct WilsonSim<'a, const SIZE: usize> {
     width: usize,
     height: usize,
     output: Vec<OutputData<'a, 3, SIZE>>,
-    duration: Option<f32>,
+    duration: Option<u64>,
 }
 
 impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonSim<'a, SIZE> {
@@ -393,7 +393,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonSim<'a, SIZE> {
             }
         }
 
-        let duration: f32 = time.elapsed().as_secs_f32();
+        let duration: u64 = time.elapsed().as_secs();
         println!(
             "{} {:?} Simulation took {duration} secs",
             self.temp, self.algorithm
@@ -420,7 +420,7 @@ where
     range: usize,
     permutations: u64,
     output: Vec<OutputData<'a, D, SIZE>>,
-    duration: Option<f32>,
+    duration: Option<u64>,
 }
 
 impl<'a, const D: usize, const SIZE: usize> Compute<'a, D, SIZE> for Test<'a, D, SIZE>
@@ -473,7 +473,7 @@ where
             }
         }
 
-        let duration = time.elapsed().as_secs_f32();
+        let duration: u64 = time.elapsed().as_secs();
         println!("{} Test took {duration} secs", self.temp);
 
         self.duration = Some(duration);
@@ -497,7 +497,7 @@ pub struct WilsonTest<'a, const SIZE: usize> {
     width: usize,
     height: usize,
     output: Vec<OutputData<'a, 3, SIZE>>,
-    duration: Option<f32>,
+    duration: Option<u64>,
 }
 
 impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
@@ -549,7 +549,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
             }
         }
 
-        let duration = time.elapsed().as_secs_f32();
+        let duration: u64 = time.elapsed().as_secs();
         println!("{} Test took {duration} secs", self.temp);
 
         self.duration = Some(duration);
@@ -575,7 +575,7 @@ pub struct ComputationSummary {
     pub t: Option<usize>,
     pub temp: Option<f64>,
     pub comptype: Option<String>,
-    pub comptime: Option<f32>,
+    pub comptime: Option<u64>,
     pub action: Option<f64>,
     pub energy_data: bool,
     pub difference_data: bool,
@@ -662,7 +662,7 @@ impl ComputationSummary {
         self
     }
 
-    pub fn set_computation(mut self, temp: f64, comptype: String, duration: Option<f32>) -> Self {
+    pub fn set_computation(mut self, temp: f64, comptype: String, duration: Option<u64>) -> Self {
         self.temp = Some(temp);
         self.comptype = Some(comptype);
         self.comptime = duration;
