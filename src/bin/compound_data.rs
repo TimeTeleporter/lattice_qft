@@ -18,26 +18,31 @@ fn main() {
             }
         };
 
+    // Initialize new array for summaries
     let mut summaries: Vec<ComputationSummary> = Vec::new();
 
+    // For each uniue set of coupling constant, lattice size and algorithm,
+    // average the correlation functions and correlation lengths
     while let Some(summary) = results.pop() {
         let temp: Option<f64> = summary.temp;
         let max_t: Option<usize> = summary.t;
         let index: usize = summary.index;
         let comptype: Option<String> = summary.comptype.clone();
 
-        let mut corr_fn: Option<Vec<KahanSummation<f64>>> = get_correlation_fn(index)
-            .map_err(|err| eprintln!("Index {} no correlation function: {}", index, err))
-            .ok()
-            .map(|ary| {
-                ary.into_iter()
-                    .map(|x| {
-                        let mut kahan: KahanSummation<f64> = KahanSummation::new();
-                        kahan.add(x);
-                        kahan
-                    })
-                    .collect()
-            });
+        // Read the correlation functions
+        let mut corr_fn: Option<Vec<KahanSummation<f64>>> =
+            get_correlation_fn(index, lattice_qft::CORRELATION_PLOT_PATH_INCOMPLETE)
+                .map_err(|err| eprintln!("Index {} no correlation function: {}", index, err))
+                .ok()
+                .map(|ary| {
+                    ary.into_iter()
+                        .map(|x| {
+                            let mut kahan: KahanSummation<f64> = KahanSummation::new();
+                            kahan.add(x);
+                            kahan
+                        })
+                        .collect()
+                });
 
         let mut corr: KahanSummation<f64> = KahanSummation::new();
         if let Some(corr12) = summary.corr12 {
@@ -56,7 +61,7 @@ fn main() {
                 } else {
                     eprintln!("Index {} no correlation lenght availible!", entry.index)
                 }
-                if let Some(entry_corr_fn) = get_correlation_fn(entry.index)
+                if let Some(entry_corr_fn) = get_correlation_fn(entry.index, lattice_qft::CORRELATION_PLOT_PATH_INCOMPLETE)
                     .map_err(|err| {
                         eprintln!("Index {} no correlation function: {}", summary.index, err)
                     })

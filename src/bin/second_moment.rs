@@ -22,12 +22,16 @@ fn main() {
         .iter_mut()
         .filter(|summary| summary.correlation_data)
         .filter_map(|summary| {
-            correlation_lenght_calculation(summary.index, summary.t?)
-                .map_err(|err| {
-                    eprint!("{}", err);
-                })
-                .ok()
-                .inspect(|lenght| summary.corr12 = Some(lenght.corr12))
+            correlation_lenght_calculation(
+                summary.index,
+                summary.t?,
+                lattice_qft::CORRELATION_PLOT_PATH_INCOMPLETE,
+            )
+            .map_err(|err| {
+                eprint!("{}", err);
+            })
+            .ok()
+            .inspect(|lenght| summary.corr12 = Some(lenght.corr12))
         })
         .collect();
 
@@ -42,8 +46,9 @@ fn main() {
 fn correlation_lenght_calculation(
     index: usize,
     max_t: usize,
+    incomplete_path: &str,
 ) -> Result<CorrelationLengths, Box<dyn Error>> {
-    let corr_fn: Vec<f64> = get_correlation_fn(index)?;
+    let corr_fn: Vec<f64> = get_correlation_fn(index, incomplete_path)?;
 
     let ary = return_correlation_lengths(corr_fn, max_t)?;
 

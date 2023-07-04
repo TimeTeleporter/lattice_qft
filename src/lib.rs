@@ -163,6 +163,7 @@ pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
 pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
+pub const RESULTS_COMP_FIT_PATH: &str = "./data/results_comp_fit.csv";
 pub const CORRELATION_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/correlation_data/";
 pub const COMPOUNDED_CORRELATION_PLOT_PATH_INCOMPLETE: &str =
     "./data/plot_data/compounded_correlation_data/";

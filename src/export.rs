@@ -80,11 +80,8 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn get_correlation_fn(index: usize) -> Result<Vec<f64>, Box<dyn Error>> {
-    let path: &str = &(crate::CORRELATION_PLOT_PATH_INCOMPLETE.to_owned()
-        + &"correlation_"
-        + &index.to_string()
-        + &".csv");
+pub fn get_correlation_fn(index: usize, incomplete_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
+    let path: &str = &(incomplete_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
     f64::fetch_csv_data(path, false)
 }
 

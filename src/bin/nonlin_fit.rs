@@ -2,7 +2,6 @@ use lattice_qft::computation::ComputationSummary;
 use lattice_qft::export::{get_correlation_fn, CsvData, FitResult};
 use nalgebra::DVector;
 use std::error::Error;
-use std::panic::catch_unwind;
 use varpro::prelude::*;
 use varpro::solvers::levmar::{LevMarProblemBuilder, LevMarSolver};
 
@@ -23,7 +22,7 @@ fn main() {
         .into_iter()
         .filter(|res| res.correlation_data)
         .filter_map(|res| {
-            nonlin_regression(res.index)
+            nonlin_regression(res.index, lattice_qft::CORRELATION_PLOT_PATH_INCOMPLETE)
                 .map_err(|err| {
                     eprint!("{}", err);
                 })
@@ -37,9 +36,9 @@ fn main() {
     }
 }
 
-fn nonlin_regression(index: usize) -> Result<FitResult, Box<dyn Error>> {
-    match catch_unwind(move || {
-        let mut y_values = get_correlation_fn(index).unwrap();
+fn nonlin_regression(index: usize, incomplete_path: &str) -> Result<FitResult, Box<dyn Error>> {
+    match std::panic::catch_unwind(move || {
+        let mut y_values = get_correlation_fn(index, incomplete_path).unwrap();
         let n: usize = y_values.len();
 
         if SYMMETRIZE {
