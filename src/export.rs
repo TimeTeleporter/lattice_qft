@@ -80,11 +80,8 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn get_correlation_fn(index: usize) -> Result<Vec<f64>, Box<dyn Error>> {
-    let path: &str = &(crate::CORRELATION_PLOT_PATH_INCOMPLETE.to_owned()
-        + &"correlation_"
-        + &index.to_string()
-        + &".csv");
+pub fn get_correlation_fn(index: usize, corr_fn_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
+    let path: &str = &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
     f64::fetch_csv_data(path, false)
 }
 
@@ -171,3 +168,23 @@ impl CorrelationLengths {
 }
 
 impl CsvData for CorrelationLengths {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OldComputationSummary {
+    pub index: usize,
+    pub d: Option<usize>,
+    pub size: Option<usize>,
+    pub x: Option<usize>,
+    pub y: Option<usize>,
+    pub t: Option<usize>,
+    pub temp: Option<f64>,
+    pub comptype: Option<String>,
+    pub comptime: Option<f64>,
+    pub action: Option<f64>,
+    pub energy_data: bool,
+    pub difference_data: bool,
+    pub correlation_data: bool,
+    pub corr12: Option<f64>,
+}
+
+impl CsvData for OldComputationSummary {}
