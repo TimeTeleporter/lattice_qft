@@ -154,6 +154,15 @@ pub const INVESTIGATE_ARY3_6: [f64; 180] = [
     0.46, 0.47, 0.48, 0.49,
 ];
 
+pub const INVESTIGATE_ARY3_3: [f64; 90] = [
+    0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35,
+    0.36, 0.37, 0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.2, 0.21,
+    0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37,
+    0.38, 0.39, 0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.2, 0.21, 0.22, 0.23,
+    0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,
+    0.4, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
+];
+
 pub const INVESTIGATE_ARY4: [f64; 18] = [
     0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38,
     0.39, 0.40,
@@ -166,7 +175,7 @@ pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
 pub const RESULTS_COMP_FIT_PATH: &str = "./data/results_comp_fit.csv";
 pub const RESULTS_COMP_SECOND_MOMENT_PATH: &str = "./data/results_comp_second_moment.csv";
 pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/plot_data/correlation_data/";
-pub const COMP_CORR_FN_PATH_INCOMPLETE: &str = "./data/plot_data/compounded_correlation_data/";
+pub const COMP_CORR_FN_PATH_INCOMPLETE: &str = "./data/plot_data/comp_correlation_data/";
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_data/";
 pub const ENERGY_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/energy_data/";
 pub const OTHER_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/other_data/";

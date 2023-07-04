@@ -23,6 +23,7 @@ fn main() {
         lattice_qft::RESULTS_PATH,
         lattice_qft::CORR_FN_PATH_INCOMPLETE,
         lattice_qft::RESULTS_SECOND_MOMENT_PATH,
+        true,
     );
     // Calculate the fits for each correlation function
     nonlin_fit(
@@ -42,6 +43,7 @@ fn main() {
         lattice_qft::RESULTS_COMP_PATH,
         lattice_qft::COMP_CORR_FN_PATH_INCOMPLETE,
         lattice_qft::RESULTS_COMP_SECOND_MOMENT_PATH,
+        false,
     );
     // Fit the compounded correlation functions
     nonlin_fit(
@@ -133,6 +135,8 @@ fn compound_data(
 
         summaries.push(summary.set_correlation_length(corr.mean()))
     }
+
+    let summaries: Vec<ComputationSummary> = summaries.into_iter().rev().collect();
 
     if let Err(err) = summaries.overwrite_csv(results_comp_path) {
         eprint!("{}", err);
@@ -259,7 +263,12 @@ fn nonlin_regression(index: usize, corr_fn_path: &str) -> Result<FitResult, Box<
     }
 }
 
-fn second_moment(results_path: &str, corr_fn_path: &str, second_moment_path: &str) {
+fn second_moment(
+    results_path: &str,
+    corr_fn_path: &str,
+    second_moment_path: &str,
+    write_corr12_in_results: bool,
+) {
     // Read the result data
     let mut results: Vec<ComputationSummary> =
         match ComputationSummary::fetch_csv_data(results_path, true) {
@@ -287,8 +296,10 @@ fn second_moment(results_path: &str, corr_fn_path: &str, second_moment_path: &st
     if let Err(err) = fitted.overwrite_csv(second_moment_path) {
         eprint!("{}", err);
     }
-    if let Err(err) = results.overwrite_csv(results_path) {
-        eprint!("{}", err);
+    if write_corr12_in_results {
+        if let Err(err) = results.overwrite_csv(results_path) {
+            eprint!("{}", err);
+        }
     }
 }
 

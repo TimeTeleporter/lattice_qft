@@ -13,9 +13,9 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const REPETITIONS: usize = 10;
-const BURNIN: usize = 20_000;
-const ITERATIONS: usize = 100_000;
+const REPETITIONS: usize = 1;
+const BURNIN: usize = 200_000;
+const ITERATIONS: usize = 200_000;
 
 // Lattice sizes (16, 24, 36, 54)
 const CUBE: usize = 54;
@@ -35,7 +35,7 @@ const _HEIGHT: usize = MAX_T;
 fn main() {
     // Setting the global thread pool
     rayon::ThreadPoolBuilder::new()
-        .num_threads(19)
+        .num_threads(18)
         .build_global()
         .unwrap();
 
@@ -46,18 +46,18 @@ fn main() {
         // Initialise the simulations
         let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
         println!("Starting rep {}", rep);
-        for temp in lattice_qft::INVESTIGATE_ARY4 {
+        for temp in lattice_qft::INVESTIGATE_ARY3_3 {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             observables.push(OutputData::new_action_observable(temp));
             observables.push(
                 OutputData::new_correlation_plot(&lattice)
-                    .set_frequency(1000)
-                    .set_repetitions(1000),
+                    .set_frequency(10)
+                    .set_repetitions(10),
             );
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,
-                AlgorithmType::new_newnewcluster(),
+                AlgorithmType::new_metropolis(),
                 BURNIN,
                 ITERATIONS,
                 observables.clone(),
