@@ -161,12 +161,11 @@ pub const INVESTIGATE_ARY4: [f64; 18] = [
 
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
-pub const RESULTS_SECOND_MOMENT_PATH: &str = "./data/results_second_moment.csv";
+pub const RESULTS_CORR_PATH: &str = "./data/results_corr.csv";
 pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
-pub const RESULTS_COMP_FIT_PATH: &str = "./data/results_comp_fit.csv";
-pub const RESULTS_COMP_SECOND_MOMENT_PATH: &str = "./data/results_comp_second_moment.csv";
-pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/plot_data/correlation_data/";
-pub const COMP_CORR_FN_PATH_INCOMPLETE: &str = "./data/plot_data/compounded_correlation_data/";
+pub const CORRELATION_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/correlation_data/";
+pub const COMPOUNDED_CORRELATION_PLOT_PATH_INCOMPLETE: &str =
+    "./data/plot_data/compounded_correlation_data/";
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_data/";
 pub const ENERGY_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/energy_data/";
 pub const OTHER_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/other_data/";

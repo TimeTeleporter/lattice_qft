@@ -235,7 +235,7 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                 }
                 OutputDataType::CorrelationData(obs) => {
                     if let Some(plot) = obs.plot().into_iter().next() {
-                        let path: &str = &(crate::CORR_FN_PATH_INCOMPLETE.to_owned()
+                        let path: &str = &(crate::CORRELATION_PLOT_PATH_INCOMPLETE.to_owned()
                             + &"correlation_"
                             + &index.to_string()
                             + &".csv");

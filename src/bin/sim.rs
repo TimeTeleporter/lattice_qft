@@ -14,11 +14,11 @@ use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
 const REPETITIONS: usize = 10;
-const BURNIN: usize = 20_000;
-const ITERATIONS: usize = 100_000;
+const BURNIN: usize = 100_000;
+const ITERATIONS: usize = 20_000;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 54;
+const CUBE: usize = 36;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -35,17 +35,16 @@ const _HEIGHT: usize = MAX_T;
 fn main() {
     // Setting the global thread pool
     rayon::ThreadPoolBuilder::new()
-        .num_threads(19)
+        .num_threads(18)
         .build_global()
         .unwrap();
 
     // Initialize the lattice
     let lattice: Lattice3d<MAX_X, MAX_Y, MAX_T> = Lattice3d::new();
 
-    for rep in 1..=REPETITIONS {
-        // Initialise the simulations
-        let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
-        println!("Starting rep {}", rep);
+    // Initialise the simulations
+    let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
+    for _rep in 0..REPETITIONS {
         for temp in lattice_qft::INVESTIGATE_ARY4 {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             observables.push(OutputData::new_action_observable(temp));
