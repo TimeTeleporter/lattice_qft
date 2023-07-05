@@ -136,11 +136,70 @@ fn compound_data(
         summaries.push(summary.set_correlation_length(corr.mean()))
     }
 
+    // Writing the compounded summary data
     let summaries: Vec<ComputationSummary> = summaries.into_iter().rev().collect();
-
-    if let Err(err) = summaries.overwrite_csv(results_comp_path) {
-        eprint!("{}", err);
+    if let Err(err) = summaries.clone().overwrite_csv(results_comp_path) {
+        eprint!("Writing compounded summaries: {}", err);
     }
+
+    // Building the errors for the compounded correlation functions
+    if let Err(err) = build_corr_fn_errors(
+        results_path,
+        results_comp_path,
+        corr_fn_path,
+        comp_corr_fn_path,
+    ) {
+        eprintln!("Building correlation function errors: {}", err);
+    }
+}
+
+fn build_corr_fn_errors(
+    results_path: &str,
+    results_comp_path: &str,
+    corr_fn_path: &str,
+    comp_corr_fn_path: &str,
+) -> Result<(), Box<dyn Error>> {
+    // Read the result data
+    let mut results: Vec<ComputationSummary> =
+        ComputationSummary::fetch_csv_data(results_path, true)?;
+    let mut results_comp: Vec<ComputationSummary> =
+        ComputationSummary::fetch_csv_data(results_comp_path, true)?;
+
+    // For each compounded correlation function...
+    while let Some(summary) = results_comp.pop() {
+        let mean_comp_corr_fn: Vec<f64> = get_correlation_fn(summary.index, comp_corr_fn_path)?;
+        let mut comp_corr_fn_errors: Vec<KahanSummation<f64>> = mean_comp_corr_fn
+            .iter()
+            .map(|_| KahanSummation::new())
+            .collect();
+
+        results
+            .drain_filter(|entry| {
+                entry.temp == summary.temp
+                    && entry.t == summary.t
+                    && entry.comptype == summary.comptype
+            })
+            .for_each(|entry| {
+                let corr_fn: Vec<f64> = get_correlation_fn(entry.index, corr_fn_path).unwrap();
+                comp_corr_fn_errors
+                    .iter_mut()
+                    .zip(corr_fn.into_iter().zip(mean_comp_corr_fn.iter()))
+                    .for_each(|(kahan, (x, mean_x))| kahan.add((x - *mean_x) * (x - *mean_x)))
+            });
+
+        let comp_corr_fn_errors: Vec<f64> = comp_corr_fn_errors
+            .into_iter()
+            .map(|kahan| kahan.mean().sqrt())
+            .collect();
+
+        let path: &str = &(comp_corr_fn_path.to_owned()
+            + &"correlation_"
+            + &summary.index.to_string()
+            + &"_err.csv");
+        comp_corr_fn_errors.overwrite_csv(path)?;
+    }
+
+    Ok(())
 }
 
 fn nonlin_fit(results_path: &str, corr_fn_path: &str, fit_path: &str) {
@@ -324,13 +383,12 @@ fn return_correlation_lengths(
     let correlation_fn: Vec<f64> = correlation_fn.into_iter().map(|x| x_max - x).collect();
     let p1: f64 = 2.0 * std::f64::consts::PI / (max_t as f64);
 
-    let calculate_correlation_length = lattice_qft::outputdata::calculate_correlation_length;
-    let m12: f64 = calculate_correlation_length(&correlation_fn, p1, 2.0 * p1).0;
-    let m23: f64 = calculate_correlation_length(&correlation_fn, 2.0 * p1, 3.0 * p1).0;
-    let m34: f64 = calculate_correlation_length(&correlation_fn, 3.0 * p1, 4.0 * p1).0;
-    let m13: f64 = calculate_correlation_length(&correlation_fn, 1.0 * p1, 3.0 * p1).0;
-    let m24: f64 = calculate_correlation_length(&correlation_fn, 2.0 * p1, 4.0 * p1).0;
-    let m14: f64 = calculate_correlation_length(&correlation_fn, 1.0 * p1, 4.0 * p1).0;
+    let m12: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, p1, 2.0 * p1).0;
+    let m23: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 2.0 * p1, 3.0 * p1).0;
+    let m34: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 3.0 * p1, 4.0 * p1).0;
+    let m13: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 1.0 * p1, 3.0 * p1).0;
+    let m24: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 2.0 * p1, 4.0 * p1).0;
+    let m14: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 1.0 * p1, 4.0 * p1).0;
 
     Ok([m12, m23, m34, m13, m24, m14])
 }

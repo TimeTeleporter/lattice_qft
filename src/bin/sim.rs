@@ -46,7 +46,7 @@ fn main() {
         // Initialise the simulations
         let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
         println!("Starting rep {}", rep);
-        for temp in lattice_qft::INVESTIGATE_ARY3_3 {
+        for temp in [0.26; 90] {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             observables.push(OutputData::new_action_observable(temp));
             observables.push(

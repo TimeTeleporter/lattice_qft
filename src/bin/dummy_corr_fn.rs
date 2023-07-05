@@ -1,4 +1,4 @@
-use std::{error::Error, panic::catch_unwind};
+use std::error::Error;
 
 use lattice_qft::export::{CsvData, FitResult};
 use nalgebra::DVector;
@@ -36,21 +36,21 @@ fn main() {
 
     const P1: f64 = 2.0 * std::f64::consts::PI / (MAX_T as f64);
     let inverse_correlation_length: f64 =
-        lattice_qft::outputdata::calculate_correlation_length(&corr_fn, P1, P1 * 2.0).0;
+        lattice_qft::calculate_correlation_length(&corr_fn, P1, P1 * 2.0).0;
     println!(
         "Second moment: m12 = {}, corr12 = {}",
         inverse_correlation_length,
         1.0 / inverse_correlation_length
     );
     let inverse_correlation_length: f64 =
-        lattice_qft::outputdata::calculate_correlation_length(&corr_fn, 2.0 * P1, P1 * 3.0).0;
+        lattice_qft::calculate_correlation_length(&corr_fn, 2.0 * P1, P1 * 3.0).0;
     println!(
         "Second moment: m23 = {}, corr23 = {}",
         inverse_correlation_length,
         1.0 / inverse_correlation_length
     );
     let inverse_correlation_length: f64 =
-        lattice_qft::outputdata::calculate_correlation_length(&corr_fn, P1, P1 * 3.0).0;
+        lattice_qft::calculate_correlation_length(&corr_fn, P1, P1 * 3.0).0;
     println!(
         "Second moment: m13 = {}, corr13 = {}",
         inverse_correlation_length,
@@ -69,7 +69,7 @@ fn main() {
 }
 
 fn nonlin_regression(corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn Error>> {
-    match catch_unwind(move || {
+    match std::panic::catch_unwind(move || {
         let y_values = corr_fn;
         let n: usize = y_values.len();
 

@@ -564,7 +564,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
 
 // - Computation - Summary ----------------------------------------------------
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 /// We export the [`ComputationResult`] in a csv file with this formating
 pub struct ComputationSummary {
     pub index: usize,

@@ -2,7 +2,6 @@
 //! data of the Markov chain Monte Carlo in order to calculate observables
 //! and create plots.
 
-use num_complex::Complex64;
 use rand::rngs::ThreadRng;
 
 use crate::{
@@ -432,39 +431,6 @@ impl<'a, const SIZE: usize> Plotting<f64> for CorrelationPlotOutputData<'a, 3, S
         ary.push(self.corr_fn.into_iter().map(|x| x.mean()).collect());
         ary
     }
-}
-
-pub fn calculate_correlation_length(correlation_fn: &Vec<f64>, p1: f64, p2: f64) -> (f64, f64) {
-    let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(correlation_fn, p1);
-    let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(correlation_fn, p2);
-
-    let g1: Complex64 = Complex64::new(g1_re, g1_im);
-    let g2: Complex64 = Complex64::new(g2_re, g2_im);
-
-    let cos1: f64 = p1.cos();
-    let cos2: f64 = p2.cos();
-
-    let cosh: Complex64 = (g1 * cos1 - g2 * cos2).fdiv(g1 - g2);
-
-    assert!(!cosh.is_nan());
-
-    let ma: Complex64 = cosh.acosh();
-
-    (ma.re, ma.im)
-}
-
-fn discrete_fourier_transform(correlation_fn: &Vec<f64>, momentum: f64) -> (f64, f64) {
-    let real: f64 = correlation_fn
-        .iter()
-        .enumerate()
-        .map(|(x, g_x)| g_x * f64::cos(momentum * (x as f64)))
-        .sum();
-    let imaginary: f64 = correlation_fn
-        .iter()
-        .enumerate()
-        .map(|(x, g_x)| g_x * f64::sin(momentum * (x as f64)))
-        .sum();
-    (real, imaginary)
 }
 
 #[test]

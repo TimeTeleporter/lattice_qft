@@ -196,62 +196,41 @@ extern crate serde;
 // A method to pause a sim until enter
 use std::process::Command;
 
+use num_complex::Complex64;
+
 pub fn pause() {
     let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
 }
 
-#[test]
-fn get_log_ary() {
-    const TESTING: bool = true;
+pub fn calculate_correlation_length(correlation_fn: &Vec<f64>, p1: f64, p2: f64) -> (f64, f64) {
+    let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(correlation_fn, p1);
+    let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(correlation_fn, p2);
 
-    // Define the array boundries
-    const LOWER: f64 = 0.2;
-    const UPPER: f64 = 0.5;
-    const STEPS: usize = 10;
+    let g1: Complex64 = Complex64::new(g1_re, g1_im);
+    let g2: Complex64 = Complex64::new(g2_re, g2_im);
 
-    // Convert them to log scale
-    let lower_log: f64 = LOWER.log10();
-    let upper_log: f64 = UPPER.log10();
+    let cos1: f64 = p1.cos();
+    let cos2: f64 = p2.cos();
 
-    if TESTING {
-        dbg!(lower_log);
-        dbg!(upper_log);
-    }
-    let diff: f64 = upper_log - lower_log;
-    let step_size: f64 = diff / ((STEPS - 1) as f64);
+    let cosh: Complex64 = (g1 * cos1 - g2 * cos2).fdiv(g1 - g2);
 
-    let ary: [f64; STEPS] = core::array::from_fn(|i| i)
-        .map(|step| lower_log + step_size * (step as f64))
-        .map(|x| f64::powf(10.0, x))
-        .map(|x| (x * 100.0).round() / 100.0);
+    assert!(!cosh.is_nan());
 
-    if TESTING {
-        dbg!(ary);
-    };
+    let ma: Complex64 = cosh.acosh();
+
+    (ma.re, ma.im)
 }
 
-#[test]
-fn get_ary() {
-    const TESTING: bool = true;
-
-    // Define the array boundries
-    const LOWER: f64 = 0.2;
-    const UPPER: f64 = 0.3;
-    const STEPS: usize = 10;
-
-    if TESTING {
-        dbg!(LOWER);
-        dbg!(UPPER);
-    }
-    let diff: f64 = UPPER - LOWER;
-    let step_size: f64 = diff / ((STEPS) as f64);
-
-    let ary: [f64; STEPS] = core::array::from_fn(|i| i)
-        .map(|step| LOWER + step_size * (step as f64))
-        .map(|x| f64::powf(10.0, x))
-        .map(|x| (x * 100.0).round() / 100.0);
-
-    if TESTING {
-        dbg!(ary);
-    };
+fn discrete_fourier_transform(correlation_fn: &Vec<f64>, momentum: f64) -> (f64, f64) {
+    let real: f64 = correlation_fn
+        .iter()
+        .enumerate()
+        .map(|(x, g_x)| g_x * f64::cos(momentum * (x as f64)))
+        .sum();
+    let imaginary: f64 = correlation_fn
+        .iter()
+        .enumerate()
+        .map(|(x, g_x)| g_x * f64::sin(momentum * (x as f64)))
+        .sum();
+    (real, imaginary)
 }

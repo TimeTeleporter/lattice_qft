@@ -82,7 +82,7 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
 
 pub fn get_correlation_fn(index: usize, corr_fn_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
     let path: &str = &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
-    f64::fetch_csv_data(path, false)
+    f64::fetch_csv_data(path, false).map_err(|err| format!("Fetching {}: {}", path, err).into())
 }
 
 impl CsvData for ComputationSummary {}
