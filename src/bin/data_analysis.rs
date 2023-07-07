@@ -6,7 +6,9 @@ use std::error::Error;
 
 use lattice_qft::{
     computation::ComputationSummary,
-    export::{get_correlation_fn, CorrelationLengths, CsvData, FitResult},
+    export::{
+        get_correlation_fn, get_correlation_fn_with_err, CorrelationLengths, CsvData, FitResult,
+    },
     kahan::KahanSummation,
 };
 use nalgebra::DVector;
@@ -68,6 +70,7 @@ fn compound_data(
                 return;
             }
         };
+    results.reverse();
 
     // Initialize new array for summaries
     let mut summaries: Vec<ComputationSummary> = Vec::new();
@@ -137,7 +140,6 @@ fn compound_data(
     }
 
     // Writing the compounded summary data
-    let summaries: Vec<ComputationSummary> = summaries.into_iter().rev().collect();
     if let Err(err) = summaries.clone().overwrite_csv(results_comp_path) {
         eprint!("Writing compounded summaries: {}", err);
     }
@@ -367,28 +369,70 @@ fn correlation_lenght_calculation(
     max_t: usize,
     incomplete_path: &str,
 ) -> Result<CorrelationLengths, Box<dyn Error>> {
-    let corr_fn: Vec<f64> = get_correlation_fn(index, incomplete_path)?;
-    let ary: [f64; 6] = return_correlation_lengths(corr_fn, max_t)?;
-    Ok(CorrelationLengths::new(index, ary))
-}
+    let (corr_fn, corr_fn_err): (Vec<f64>, Option<Vec<f64>>) =
+        get_correlation_fn_with_err(index, incomplete_path)?;
 
-fn return_correlation_lengths(
-    correlation_fn: Vec<f64>,
-    max_t: usize,
-) -> Result<[f64; 6], Box<dyn Error>> {
-    let Some(x_max): Option<f64> = correlation_fn.clone().into_iter().reduce(f64::max) else {
-        return Err("Unable to determine the  maximum of the correlation function".into());
-    };
+    let Some(x_max): Option<f64> = corr_fn.clone().into_iter().reduce(f64::max) else {
+            return Err("Unable to determine the  maximum of the correlation function".into());
+        };
 
-    let correlation_fn: Vec<f64> = correlation_fn.into_iter().map(|x| x_max - x).collect();
+    let corr_fn: Vec<f64> = corr_fn.into_iter().map(|x| x_max - x).collect();
     let p1: f64 = 2.0 * std::f64::consts::PI / (max_t as f64);
 
-    let m12: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, p1, 2.0 * p1).0;
-    let m23: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 2.0 * p1, 3.0 * p1).0;
-    let m34: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 3.0 * p1, 4.0 * p1).0;
-    let m13: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 1.0 * p1, 3.0 * p1).0;
-    let m24: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 2.0 * p1, 4.0 * p1).0;
-    let m14: f64 = lattice_qft::calculate_correlation_length(&correlation_fn, 1.0 * p1, 4.0 * p1).0;
+    let m12: f64 = lattice_qft::calculate_correlation_length(&corr_fn, p1, 2.0 * p1).0;
+    let m23: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 2.0 * p1, 3.0 * p1).0;
+    let m34: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 3.0 * p1, 4.0 * p1).0;
+    let m13: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 1.0 * p1, 3.0 * p1).0;
+    let m24: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 2.0 * p1, 4.0 * p1).0;
+    let m14: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 1.0 * p1, 4.0 * p1).0;
 
-    Ok([m12, m23, m34, m13, m24, m14])
+    let values: [f64; 6] = [m12, m23, m34, m13, m24, m14];
+    let mut correlation_lengths: CorrelationLengths = CorrelationLengths::new(index, values);
+
+    if let Some(corr_fn_err) = corr_fn_err {
+        let (_, (m12_err, _)) =
+            lattice_qft::calculate_correlation_length_errors(&corr_fn, &corr_fn_err, p1, 2.0 * p1);
+        let (_, (m23_err, _)) = lattice_qft::calculate_correlation_length_errors(
+            &corr_fn,
+            &corr_fn_err,
+            2.0 * p1,
+            3.0 * p1,
+        );
+        let (_, (m34_err, _)) = lattice_qft::calculate_correlation_length_errors(
+            &corr_fn,
+            &corr_fn_err,
+            3.0 * p1,
+            4.0 * p1,
+        );
+        let (_, (m13_err, _)) = lattice_qft::calculate_correlation_length_errors(
+            &corr_fn,
+            &corr_fn_err,
+            1.0 * p1,
+            3.0 * p1,
+        );
+        let (_, (m24_err, _)) = lattice_qft::calculate_correlation_length_errors(
+            &corr_fn,
+            &corr_fn_err,
+            2.0 * p1,
+            4.0 * p1,
+        );
+        let (_, (m14_err, _)) = lattice_qft::calculate_correlation_length_errors(
+            &corr_fn,
+            &corr_fn_err,
+            1.0 * p1,
+            4.0 * p1,
+        );
+
+        let errors: [Option<f64>; 6] = [
+            Some(m12_err),
+            Some(m23_err),
+            Some(m34_err),
+            Some(m13_err),
+            Some(m24_err),
+            Some(m14_err),
+        ];
+        correlation_lengths.set_errors(errors);
+    }
+
+    Ok(correlation_lengths)
 }

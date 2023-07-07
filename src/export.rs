@@ -82,7 +82,20 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
 
 pub fn get_correlation_fn(index: usize, corr_fn_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
     let path: &str = &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
-    f64::fetch_csv_data(path, false).map_err(|err| format!("Fetching {}: {}", path, err).into())
+    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
+        .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fn
+}
+
+pub fn get_correlation_fn_with_err(
+    index: usize,
+    corr_fn_path: &str,
+) -> Result<(Vec<f64>, Option<Vec<f64>>), Box<dyn Error>> {
+    let corr_fn: Vec<f64> = get_correlation_fn(index, corr_fn_path)?;
+    let path: &str =
+        &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &"_err.csv");
+    let corr_fn_err: Option<Vec<f64>> = f64::fetch_csv_data(path, false).ok();
+    Ok((corr_fn, corr_fn_err))
 }
 
 impl CsvData for ComputationSummary {}
@@ -129,7 +142,7 @@ impl FitResult {
 
 impl CsvData for FitResult {}
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CorrelationLengths {
     index: usize,
     m12: f64,
@@ -138,17 +151,31 @@ pub struct CorrelationLengths {
     m13: f64,
     m24: f64,
     m14: f64,
+    m12_err: Option<f64>,
+    m23_err: Option<f64>,
+    m34_err: Option<f64>,
+    m13_err: Option<f64>,
+    m24_err: Option<f64>,
+    m14_err: Option<f64>,
     pub corr12: f64,
     corr23: f64,
     corr34: f64,
     corr13: f64,
     corr24: f64,
     corr14: f64,
+    pub corr12_err: Option<f64>,
+    corr23_err: Option<f64>,
+    corr34_err: Option<f64>,
+    corr13_err: Option<f64>,
+    corr24_err: Option<f64>,
+    corr14_err: Option<f64>,
 }
 
 impl CorrelationLengths {
-    pub fn new(index: usize, ary: [f64; 6]) -> CorrelationLengths {
-        let [m12, m23, m34, m13, m24, m14] = ary;
+    pub fn new(index: usize, values: [f64; 6]) -> CorrelationLengths {
+        let [m12, m23, m34, m13, m24, m14] = values;
+        let corrs: [f64; 6] = values.map(|x| 1.0 / x);
+        let [corr12, corr23, corr34, corr13, corr24, corr14] = corrs;
         CorrelationLengths {
             index,
             m12,
@@ -157,13 +184,37 @@ impl CorrelationLengths {
             m13,
             m24,
             m14,
-            corr12: 1.0 / m12,
-            corr23: 1.0 / m23,
-            corr34: 1.0 / m34,
-            corr13: 1.0 / m13,
-            corr24: 1.0 / m24,
-            corr14: 1.0 / m14,
+            corr12,
+            corr23,
+            corr34,
+            corr13,
+            corr24,
+            corr14,
+            ..CorrelationLengths::default()
         }
+    }
+
+    pub fn set_errors(&mut self, errors: [Option<f64>; 6]) {
+        [
+            self.m12_err,
+            self.m23_err,
+            self.m34_err,
+            self.m13_err,
+            self.m24_err,
+            self.m14_err,
+        ] = errors;
+        let values = [self.m12, self.m23, self.m34, self.m13, self.m24, self.m14];
+        let corr_errors: [Option<f64>; 6] = errors
+            .zip(values)
+            .map(|(delta_x, x)| delta_x.map(|delta| delta / (x * x)));
+        [
+            self.corr12_err,
+            self.corr23_err,
+            self.corr34_err,
+            self.corr13_err,
+            self.corr24_err,
+            self.corr14_err,
+        ] = corr_errors;
     }
 }
 
