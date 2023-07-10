@@ -23,6 +23,7 @@ fn main() {
                     difference_data: old_summary.difference_data,
                     correlation_data: old_summary.correlation_data,
                     corr12: old_summary.corr12,
+                    corr12_err: None,
                 })
                 .collect();
             Ok(new_summaries)

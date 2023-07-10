@@ -581,6 +581,7 @@ pub struct ComputationSummary {
     pub difference_data: bool,
     pub correlation_data: bool,
     pub corr12: Option<f64>,
+    pub corr12_err: Option<f64>,
 }
 
 impl ComputationSummary {
@@ -600,6 +601,7 @@ impl ComputationSummary {
             difference_data: false,
             correlation_data: false,
             corr12: None,
+            corr12_err: None,
         }
     }
 
@@ -691,6 +693,11 @@ impl ComputationSummary {
 
     pub fn set_correlation_length(mut self, corr12: f64) -> Self {
         self.corr12 = Some(corr12);
+        self
+    }
+
+    pub fn set_correlation_length_error(mut self, corr12_err: f64) -> Self {
+        self.corr12_err = Some(corr12_err);
         self
     }
 }
