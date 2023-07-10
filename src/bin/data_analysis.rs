@@ -70,14 +70,15 @@ fn compound_data(
                 return;
             }
         };
-    results.reverse();
+    let mut results_drain: Vec<ComputationSummary> = results.clone();
+    results_drain.reverse();
 
     // Initialize new array for summaries
     let mut summaries: Vec<ComputationSummary> = Vec::new();
 
     // For each uniue set of coupling constant, lattice size and algorithm,
     // average the correlation functions and correlation lengths
-    while let Some(summary) = results.pop() {
+    while let Some(summary) = results_drain.pop() {
         let temp: Option<f64> = summary.temp;
         let max_t: Option<usize> = summary.t;
         let index: usize = summary.index;
@@ -104,7 +105,7 @@ fn compound_data(
             eprintln!("Index {} no correlation lenght availible!", index)
         }
 
-        results
+        results_drain
             .drain_filter(|entry| {
                 entry.temp == temp && entry.t == max_t && entry.comptype == comptype
             })
@@ -139,8 +140,25 @@ fn compound_data(
         summaries.push(summary.set_correlation_length(corr.mean()))
     }
 
+    // Calculate the standard deviation for the compounded correlation lenght
+    summaries
+        .iter_mut()
+        .filter_map(|summary| summary.corr12.map(|x| (summary, x)))
+        .for_each(|(summary, mean)| {
+            let mut kahan: KahanSummation<f64> = KahanSummation::new();
+            results
+                .drain_filter(|entry| {
+                    entry.temp == summary.temp
+                        && entry.t == summary.t
+                        && entry.comptype == summary.comptype
+                })
+                .filter_map(|entry| entry.corr12)
+                .for_each(|value| kahan.add((value - mean) * (value - mean)));
+            summary.corr12_err = Some(kahan.mean());
+        });
+
     // Writing the compounded summary data
-    if let Err(err) = summaries.clone().overwrite_csv(results_comp_path) {
+    if let Err(err) = summaries.overwrite_csv(results_comp_path) {
         eprint!("Writing compounded summaries: {}", err);
     }
 

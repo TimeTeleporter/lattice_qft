@@ -228,6 +228,7 @@ pub fn calculate_correlation_length_errors(
     p1: f64,
     p2: f64,
 ) -> ((f64, f64), (f64, f64)) {
+    //let corr_fn_err: &Vec<f64> = &corr_fn_err.into_iter().map(|x| x * 0.1).collect();
     let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(corr_fn, p1);
     let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(corr_fn, p2);
     let (g1_re_err, g1_im_err): (f64, f64) = discrete_fourier_transform(corr_fn_err, p1);
