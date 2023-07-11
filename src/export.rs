@@ -230,12 +230,13 @@ pub struct OldComputationSummary {
     pub t: Option<usize>,
     pub temp: Option<f64>,
     pub comptype: Option<String>,
-    pub comptime: Option<f64>,
+    pub comptime: Option<u64>,
     pub action: Option<f64>,
     pub energy_data: bool,
     pub difference_data: bool,
     pub correlation_data: bool,
     pub corr12: Option<f64>,
+    pub corr12_err: Option<f64>,
 }
 
 impl CsvData for OldComputationSummary {}

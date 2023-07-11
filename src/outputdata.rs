@@ -7,7 +7,7 @@ use rand::rngs::ThreadRng;
 use crate::{
     computation::FieldExport3d,
     fields::{Action, BondsFieldNew, Field, HeightVariable, WilsonField},
-    kahan::KahanSummation,
+    kahan::{KahanSummation, WelfordsAlgorithm64},
     lattice::Lattice,
 };
 
@@ -176,14 +176,14 @@ where
 /// This struct implements the action as a observable of the lattice simulation
 #[derive(Debug, Clone)]
 pub struct ActionObservableNew {
-    value: KahanSummation<f64>,
+    value: WelfordsAlgorithm64,
     temp: f64,
 }
 
 impl ActionObservableNew {
     fn new(temp: f64) -> Self {
         ActionObservableNew {
-            value: KahanSummation::new(),
+            value: WelfordsAlgorithm64::new(),
             temp,
         }
     }
@@ -197,13 +197,13 @@ where
     where
         [(); D * 2_usize]:,
     {
-        self.value.add(field.action_observable(self.temp))
+        self.value.update(field.action_observable(self.temp))
     }
 }
 
 impl Observe for ActionObservableNew {
     fn result(self) -> f64 {
-        self.value.mean()
+        self.value.get_mean()
     }
 }
 
@@ -212,16 +212,16 @@ impl Observe for ActionObservableNew {
 /// partition function.
 #[derive(Debug, Clone)]
 pub struct TestActionObservable {
-    partfn: KahanSummation<f64>,
-    obs: KahanSummation<f64>,
+    partfn: WelfordsAlgorithm64,
+    obs: WelfordsAlgorithm64,
     temp: f64,
 }
 
 impl TestActionObservable {
     fn new(temp: f64) -> Self {
         TestActionObservable {
-            partfn: KahanSummation::new(),
-            obs: KahanSummation::new(),
+            partfn: WelfordsAlgorithm64::new(),
+            obs: WelfordsAlgorithm64::new(),
             temp,
         }
     }
@@ -234,8 +234,8 @@ impl TestActionObservable {
     {
         let bolz: f64 = (-wilson.action_observable(self.temp)).exp();
         self.obs
-            .add(wilson.field.action_observable(self.temp) * bolz);
-        self.partfn.add(bolz);
+            .update(wilson.field.action_observable(self.temp) * bolz);
+        self.partfn.update(bolz);
     }
 }
 
@@ -248,14 +248,14 @@ where
         [(); D * 2_usize]:,
     {
         let bolz: f64 = (-field.action_observable(self.temp)).exp();
-        self.obs.add(field.action_observable(self.temp) * bolz);
-        self.partfn.add(bolz);
+        self.obs.update(field.action_observable(self.temp) * bolz);
+        self.partfn.update(bolz);
     }
 }
 
 impl Observe for TestActionObservable {
     fn result(self) -> f64 {
-        self.obs.mean() / self.partfn.mean()
+        self.obs.get_mean() / self.partfn.get_mean()
     }
 }
 
@@ -416,8 +416,10 @@ where
             correlation_function[t].add(squared.into());
         }
         // Converting into a Vec
-        let correlation_function: Vec<f64> =
-            correlation_function.into_iter().map(|x| x.sum()).collect();
+        let correlation_function: Vec<f64> = correlation_function
+            .into_iter()
+            .map(|x| x.get_sum())
+            .collect();
 
         for (step, corr) in self.corr_fn.iter_mut().enumerate() {
             corr.add(correlation_function[step])
@@ -428,7 +430,7 @@ where
 impl<'a, const SIZE: usize> Plotting<f64> for CorrelationPlotOutputData<'a, 3, SIZE> {
     fn plot(self) -> Vec<Vec<f64>> {
         let mut ary: Vec<Vec<f64>> = Vec::new();
-        ary.push(self.corr_fn.into_iter().map(|x| x.mean()).collect());
+        ary.push(self.corr_fn.into_iter().map(|x| x.get_mean()).collect());
         ary
     }
 }

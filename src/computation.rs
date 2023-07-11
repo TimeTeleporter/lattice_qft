@@ -575,6 +575,7 @@ pub struct ComputationSummary {
     pub t: Option<usize>,
     pub temp: Option<f64>,
     pub comptype: Option<String>,
+    pub iterations: Option<u64>,
     pub comptime: Option<u64>,
     pub action: Option<f64>,
     pub energy_data: bool,
@@ -595,6 +596,7 @@ impl ComputationSummary {
             t: None,
             temp: None,
             comptype: None,
+            iterations: None,
             comptime: None,
             action: None,
             energy_data: false,
@@ -614,28 +616,48 @@ impl ComputationSummary {
             Computation::Simulation(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype, comp.duration);
+                    .set_computation(
+                        comp.temp,
+                        comptype,
+                        comp.iterations.try_into().ok(),
+                        comp.duration,
+                    );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::Test(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype, comp.duration);
+                    .set_computation(
+                        comp.temp,
+                        comptype,
+                        comp.permutations.try_into().ok(),
+                        comp.duration,
+                    );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonSim(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype, comp.duration);
+                    .set_computation(
+                        comp.temp,
+                        comptype,
+                        comp.iterations.try_into().ok(),
+                        comp.duration,
+                    );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonTest(comp) => {
                 let new: ComputationSummary = ComputationSummary::new(index)
                     .set_size(comp.lattice.size)
-                    .set_computation(comp.temp, comptype, comp.duration);
+                    .set_computation(
+                        comp.temp,
+                        comptype,
+                        comp.permutations.try_into().ok(),
+                        comp.duration,
+                    );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
@@ -664,9 +686,16 @@ impl ComputationSummary {
         self
     }
 
-    pub fn set_computation(mut self, temp: f64, comptype: String, duration: Option<u64>) -> Self {
+    pub fn set_computation(
+        mut self,
+        temp: f64,
+        comptype: String,
+        iterations: Option<u64>,
+        duration: Option<u64>,
+    ) -> Self {
         self.temp = Some(temp);
         self.comptype = Some(comptype);
+        self.iterations = iterations;
         self.comptime = duration;
         self
     }

@@ -9,7 +9,7 @@ use lattice_qft::{
     export::{
         get_correlation_fn, get_correlation_fn_with_err, CorrelationLengths, CsvData, FitResult,
     },
-    kahan::KahanSummation,
+    kahan::WelfordsAlgorithm64,
 };
 use nalgebra::DVector;
 use varpro::{
@@ -70,156 +70,120 @@ fn compound_data(
                 return;
             }
         };
-    let mut results_drain: Vec<ComputationSummary> = results.clone();
-    results_drain.reverse();
+    results.reverse();
 
     // Initialize new array for summaries
     let mut summaries: Vec<ComputationSummary> = Vec::new();
 
     // For each uniue set of coupling constant, lattice size and algorithm,
     // average the correlation functions and correlation lengths
-    while let Some(summary) = results_drain.pop() {
+    while let Some(summary) = results.pop() {
         let temp: Option<f64> = summary.temp;
         let max_t: Option<usize> = summary.t;
         let index: usize = summary.index;
         let comptype: Option<String> = summary.comptype.clone();
 
         // Read the correlation functions
-        let mut corr_fn: Option<Vec<KahanSummation<f64>>> = get_correlation_fn(index, corr_fn_path)
+        if let Some(mut compounded_correlaton_function) = get_correlation_fn(index, corr_fn_path)
             .map_err(|err| eprintln!("Index {} no correlation function: {}", index, err))
             .ok()
             .map(|ary| {
                 ary.into_iter()
                     .map(|x| {
-                        let mut kahan: KahanSummation<f64> = KahanSummation::new();
-                        kahan.add(x);
+                        let mut kahan: WelfordsAlgorithm64 = WelfordsAlgorithm64::new();
+                        kahan.update(x);
                         kahan
                     })
-                    .collect()
-            });
-
-        let mut corr: KahanSummation<f64> = KahanSummation::new();
-        if let Some(corr12) = summary.corr12 {
-            corr.add(corr12);
-        } else {
-            eprintln!("Index {} no correlation lenght availible!", index)
-        }
-
-        results_drain
-            .drain_filter(|entry| {
-                entry.temp == temp && entry.t == max_t && entry.comptype == comptype
+                    .collect::<Vec<WelfordsAlgorithm64>>()
             })
-            .for_each(|entry| {
-                if let Some(corr12) = entry.corr12 {
-                    corr.add(corr12);
-                } else {
-                    eprintln!("Index {} no correlation lenght availible!", entry.index)
-                }
-                if let Some(entry_corr_fn) = get_correlation_fn(entry.index, corr_fn_path)
-                    .map_err(|err| {
-                        eprintln!("Index {} no correlation function: {}", summary.index, err)
-                    })
-                    .ok() && let Some(corr_fn) = &mut corr_fn
-                {
-                    corr_fn
-                        .iter_mut()
-                        .zip(entry_corr_fn)
-                        .for_each(|(corr1, corr2)| corr1.add(corr2))
-                }
-            });
+        {
+            let mut compounded_correlation_length: WelfordsAlgorithm64 = WelfordsAlgorithm64::new();
+            if let Some(corr12) = summary.corr12 {
+                compounded_correlation_length.update(corr12);
+            } else {
+                eprintln!("Index {} no correlation lenght availible!", index)
+            }
 
-        if let Some(corr_fn) = corr_fn {
-            let corr_fn: Vec<f64> = corr_fn.into_iter().map(|kahan| kahan.mean()).collect();
+            // We go through the the remaining results and compound them into the
+            // correlation lenght and correlation function summations
+            results
+                .drain_filter(|entry| {
+                    entry.temp == temp && entry.t == max_t && entry.comptype == comptype
+                })
+                .for_each(|entry| {
+                    if let Some(corr12) = entry.corr12 {
+                        compounded_correlation_length.update(corr12);
+                    } else {
+                        eprintln!("Index {} no correlation lenght availible!", entry.index)
+                    }
+                    if let Some(entry_corr_fn) = get_correlation_fn(entry.index, corr_fn_path)
+                        .map_err(|err| {
+                            eprintln!("Index {} no correlation function: {}", summary.index, err)
+                        })
+                        .ok()
+                    {
+                        compounded_correlaton_function
+                            .iter_mut()
+                            .zip(entry_corr_fn)
+                            .for_each(|(comp_corr_fn, entry_corr_fn)| {
+                                comp_corr_fn.update(entry_corr_fn)
+                            })
+                    }
+                });
+
+            let mut corr_fn: Vec<f64> = compounded_correlaton_function
+                .iter()
+                .map(|kahan| kahan.get_mean())
+                .collect();
+
+            let mut corr_fn_err: Vec<f64> = compounded_correlaton_function
+                .iter()
+                .map(|welford| welford.get_standard_error())
+                .collect();
+
+            if SYMMETRIZE {
+                let mut new_corr_fn: Vec<f64> = Vec::new();
+                new_corr_fn.push(corr_fn[0]);
+                for i in 1..corr_fn.len() {
+                    new_corr_fn.push((corr_fn[i] + corr_fn[corr_fn.len() - i]) / 2.0)
+                }
+                corr_fn = new_corr_fn;
+
+                let mut new_corr_fn_err: Vec<f64> = Vec::new();
+                new_corr_fn_err.push(corr_fn_err[0]);
+                for i in 1..corr_fn_err.len() {
+                    new_corr_fn_err
+                        .push((corr_fn_err[i] + corr_fn_err[corr_fn_err.len() - i]) / 2.0)
+                }
+                corr_fn_err = new_corr_fn_err;
+            }
+
             let path: &str =
                 &(comp_corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
             if let Err(err) = corr_fn.overwrite_csv(path) {
                 eprintln!("Writing compounded correlation function: {}", err);
             }
-        }
 
-        summaries.push(summary.set_correlation_length(corr.mean()))
+            let path: &str = &(comp_corr_fn_path.to_owned()
+                + &"correlation_"
+                + &index.to_string()
+                + &"_err.csv");
+            if let Err(err) = corr_fn_err.overwrite_csv(path) {
+                eprintln!("Writing compounded correlation function errors: {}", err);
+            }
+
+            let summary = summary.set_correlation_length(compounded_correlation_length.get_mean());
+            let summary = summary
+                .set_correlation_length_error(compounded_correlation_length.get_standard_error());
+
+            summaries.push(summary);
+        };
     }
-
-    // Calculate the standard deviation for the compounded correlation lenght
-    summaries
-        .iter_mut()
-        .filter_map(|summary| summary.corr12.map(|x| (summary, x)))
-        .for_each(|(summary, mean)| {
-            let mut kahan: KahanSummation<f64> = KahanSummation::new();
-            results
-                .drain_filter(|entry| {
-                    entry.temp == summary.temp
-                        && entry.t == summary.t
-                        && entry.comptype == summary.comptype
-                })
-                .filter_map(|entry| entry.corr12)
-                .for_each(|value| kahan.add((value - mean) * (value - mean)));
-            summary.corr12_err = Some(kahan.mean());
-        });
 
     // Writing the compounded summary data
     if let Err(err) = summaries.overwrite_csv(results_comp_path) {
         eprint!("Writing compounded summaries: {}", err);
     }
-
-    // Building the errors for the compounded correlation functions
-    if let Err(err) = build_corr_fn_errors(
-        results_path,
-        results_comp_path,
-        corr_fn_path,
-        comp_corr_fn_path,
-    ) {
-        eprintln!("Building correlation function errors: {}", err);
-    }
-}
-
-fn build_corr_fn_errors(
-    results_path: &str,
-    results_comp_path: &str,
-    corr_fn_path: &str,
-    comp_corr_fn_path: &str,
-) -> Result<(), Box<dyn Error>> {
-    // Read the result data
-    let mut results: Vec<ComputationSummary> =
-        ComputationSummary::fetch_csv_data(results_path, true)?;
-    let mut results_comp: Vec<ComputationSummary> =
-        ComputationSummary::fetch_csv_data(results_comp_path, true)?;
-
-    // For each compounded correlation function...
-    while let Some(summary) = results_comp.pop() {
-        let mean_comp_corr_fn: Vec<f64> = get_correlation_fn(summary.index, comp_corr_fn_path)?;
-        let mut comp_corr_fn_errors: Vec<KahanSummation<f64>> = mean_comp_corr_fn
-            .iter()
-            .map(|_| KahanSummation::new())
-            .collect();
-
-        results
-            .drain_filter(|entry| {
-                entry.temp == summary.temp
-                    && entry.t == summary.t
-                    && entry.comptype == summary.comptype
-            })
-            .for_each(|entry| {
-                let corr_fn: Vec<f64> = get_correlation_fn(entry.index, corr_fn_path).unwrap();
-                comp_corr_fn_errors
-                    .iter_mut()
-                    .zip(corr_fn.into_iter().zip(mean_comp_corr_fn.iter()))
-                    .for_each(|(kahan, (x, mean_x))| kahan.add((x - *mean_x) * (x - *mean_x)))
-            });
-
-        let comp_corr_fn_errors: Vec<f64> = comp_corr_fn_errors
-            .into_iter()
-            .map(|kahan| kahan.mean().sqrt())
-            .collect();
-
-        let path: &str = &(comp_corr_fn_path.to_owned()
-            + &"correlation_"
-            + &summary.index.to_string()
-            + &"_err.csv");
-        comp_corr_fn_errors.overwrite_csv(path)?;
-    }
-
-    Ok(())
 }
 
 fn nonlin_fit(results_path: &str, corr_fn_path: &str, fit_path: &str) {
