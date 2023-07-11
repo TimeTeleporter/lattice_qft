@@ -77,7 +77,7 @@ fn compound_data(
 
     // For each uniue set of coupling constant, lattice size and algorithm,
     // average the correlation functions and correlation lengths
-    while let Some(summary) = results.pop() {
+    while let Some(mut summary) = results.pop() {
         let temp: Option<f64> = summary.temp;
         let max_t: Option<usize> = summary.t;
         let index: usize = summary.index;
@@ -171,6 +171,9 @@ fn compound_data(
             if let Err(err) = corr_fn_err.overwrite_csv(path) {
                 eprintln!("Writing compounded correlation function errors: {}", err);
             }
+
+            summary.comptype = comptype
+                .map(|text| text + &" " + &compounded_correlation_length.get_count().to_string());
 
             let summary = summary.set_correlation_length(compounded_correlation_length.get_mean());
             let summary = summary

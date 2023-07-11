@@ -93,6 +93,10 @@ impl WelfordsAlgorithm64 {
         }
     }
 
+    pub fn get_count(&self) -> usize {
+        self.entries
+    }
+
     pub fn update(&mut self, value: f64) {
         let old_mean: f64 = self.get_mean();
         self.sum.add(value);

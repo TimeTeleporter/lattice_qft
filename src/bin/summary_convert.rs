@@ -35,6 +35,13 @@ fn convert_computation_summary(old_summary: OldComputationSummary) -> Computatio
         })
         .flatten()
         .flatten();
+    let comptype: Option<String> = old_summary.comptype.map(|comptype| {
+        let comptype: String = comptype
+            .split_whitespace()
+            .filter(|text| !text.contains('(') && !text.contains(')'))
+            .fold("".into(), |acc, x| acc + &" " + x);
+        comptype.trim().to_owned()
+    });
     ComputationSummary {
         index: old_summary.index,
         d: old_summary.d,
@@ -43,7 +50,7 @@ fn convert_computation_summary(old_summary: OldComputationSummary) -> Computatio
         y: old_summary.y,
         t: old_summary.t,
         temp: old_summary.temp,
-        comptype: old_summary.comptype,
+        comptype,
         iterations,
         comptime: old_summary.comptime,
         action: old_summary.action,

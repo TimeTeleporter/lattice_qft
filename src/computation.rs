@@ -32,29 +32,19 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Computation::Simulation(Simulation {
-                algorithm,
-                iterations,
-                ..
-            }) => write!(f, "{} Simulation ({})", algorithm, iterations),
-            Computation::Test(Test { range, .. }) => write!(f, "Test (0 - {})", range),
+            Computation::Simulation(Simulation { algorithm, .. }) => {
+                write!(f, "{} Simulation", algorithm)
+            }
+            Computation::Test(Test { .. }) => write!(f, "Test"),
             Computation::WilsonSim(WilsonSim {
                 algorithm,
-                iterations,
                 width,
                 height,
                 ..
-            }) => write!(
-                f,
-                "{}x{} Wilson {} Simulation ({})",
-                width, height, algorithm, iterations
-            ),
-            Computation::WilsonTest(WilsonTest {
-                range,
-                width,
-                height,
-                ..
-            }) => write!(f, "{}x{} Wilson Test (0 - {})", width, height, range),
+            }) => write!(f, "{}x{} Wilson {} Simulation", width, height, algorithm),
+            Computation::WilsonTest(WilsonTest { width, height, .. }) => {
+                write!(f, "{}x{} Wilson Test", width, height)
+            }
         }
     }
 }
@@ -631,7 +621,7 @@ impl ComputationSummary {
                     .set_computation(
                         comp.temp,
                         comptype,
-                        comp.permutations.try_into().ok(),
+                        comp.range.try_into().ok(),
                         comp.duration,
                     );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
@@ -655,7 +645,7 @@ impl ComputationSummary {
                     .set_computation(
                         comp.temp,
                         comptype,
-                        comp.permutations.try_into().ok(),
+                        comp.range.try_into().ok(),
                         comp.duration,
                     );
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;

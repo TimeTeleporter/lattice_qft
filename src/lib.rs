@@ -169,6 +169,13 @@ pub const INVESTIGATE_ARY4: [f64; 18] = [
     0.39, 0.40,
 ];
 
+pub const INVESTIGATE_ARY5: [f64; 6] = [0.22, 0.23, 0.24, 0.25, 0.26, 0.27];
+
+pub const INVESTIGATE_ARY5_3: [f64; 18] = [
+    0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.22, 0.23, 0.24, 0.25,
+    0.26, 0.27,
+];
+
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const RESULTS_FIT_PATH: &str = "./data/results_fit.csv";
 pub const RESULTS_SECOND_MOMENT_PATH: &str = "./data/results_second_moment.csv";
