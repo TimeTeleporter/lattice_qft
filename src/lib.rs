@@ -211,11 +211,8 @@ pub fn pause() {
 }
 
 pub fn calculate_correlation_length(corr_fn: &Vec<f64>, p1: f64, p2: f64) -> (f64, f64) {
-    let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(corr_fn, p1);
-    let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(corr_fn, p2);
-
-    let g1: Complex64 = Complex64::new(g1_re, g1_im);
-    let g2: Complex64 = Complex64::new(g2_re, g2_im);
+    let g1: Complex64 = discrete_fourier_transform(corr_fn, p1);
+    let g2: Complex64 = discrete_fourier_transform(corr_fn, p2);
 
     let cos1: f64 = p1.cos();
     let cos2: f64 = p2.cos();
@@ -236,88 +233,42 @@ pub fn calculate_correlation_length_errors(
     p2: f64,
 ) -> ((f64, f64), (f64, f64)) {
     //let corr_fn_err: &Vec<f64> = &corr_fn_err.into_iter().map(|x| x * 0.1).collect();
-    let (g1_re, g1_im): (f64, f64) = discrete_fourier_transform(corr_fn, p1);
-    let (g2_re, g2_im): (f64, f64) = discrete_fourier_transform(corr_fn, p2);
-    let (g1_re_err, g1_im_err): (f64, f64) = discrete_fourier_transform(corr_fn_err, p1);
-    let (g2_re_err, g2_im_err): (f64, f64) = discrete_fourier_transform(corr_fn_err, p2);
-
-    let (g1_re_err, g1_im_err): (f64, f64) = (g1_re_err.abs(), g1_im_err.abs());
-    let (g2_re_err, g2_im_err): (f64, f64) = (g2_re_err.abs(), g2_im_err.abs());
-
-    let g1: Complex64 = Complex64::new(g1_re, g1_im);
-    let g2: Complex64 = Complex64::new(g2_re, g2_im);
-    let g1_err: Complex64 = Complex64::new(g1_re_err, g1_im_err);
-    let g2_err: Complex64 = Complex64::new(g2_re_err, g2_im_err);
+    let g1: Complex64 = discrete_fourier_transform(corr_fn, p1);
+    let g2: Complex64 = discrete_fourier_transform(corr_fn, p2);
 
     let cos1: f64 = p1.cos();
     let cos2: f64 = p2.cos();
 
-    let z: Complex64 = (g1 * cos1 - g2 * cos2).fdiv(g1 - g2);
-    assert!(!z.is_nan());
-
-    // Error propagation for z:
-    // Define x as the numerator of cosh
-    let Complex64 { re: x_re, im: x_im } = g1 * cos1 - g2 * cos2;
-    let Complex64 {
-        re: x_re_err,
-        im: x_im_err,
-    } = g1_err * cos1.abs() + g2_err * cos2.abs();
-    // and y as the denominator
-    let Complex64 { re: y_re, im: y_im } = g1 - g2;
-    let Complex64 {
-        re: y_re_err,
-        im: y_im_err,
-    } = g1_err + g2_err;
-    let y_squared: f64 = y_re * y_re + y_im * y_im;
-
-    // Because the quotient is a holomorphic function, we can use the identities
-    let dz_re_dx_re: f64 = y_re / y_squared;
-    let dz_im_dx_im: f64 = dz_re_dx_re;
-    let dz_re_dx_im: f64 = y_im / y_squared;
-    let dz_im_dx_re: f64 = -dz_re_dx_im;
-
-    let dz_re_dy_re: f64 =
-        (x_re * (y_im * y_im - y_re * y_re) - 2.0 * x_im * y_re * y_im) / (y_squared * y_squared);
-    let dz_im_dy_im: f64 = dz_re_dy_re;
-    let dz_re_dy_im: f64 =
-        (x_im * (y_re * y_re - y_im * y_im) - 2.0 * x_re * y_re * y_im) / (y_squared * y_squared);
-    let dz_im_dy_re: f64 = -dz_re_dy_im;
-
-    let z_re_err: f64 = dz_re_dx_re.abs() * x_re_err
-        + dz_re_dx_im.abs() * x_im_err
-        + dz_re_dy_re.abs() * y_re_err
-        + dz_re_dy_im.abs() * y_im_err;
-
-    let z_im_err: f64 = dz_im_dx_re.abs() * x_re_err
-        + dz_im_dx_im.abs() * x_im_err
-        + dz_im_dy_re.abs() * y_re_err
-        + dz_im_dy_im.abs() * y_im_err;
-
-    const COMPLEX64_ONE: Complex64 = Complex64 { re: 1.0, im: 0.0 };
-    const COMPLEX64_I: Complex64 = Complex64 { re: 0.0, im: 1.0 };
-    let dacosh_dz_re: Complex64 =
-        COMPLEX64_ONE.fdiv((z + COMPLEX64_ONE).sqrt() * (z - COMPLEX64_ONE).sqrt());
-    let dacosh_dz_im: Complex64 =
-        COMPLEX64_I.fdiv((z + COMPLEX64_ONE).sqrt() * (z - COMPLEX64_ONE).sqrt());
-
-    let ma_re_err: f64 = dacosh_dz_re.re.abs() * z_re_err + dacosh_dz_im.re.abs() * z_im_err;
-    let ma_im_err: f64 = dacosh_dz_re.im.abs() * z_re_err + dacosh_dz_im.im.abs() * z_im_err;
+    let x: Complex64 = g1 * cos1 - g2 * cos2;
+    let y: Complex64 = g1 - g2;
+    let z: Complex64 = x.fdiv(y);
 
     let ma: Complex64 = z.acosh();
 
-    ((ma.re, ma.im), (ma_re_err, ma_im_err))
+    let ma_re_err = corr_fn_err
+        .iter()
+        .enumerate()
+        .map(|(pos, u)| {
+            let dg1_du: Complex64 = Complex64::exp(Complex64::i() * (pos as f64) * p1);
+            let dg2_du: Complex64 = Complex64::exp(Complex64::i() * (pos as f64) * p2);
+
+            const COMPLEX64_ONE: Complex64 = Complex64::new(1.0, 0.0);
+
+            let df_du: Complex64 = ((g1 * dg2_du - dg1_du * g2) * (cos1 - cos2)).fdiv(
+                y * y * Complex64::sqrt(z - COMPLEX64_ONE) * Complex64::sqrt(z + COMPLEX64_ONE),
+            );
+            (df_du * u).norm_sqr()
+        })
+        .sum::<f64>()
+        .sqrt();
+
+    ((ma.re, ma.im), (ma_re_err, 0.0))
 }
 
-fn discrete_fourier_transform(corr_fn: &Vec<f64>, momentum: f64) -> (f64, f64) {
-    let real: f64 = corr_fn
+fn discrete_fourier_transform(corr_fn: &Vec<f64>, momentum: f64) -> Complex64 {
+    corr_fn
         .iter()
         .enumerate()
-        .map(|(x, g_x)| g_x * f64::cos(momentum * (x as f64)))
-        .sum();
-    let imaginary: f64 = corr_fn
-        .iter()
-        .enumerate()
-        .map(|(x, g_x)| g_x * f64::sin(momentum * (x as f64)))
-        .sum();
-    (real, imaginary)
+        .map(|(pos, g_x)| Complex64::exp(Complex64::i() * (pos as f64) * momentum) * g_x)
+        .sum()
 }
