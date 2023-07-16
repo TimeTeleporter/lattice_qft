@@ -101,6 +101,7 @@ pub fn get_correlation_fn_with_err(
 impl CsvData for ComputationSummary {}
 impl CsvData for FieldExport3d<f64> {}
 impl CsvData for f64 {}
+impl CsvData for (u64, Vec<f64>) {}
 
 impl<T: CsvData> CsvData for Vec<T> {
     fn read_write_csv(mut self, path: &str, has_headers: bool) -> Result<(), Box<dyn Error>> {

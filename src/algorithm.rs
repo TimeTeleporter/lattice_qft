@@ -20,7 +20,7 @@ impl Display for AlgorithmType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AlgorithmType::Metropolis(_) => write!(f, "Metropolis"),
-            AlgorithmType::Cluster(_) => write!(f, "Cluster   "),
+            AlgorithmType::Cluster(_) => write!(f, "Cluster"),
             AlgorithmType::NewCluster(_) => write!(f, "NewCluster"),
             AlgorithmType::NewNewCluster(_) => write!(f, "NewNewCluster"),
         }

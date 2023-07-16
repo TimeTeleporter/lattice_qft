@@ -13,9 +13,11 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const REPETITIONS: usize = 5;
-const BURNIN: usize = 200_000;
-const ITERATIONS: usize = 200_000;
+const REPETITIONS: u64 = 10;
+const BURNIN: u64 = 1_000;
+const ITERATIONS: u64 = 200_000;
+
+const TEMP_ARY: [f64; 6] = lattice_qft::INVESTIGATE_ARY5;
 
 // Lattice sizes (16, 24, 36, 54)
 const CUBE: usize = 16;
@@ -46,18 +48,14 @@ fn main() {
         // Initialise the simulations
         let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
         println!("Starting rep {}", rep);
-        for temp in [0.26; 15] {
+        for temp in TEMP_ARY {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
-            observables.push(OutputData::new_action_observable(temp));
-            observables.push(
-                OutputData::new_correlation_plot(&lattice)
-                    .set_frequency(10)
-                    .set_repetitions(10),
-            );
+            observables.push(OutputData::new_action_observable(temp).set_frequency(10));
+            observables.push(OutputData::new_correlation_plot(&lattice, 1000).set_frequency(1000));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,
-                AlgorithmType::new_cluster(),
+                AlgorithmType::new_metropolis(),
                 BURNIN,
                 ITERATIONS,
                 observables.clone(),

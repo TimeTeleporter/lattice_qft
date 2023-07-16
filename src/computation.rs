@@ -59,8 +59,8 @@ where
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
         algorithm: AlgorithmType,
-        burnin: usize,
-        iterations: usize,
+        burnin: u64,
+        iterations: u64,
         output: Vec<OutputData<'a, D, SIZE>>,
     ) -> Computation<'a, D, SIZE> {
         Computation::Simulation(Simulation {
@@ -77,7 +77,7 @@ where
     pub fn new_test(
         lattice: &'a Lattice<D, SIZE>,
         temp: f64,
-        range: usize,
+        range: i32,
     ) -> Computation<'a, D, SIZE> {
         // 16 ^ 7 = 268’435’456
         let Some(permutations): Option<u64> = (range as u64)
@@ -100,8 +100,8 @@ impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
         lattice: &'a Lattice<3, SIZE>,
         temp: f64,
         algorithm: AlgorithmType,
-        burnin: usize,
-        iterations: usize,
+        burnin: u64,
+        iterations: u64,
         width: usize,
         height: usize,
         output: Vec<OutputData<'a, 3, SIZE>>,
@@ -170,7 +170,7 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for Computation<'a, 3, SIZE> {
 pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE>>) {
     for (_, computation) in data.into_iter().enumerate() {
         // Fetching the index to append to
-        let index: usize = match ComputationSummary::fetch_csv_data(crate::RESULTS_PATH, true)
+        let index: u64 = match ComputationSummary::fetch_csv_data(crate::RESULTS_PATH, true)
             .and_then(|summary| {
                 summary
                     .last()
@@ -190,10 +190,18 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
         for output in outputs.into_iter() {
             match output.data {
                 OutputDataType::ActionObservable(obs) => {
-                    summary = summary.set_action(obs.result());
+                    let data = (index, obs.results());
+                    if let Err(err) = data.read_write_csv(crate::ACTION_DATA_PATH, false) {
+                        eprint!("Writing action data: {}", err);
+                    }
+                    summary = summary.set_action_data();
                 }
                 OutputDataType::TestActionObservable(obs) => {
-                    summary = summary.set_action(obs.result());
+                    let data = (index, obs.results());
+                    if let Err(err) = data.read_write_csv(crate::ACTION_DATA_PATH, false) {
+                        eprint!("Writing test action data: {}", err);
+                    }
+                    summary = summary.set_action_data();
                 }
                 OutputDataType::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
@@ -204,7 +212,7 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                             + &direction.to_string()
                             + &".csv");
                         if let Err(err) = plot.read_write_csv(path, true) {
-                            eprint!("{}", err);
+                            eprint!("Writing difference plot data: {}", err);
                         };
                     }
                     summary = summary.set_bonds_data();
@@ -218,22 +226,20 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                             + &direction.to_string()
                             + &".csv");
                         if let Err(err) = plot.read_write_csv(path, true) {
-                            eprint!("{}", err);
+                            eprint!("Writing energy plot data: {}", err);
                         };
                     }
                     summary = summary.set_energy_data();
                 }
                 OutputDataType::CorrelationData(obs) => {
-                    if let Some(plot) = obs.plot().into_iter().next() {
-                        let path: &str = &(crate::CORR_FN_PATH_INCOMPLETE.to_owned()
-                            + &"correlation_"
-                            + &index.to_string()
-                            + &".csv");
-                        if let Err(err) = plot.overwrite_csv(path) {
-                            eprint!("{}", err);
-                        };
-                        summary = summary.set_correlation_data();
-                    }
+                    let path: &str = &(crate::CORR_FN_PATH_INCOMPLETE.to_owned()
+                        + &"correlation_"
+                        + &index.to_string()
+                        + &".csv");
+                    if let Err(err) = obs.plot().overwrite_csv(path) {
+                        eprint!("Writing correlation data: {}", err);
+                    };
+                    summary = summary.set_correlation_data();
                 }
             }
         }
@@ -254,8 +260,8 @@ where
     lattice: &'a Lattice<D, SIZE>,
     temp: f64,
     algorithm: AlgorithmType,
-    burnin: usize,
-    iterations: usize,
+    burnin: u64,
+    iterations: u64,
     output: Vec<OutputData<'a, D, SIZE>>,
     duration: Option<u64>,
 }
@@ -336,8 +342,8 @@ pub struct WilsonSim<'a, const SIZE: usize> {
     lattice: &'a Lattice<3, SIZE>,
     temp: f64,
     algorithm: AlgorithmType,
-    burnin: usize,
-    iterations: usize,
+    burnin: u64,
+    iterations: u64,
     width: usize,
     height: usize,
     output: Vec<OutputData<'a, 3, SIZE>>,
@@ -407,7 +413,7 @@ where
 {
     lattice: &'a Lattice<D, SIZE>,
     temp: f64,
-    range: usize,
+    range: i32,
     permutations: u64,
     output: Vec<OutputData<'a, D, SIZE>>,
     duration: Option<u64>,
@@ -554,144 +560,122 @@ impl<'a, const SIZE: usize> Compute<'a, 3, SIZE> for WilsonTest<'a, SIZE> {
 
 // - Computation - Summary ----------------------------------------------------
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 /// We export the [`ComputationResult`] in a csv file with this formating
 pub struct ComputationSummary {
-    pub index: usize,
-    pub d: Option<usize>,
-    pub size: Option<usize>,
-    pub x: Option<usize>,
-    pub y: Option<usize>,
-    pub t: Option<usize>,
-    pub temp: Option<f64>,
-    pub comptype: Option<String>,
-    pub iterations: Option<u64>,
-    pub comptime: Option<u64>,
-    pub action: Option<f64>,
+    pub index: u64,
+    pub d: usize,
+    pub size: usize,
+    pub x: usize,
+    pub y: usize,
+    pub t: usize,
+    pub temp: f64,
+    pub comptype: String,
+    pub burnin: Option<u64>,
+    pub iterations: u64,
+    pub duration: Option<u64>,
+    pub algorithm_statistic: Option<u64>,
+    pub action_data: bool,
     pub energy_data: bool,
     pub difference_data: bool,
     pub correlation_data: bool,
-    pub corr12: Option<f64>,
-    pub corr12_err: Option<f64>,
 }
 
 impl ComputationSummary {
-    pub fn new(index: usize) -> Self {
-        ComputationSummary {
-            index,
-            d: None,
-            size: None,
-            x: None,
-            y: None,
-            t: None,
-            temp: None,
-            comptype: None,
-            iterations: None,
-            comptime: None,
-            action: None,
-            energy_data: false,
-            difference_data: false,
-            correlation_data: false,
-            corr12: None,
-            corr12_err: None,
-        }
-    }
-
     pub fn from_computation<const SIZE: usize>(
         computation: Computation<3, SIZE>,
-        index: usize,
+        index: u64,
     ) -> (Self, Vec<OutputData<3, SIZE>>) {
         let comptype: String = computation.to_string();
         match computation {
             Computation::Simulation(comp) => {
-                let new: ComputationSummary = ComputationSummary::new(index)
-                    .set_size(comp.lattice.size)
-                    .set_computation(
-                        comp.temp,
-                        comptype,
-                        comp.iterations.try_into().ok(),
-                        comp.duration,
-                    );
+                let (d, size) = (3, SIZE);
+                let [x, y, t] = comp.lattice.size;
+                let temp: f64 = comp.temp;
+                let (burnin, iterations) = (Some(comp.burnin), comp.iterations);
+                let new: ComputationSummary = ComputationSummary {
+                    index,
+                    d,
+                    size,
+                    x,
+                    y,
+                    t,
+                    temp,
+                    comptype,
+                    burnin,
+                    iterations,
+                    duration: comp.duration,
+                    ..Default::default()
+                };
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::Test(comp) => {
-                let new: ComputationSummary = ComputationSummary::new(index)
-                    .set_size(comp.lattice.size)
-                    .set_computation(
-                        comp.temp,
-                        comptype,
-                        comp.range.try_into().ok(),
-                        comp.duration,
-                    );
+                let (d, size) = (3, SIZE);
+                let [x, y, t] = comp.lattice.size;
+                let temp: f64 = comp.temp;
+                let iterations = comp.permutations;
+                let new: ComputationSummary = ComputationSummary {
+                    index,
+                    d,
+                    size,
+                    x,
+                    y,
+                    t,
+                    temp,
+                    comptype,
+                    iterations,
+                    ..Default::default()
+                };
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonSim(comp) => {
-                let new: ComputationSummary = ComputationSummary::new(index)
-                    .set_size(comp.lattice.size)
-                    .set_computation(
-                        comp.temp,
-                        comptype,
-                        comp.iterations.try_into().ok(),
-                        comp.duration,
-                    );
+                let (d, size) = (3, SIZE);
+                let [x, y, t] = comp.lattice.size;
+                let temp: f64 = comp.temp;
+                let (burnin, iterations) = (Some(comp.burnin), comp.iterations);
+                let new: ComputationSummary = ComputationSummary {
+                    index,
+                    d,
+                    size,
+                    x,
+                    y,
+                    t,
+                    temp,
+                    comptype,
+                    burnin,
+                    iterations,
+                    ..Default::default()
+                };
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
             Computation::WilsonTest(comp) => {
-                let new: ComputationSummary = ComputationSummary::new(index)
-                    .set_size(comp.lattice.size)
-                    .set_computation(
-                        comp.temp,
-                        comptype,
-                        comp.range.try_into().ok(),
-                        comp.duration,
-                    );
+                let (d, size) = (3, SIZE);
+                let [x, y, t] = comp.lattice.size;
+                let temp: f64 = comp.temp;
+                let iterations = comp.permutations;
+                let new: ComputationSummary = ComputationSummary {
+                    index,
+                    d,
+                    size,
+                    x,
+                    y,
+                    t,
+                    temp,
+                    comptype,
+                    iterations,
+                    ..Default::default()
+                };
                 let outputs: Vec<OutputData<3, SIZE>> = comp.output;
                 (new, outputs)
             }
         }
     }
 
-    pub fn set_size<const D: usize>(mut self, size_ary: [usize; D]) -> Self
-    where
-        [(); D]:,
-    {
-        self.d = Some(D);
-        self.size = Some(size_ary.iter().product());
-        match D {
-            1 => self.x = Some(size_ary[0]),
-            2 => {
-                self.x = Some(size_ary[0]);
-                self.y = Some(size_ary[1]);
-            }
-            3 => {
-                self.x = Some(size_ary[0]);
-                self.y = Some(size_ary[1]);
-                self.t = Some(size_ary[2]);
-            }
-            _ => {}
-        }
-        self
-    }
-
-    pub fn set_computation(
-        mut self,
-        temp: f64,
-        comptype: String,
-        iterations: Option<u64>,
-        duration: Option<u64>,
-    ) -> Self {
-        self.temp = Some(temp);
-        self.comptype = Some(comptype);
-        self.iterations = iterations;
-        self.comptime = duration;
-        self
-    }
-
-    pub fn set_action(mut self, result: f64) -> Self {
-        self.action = Some(result);
+    pub fn set_action_data(mut self) -> Self {
+        self.action_data = true;
         self
     }
 
@@ -707,16 +691,6 @@ impl ComputationSummary {
 
     pub fn set_correlation_data(mut self) -> Self {
         self.correlation_data = true;
-        self
-    }
-
-    pub fn set_correlation_length(mut self, corr12: f64) -> Self {
-        self.corr12 = Some(corr12);
-        self
-    }
-
-    pub fn set_correlation_length_error(mut self, corr12_err: f64) -> Self {
-        self.corr12_err = Some(corr12_err);
         self
     }
 }
