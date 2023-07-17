@@ -102,6 +102,7 @@ impl<T: CsvData> CsvData for Vec<T> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FitResult {
     index: u64,
+    bin_size: u64,
     pub m: f64,
     pub n: f64,
     pub a: f64,
@@ -110,9 +111,10 @@ pub struct FitResult {
 }
 
 impl FitResult {
-    pub fn new(index: u64, m: f64, n: f64, a: f64, b: f64) -> FitResult {
+    pub fn new(index: u64, bin_size: u64, m: f64, n: f64, a: f64, b: f64) -> FitResult {
         FitResult {
             index,
+            bin_size,
             m,
             n,
             a,

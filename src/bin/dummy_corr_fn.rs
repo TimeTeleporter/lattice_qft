@@ -135,7 +135,7 @@ fn nonlin_regression(corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn Error>> {
             .unwrap();
 
         // FitResult::new(index, alpha[0], alpha[1], coeff[0], coeff[1])
-        FitResult::new(0, alpha[0], n, coeff[0], coeff[1])
+        FitResult::new(0, 0, alpha[0], n, coeff[0], coeff[1])
     }) {
         Ok(fit) => Ok(fit),
         Err(err) => {

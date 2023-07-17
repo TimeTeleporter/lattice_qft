@@ -22,9 +22,6 @@ pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const ACTION_DATA_PATH: &str = "./data/action.csv";
 pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/correlation_data/";
 
-/// Path for the fit results
-pub const CORR_FN_FIT_PATH: &str = "./data/corr_fn_fits.csv";
-
 pub const RESULTS_SECOND_MOMENT_PATH: &str = "./data/results_second_moment.csv";
 pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
 pub const RESULTS_COMP_FIT_PATH: &str = "./data/results_comp_fit.csv";

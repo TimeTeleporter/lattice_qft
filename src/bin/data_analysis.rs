@@ -2,7 +2,7 @@
 #![feature(drain_filter)]
 #![feature(let_chains)]
 
-use std::error::Error;
+use std::{error::Error, f64::consts::PI, time::Instant};
 
 use lattice_qft::{
     computation::ComputationSummary,
@@ -17,13 +17,13 @@ use varpro::{
     solvers::levmar::{LevMarProblemBuilder, LevMarSolver},
 };
 
-// Global constants
-const MAX_T: usize = 54;
-
 // Parameters
-const BOOTSTRAPPING_SAMPLES: u64 = 100;
+const BIN_SIZES: [usize; 6] = [1, 2, 4, 8, 16, 32];
+const BOOTSTRAPPING_SAMPLES: u64 = 1000;
 
 fn main() {
+    let time = Instant::now();
+
     // Symmetrize the correlation functions
     symmetrize_correlation_functions(
         lattice_qft::RESULTS_PATH,
@@ -41,18 +41,9 @@ fn main() {
     nonlin_fit(
         lattice_qft::RESULTS_PATH,
         lattice_qft::CORR_FN_PATH_INCOMPLETE,
-        lattice_qft::CORR_FN_FIT_PATH,
     );
 
     /* Old data analysis code
-    // Calculate the second moment correlation lenght for each correlation function
-    second_moment(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::CORR_FN_PATH_INCOMPLETE,
-        lattice_qft::RESULTS_SECOND_MOMENT_PATH,
-        true,
-        false,
-    );
 
     // Calculated the compounded second moment correlation lenghts and correlation functions
     compound_data(
@@ -75,6 +66,11 @@ fn main() {
         lattice_qft::COMP_CORR_FN_PATH_INCOMPLETE,
         lattice_qft::RESULTS_COMP_FIT_PATH,
     );*/
+
+    println!(
+        "Analyis took {} secs",
+        (time.elapsed().as_secs_f32() * 100.0).round() / 100.0
+    )
 }
 
 fn symmetrize_correlation_functions(results_path: &str, corr_fn_path_incomplete: &str) {
@@ -143,7 +139,7 @@ fn test_symmetrize_single_correlation_function() {
     assert_eq!(corr_fn, corr_fn_sym);
 }
 
-/// Fetchin the symmetrized correlation functions data for a given index
+/// Fetching the symmetrized correlation functions data for a given index
 fn fetch_correlation_functions_sym(
     index: u64,
     corr_fn_path_incomplete: &str,
@@ -169,10 +165,10 @@ fn calculate_correlation_function_statistics(
             return;
         }
     };
-
-    let bin_size: usize = 4;
-
-    let (corr_fn_results, corr_fn_errors): (Vec<(u64, Vec<f64>)>, Vec<(u64, Vec<f64>)>) = results
+    let (corr_fn_results, corr_fn_errors): (
+        Vec<(u64, Vec<(u64, Vec<f64>)>)>,
+        Vec<(u64, Vec<(u64, Vec<f64>)>)>,
+    ) = results
         .par_iter()
         .filter(|summary| summary.correlation_data)
         // Fetching the correlation functions
@@ -189,55 +185,95 @@ fn calculate_correlation_function_statistics(
             // Checking if the correlation function lenght corresponds to the lenght in the summary.
             assert_eq!(summary.t, corr_fns[0].len());
 
-            let binned_corr_fns: Vec<&[Vec<f64>]> = corr_fns.chunks_exact(bin_size).collect();
+            // We repeat the same data accumulation for different bin sizes
+            let (results, errors): (Vec<(u64, Vec<f64>)>, Vec<(u64, Vec<f64>)>) = BIN_SIZES
+                .into_iter()
+                .map(|bin_size| {
+                    let binned_corr_fns: Vec<&[Vec<f64>]> =
+                        corr_fns.chunks_exact(bin_size).collect();
 
-            // Quick check to see if we catch all correlation functions
-            let bin_samples_amount: usize = corr_fns.len() / bin_size;
-            assert_eq!(binned_corr_fns.len(), bin_samples_amount);
+                    // Quick check to see if we catch all correlation functions
+                    let bin_samples_amount: usize = corr_fns.len() / bin_size;
+                    assert_eq!(binned_corr_fns.len(), bin_samples_amount);
 
-            // Setting up the statistics collection
-            let mut statistics: Vec<WelfordsAlgorithm64> = Vec::with_capacity(MAX_T);
-            for _ in 0..summary.t {
-                statistics.push(WelfordsAlgorithm64::new());
-            }
+                    let statistics: (Vec<WelfordsAlgorithm64>, WelfordsAlgorithm64) = (0
+                        ..bootstrapping_ensembles)
+                        .into_iter()
+                        // We build resampled ensembles by drawing with
+                        // replacement form the original data. Binning combats
+                        // the effect of autocorrelation inside the data.
+                        .map(|_| {
+                            (0..bin_samples_amount)
+                                .into_iter()
+                                .filter_map(|_| binned_corr_fns.choose(&mut rng))
+                                .cloned()
+                                .flatten()
+                                .fold(
+                                    vec![WelfordsAlgorithm64::new(); summary.t],
+                                    |mut sample_stats, corr_fn| {
+                                        sample_stats
+                                            .iter_mut()
+                                            .zip(corr_fn.iter())
+                                            .for_each(|(stats, value)| stats.update(*value));
+                                        sample_stats
+                                    },
+                                )
+                        })
+                        // The ensembles are then used to calculate different
+                        // observables, like the mean, the sd, or the
+                        // second moment correlation lenght.
+                        .map(|ensemble| {
+                            let ensemble_corr_fn: Vec<f64> = ensemble
+                                .into_iter()
+                                .map(|welford| welford.get_mean())
+                                .collect();
+                            let p1: f64 = 2.0 * std::f64::consts::PI / (summary.t as f64);
+                            let (m12, _) = lattice_qft::calculate_correlation_length(
+                                &ensemble_corr_fn,
+                                p1,
+                                2.0 * p1,
+                            );
+                            (ensemble_corr_fn, 1.0 / m12)
+                        })
+                        // The final values for the observables are then found
+                        // by averaging over many resampled ensembles.
+                        .fold(
+                            (
+                                vec![WelfordsAlgorithm64::new(); summary.t],
+                                WelfordsAlgorithm64::new(),
+                            ),
+                            |(mut corr_fn_stats, mut corr12_stats), (ensemble_corr_fn, m12)| {
+                                corr_fn_stats
+                                    .iter_mut()
+                                    .zip(ensemble_corr_fn.into_iter())
+                                    .for_each(|(stats, value)| stats.update(value));
+                                corr12_stats.update(m12);
+                                (corr_fn_stats, corr12_stats)
+                            },
+                        );
 
-            // We repeat the resampling to build new ensembles by...
-            (0..bootstrapping_ensembles).into_iter().for_each(|_| {
-                let mut sample_statistics: Vec<WelfordsAlgorithm64> = Vec::with_capacity(MAX_T);
-                for _ in 0..summary.t {
-                    sample_statistics.push(WelfordsAlgorithm64::new());
-                }
+                    // For each ensemble we then do our analysis to get the real variance of the data.
+                    let (corr_fn_means, corr_fn_sds): (Vec<f64>, Vec<f64>) = statistics
+                        .0
+                        .iter()
+                        .map(|stat| (stat.get_mean(), stat.get_sd_unbiased()))
+                        .unzip();
+                    let (corr12_mean, corr12_sd) =
+                        (statistics.1.get_mean(), statistics.1.get_sd_unbiased());
 
-                // ...drawing a random sample with replacement for each original sample. We employ
-                // bins to combat the autocorrelation of the data.
-                (0..bin_samples_amount)
-                    .into_iter()
-                    .filter_map(|_| binned_corr_fns.choose(&mut rng))
-                    .cloned()
-                    .flatten()
-                    .for_each(|corr_fn| {
-                        sample_statistics
-                            .iter_mut()
-                            .zip(corr_fn.iter())
-                            .for_each(|(sample, value)| sample.update(*value))
-                    });
-
-                sample_statistics
-                    .into_iter()
-                    .map(|sample| sample.get_mean())
-                    .zip(statistics.iter_mut())
-                    .for_each(|(value, stat)| stat.update(value));
-            });
-
-            // For each ensemble we then do our analysis to get the real variance of the data.
-            let (means, sds): (Vec<f64>, Vec<f64>) = statistics
-                .iter()
-                .map(|stat| (stat.get_mean(), stat.get_sd_unbiased()))
+                    (
+                        (
+                            (bin_size as u64, corr_fn_means),
+                            (bin_size as u64, corr_fn_sds),
+                        ),
+                        ((bin_size as u64, corr12_mean), (bin_size as u64, corr12_sd)),
+                    )
+                })
                 .unzip();
 
-            ((summary.index, means), (summary.index, sds))
+            ((summary.index, results), (summary.index, errors))
         })
-        .collect::<Vec<((u64, Vec<f64>), (u64, Vec<f64>))>>()
+        .collect::<Vec<((u64, Vec<(u64, Vec<f64>)>), (u64, Vec<(u64, Vec<f64>)>))>>()
         .into_iter()
         .unzip();
 
@@ -268,27 +304,30 @@ fn calculate_correlation_function_statistics(
 fn fetch_correlation_functions_results(
     index: u64,
     corr_fn_path_incomplete: &str,
-) -> Result<Vec<f64>, Box<dyn Error>> {
+) -> Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> {
     let path: &str =
         &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_res.csv");
-    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
-        .map_err(|err| format!("Fetching {}: {}", path, err).into());
-    corr_fn
+    let corr_fns: Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> =
+        <(u64, Vec<f64>) as CsvData>::fetch_csv_data(path, false)
+            .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fns
 }
 
+#[allow(dead_code)]
 /// Fetchin the errors of the correlation functions for a given index
 fn fetch_correlation_functions_errors(
     index: u64,
     corr_fn_path_incomplete: &str,
-) -> Result<Vec<f64>, Box<dyn Error>> {
+) -> Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> {
     let path: &str =
-        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_err.csv");
-    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
-        .map_err(|err| format!("Fetching {}: {}", path, err).into());
-    corr_fn
+        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_res.csv");
+    let corr_fns: Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> =
+        <(u64, Vec<f64>) as CsvData>::fetch_csv_data(path, false)
+            .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fns
 }
 
-fn nonlin_fit(results_path: &str, corr_fn_path_incomplete: &str, fit_path: &str) {
+fn nonlin_fit(results_path: &str, corr_fn_path_incomplete: &str) {
     // Read the result data
     let results: Vec<ComputationSummary> =
         match ComputationSummary::fetch_csv_data(results_path, true) {
@@ -299,7 +338,7 @@ fn nonlin_fit(results_path: &str, corr_fn_path_incomplete: &str, fit_path: &str)
             }
         };
 
-    let fitted: Vec<FitResult> = results
+    let fitted: Vec<(u64, Vec<FitResult>)> = results
         .into_iter()
         .filter(|summary| summary.correlation_data)
         .filter_map(|summary| {
@@ -308,24 +347,54 @@ fn nonlin_fit(results_path: &str, corr_fn_path_incomplete: &str, fit_path: &str)
                 .ok()
                 .map(|x| (summary.index, x))
         })
-        .filter_map(|(index, corr_fn)| {
-            nonlin_regression(index, corr_fn)
-                .map_err(|err| {
-                    eprint!("{}", err);
+        .map(|(index, corr_fn)| {
+            let fits: Vec<FitResult> = corr_fn
+                .into_iter()
+                .filter_map(|(bin_size, corr_fn)| {
+                    nonlin_regression(index, bin_size, corr_fn)
+                        .map_err(|err| {
+                            eprint!("{}", err);
+                        })
+                        //.or::<Box<dyn Error>>(Ok(FitResult::new(index, f64::NAN, f64::NAN, f64::NAN, f64::NAN)))
+                        .ok()
                 })
-                //.or::<Box<dyn Error>>(Ok(FitResult::new(index, f64::NAN, f64::NAN, f64::NAN, f64::NAN)))
-                .ok()
+                .collect();
+            (index, fits)
         })
         .collect();
 
-    if let Err(err) = fitted.overwrite_csv(fit_path) {
-        eprint!("{}", err);
+    for (index, fits) in fitted {
+        let path: &str = &(corr_fn_path_incomplete.to_owned()
+            + &"correlation_"
+            + &index.to_string()
+            + &"_fits.csv");
+        if let Err(err) = fits.overwrite_csv(path) {
+            eprintln!("Writing fits: {}", err);
+        }
     }
 }
 
-fn nonlin_regression(index: u64, corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn Error>> {
+#[allow(dead_code)]
+/// Fetchin the correlation functions for a given index
+fn fetch_correlation_functions_fits(
+    index: u64,
+    corr_fn_path_incomplete: &str,
+) -> Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> {
+    let path: &str =
+        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_fits.csv");
+    let corr_fns: Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> =
+        <(u64, Vec<f64>) as CsvData>::fetch_csv_data(path, false)
+            .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fns
+}
+
+fn nonlin_regression(
+    index: u64,
+    bin_size: u64,
+    corr_fn: Vec<f64>,
+) -> Result<FitResult, Box<dyn Error>> {
     match std::panic::catch_unwind(move || {
-        let mut y_values: Vec<f64> = corr_fn;
+        let y_values: Vec<f64> = corr_fn;
         let n: f64 = y_values.len() as f64;
 
         // Edit the data
@@ -388,7 +457,7 @@ fn nonlin_regression(index: u64, corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn
             .unwrap();
 
         // FitResult::new(index, alpha[0], alpha[1], coeff[0], coeff[1])
-        FitResult::new(index, alpha[0], n, coeff[0], coeff[1])
+        FitResult::new(index, bin_size, alpha[0], n, coeff[0], coeff[1])
     }) {
         Ok(fit) => Ok(fit),
         Err(err) => {
@@ -402,59 +471,11 @@ fn nonlin_regression(index: u64, corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn
     }
 }
 
-fn second_moment(
-    results_path: &str,
-    corr_fn_path: &str,
-    second_moment_path: &str,
-    write_corr12_in_results: bool,
-    do_error_calculations: bool,
-) {
-    // Read the result data
-    let mut results: Vec<ComputationSummary> =
-        match ComputationSummary::fetch_csv_data(results_path, true) {
-            Ok(summary) => summary,
-            Err(err) => {
-                eprint!("{}", err);
-                return;
-            }
-        };
-
-    // Calculate the second moment parameters
-    let fitted: Vec<CorrelationLengths> = results
-        .iter_mut()
-        .filter(|summary| summary.correlation_data)
-        .filter_map(|summary| {
-            correlation_lenght_calculation(
-                summary.index,
-                summary.t,
-                corr_fn_path,
-                do_error_calculations,
-            )
-            .map_err(|err| {
-                eprint!("{}", err);
-            })
-            .ok()
-        })
-        .collect();
-
-    if let Err(err) = fitted.overwrite_csv(second_moment_path) {
-        eprint!("{}", err);
-    }
-    if write_corr12_in_results {
-        if let Err(err) = results.overwrite_csv(results_path) {
-            eprint!("{}", err);
-        }
-    }
-}
-
 fn correlation_lenght_calculation(
     index: u64,
     max_t: usize,
-    incomplete_path: &str,
-    do_error_calculations: bool,
+    corr_fn: &Vec<f64>,
 ) -> Result<CorrelationLengths, Box<dyn Error>> {
-    let (corr_fn, corr_fn_err): (Vec<f64>, Option<Vec<f64>>) = { todo!() };
-
     let Some(x_max): Option<f64> = corr_fn.clone().into_iter().reduce(f64::max) else {
             return Err("Unable to determine the  maximum of the correlation function".into());
         };
@@ -470,58 +491,7 @@ fn correlation_lenght_calculation(
     let m14: f64 = lattice_qft::calculate_correlation_length(&corr_fn, 1.0 * p1, 4.0 * p1).0;
 
     let values: [f64; 6] = [m12, m23, m34, m13, m24, m14];
-    let mut correlation_lengths: CorrelationLengths = CorrelationLengths::new(index, values);
-
-    if do_error_calculations {
-        if let Some(corr_fn_err) = corr_fn_err {
-            let (_, (m12_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                p1,
-                2.0 * p1,
-            );
-            let (_, (m23_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                2.0 * p1,
-                3.0 * p1,
-            );
-            let (_, (m34_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                3.0 * p1,
-                4.0 * p1,
-            );
-            let (_, (m13_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                1.0 * p1,
-                3.0 * p1,
-            );
-            let (_, (m24_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                2.0 * p1,
-                4.0 * p1,
-            );
-            let (_, (m14_err, _)) = lattice_qft::calculate_correlation_length_errors(
-                &corr_fn,
-                &corr_fn_err,
-                1.0 * p1,
-                4.0 * p1,
-            );
-
-            let errors: [Option<f64>; 6] = [
-                Some(m12_err),
-                Some(m23_err),
-                Some(m34_err),
-                Some(m13_err),
-                Some(m24_err),
-                Some(m14_err),
-            ];
-            correlation_lengths.set_errors(errors);
-        }
-    }
+    let correlation_lengths: CorrelationLengths = CorrelationLengths::new(index, values);
 
     Ok(correlation_lengths)
 }
