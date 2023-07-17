@@ -6,20 +6,45 @@ use std::error::Error;
 
 use lattice_qft::{
     computation::ComputationSummary,
-    export::{
-        get_correlation_fn, get_correlation_fn_with_err, CorrelationLengths, CsvData, FitResult,
-    },
+    export::{CorrelationLengths, CsvData, FitResult},
     kahan::WelfordsAlgorithm64,
 };
 use nalgebra::DVector;
+use rand::{rngs::ThreadRng, seq::SliceRandom};
+use rayon::prelude::*;
 use varpro::{
     prelude::*,
     solvers::levmar::{LevMarProblemBuilder, LevMarSolver},
 };
 
-const SYMMETRIZE: bool = true;
+// Global constants
+const MAX_T: usize = 54;
+
+// Parameters
+const BOOTSTRAPPING_SAMPLES: u64 = 100;
 
 fn main() {
+    // Symmetrize the correlation functions
+    symmetrize_correlation_functions(
+        lattice_qft::RESULTS_PATH,
+        lattice_qft::CORR_FN_PATH_INCOMPLETE,
+    );
+
+    // Binned resampling of the correlation functions
+    calculate_correlation_function_statistics(
+        lattice_qft::RESULTS_PATH,
+        lattice_qft::CORR_FN_PATH_INCOMPLETE,
+        BOOTSTRAPPING_SAMPLES,
+    );
+
+    // Calculate the fits for each correlation function
+    nonlin_fit(
+        lattice_qft::RESULTS_PATH,
+        lattice_qft::CORR_FN_PATH_INCOMPLETE,
+        lattice_qft::CORR_FN_FIT_PATH,
+    );
+
+    /* Old data analysis code
     // Calculate the second moment correlation lenght for each correlation function
     second_moment(
         lattice_qft::RESULTS_PATH,
@@ -28,12 +53,7 @@ fn main() {
         true,
         false,
     );
-    // Calculate the fits for each correlation function
-    nonlin_fit(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::CORR_FN_PATH_INCOMPLETE,
-        lattice_qft::RESULTS_FIT_PATH,
-    );
+
     // Calculated the compounded second moment correlation lenghts and correlation functions
     compound_data(
         lattice_qft::RESULTS_PATH,
@@ -54,161 +74,242 @@ fn main() {
         lattice_qft::RESULTS_COMP_PATH,
         lattice_qft::COMP_CORR_FN_PATH_INCOMPLETE,
         lattice_qft::RESULTS_COMP_FIT_PATH,
-    );
+    );*/
 }
 
-fn compound_data(
-    results_path: &str,
-    results_comp_path: &str,
-    corr_fn_path: &str,
-    comp_corr_fn_path: &str,
-) {
-    // Read the result data
-    let mut results: Vec<ComputationSummary> =
-        match ComputationSummary::fetch_csv_data(results_path, true) {
-            Ok(summary) => summary,
-            Err(err) => {
-                eprint!("{}", err);
-                return;
-            }
-        };
-    results.reverse();
+fn symmetrize_correlation_functions(results_path: &str, corr_fn_path_incomplete: &str) {
+    // Reading the results data
+    let results = match ComputationSummary::fetch_csv_data(results_path, true) {
+        Ok(res) => res,
+        Err(err) => {
+            eprintln!("Reading results for symmetrizing: {}", err);
+            return;
+        }
+    };
 
-    // Initialize new array for summaries
-    let mut summaries: Vec<ComputationSummary> = Vec::new();
-
-    // For each uniue set of coupling constant, lattice size and algorithm,
-    // average the correlation functions and correlation lengths
-    while let Some(mut summary) = results.pop() {
-        let temp: Option<f64> = summary.temp;
-        let max_t: Option<usize> = summary.t;
-        let index: usize = summary.index;
-        let comptype: Option<String> = summary.comptype.clone();
-        let iterations: Option<u64> = summary.iterations;
-
-        // Read the correlation functions
-        if let Some(mut compounded_correlaton_function) = get_correlation_fn(index, corr_fn_path)
-            .map_err(|err| eprintln!("Index {} no correlation function: {}", index, err))
-            .ok()
-            .map(|ary| {
-                ary.into_iter()
-                    .map(|x| {
-                        let mut kahan: WelfordsAlgorithm64 = WelfordsAlgorithm64::new();
-                        kahan.update(x);
-                        kahan
-                    })
-                    .collect::<Vec<WelfordsAlgorithm64>>()
-            })
-        {
-            let mut compounded_correlation_length: WelfordsAlgorithm64 = WelfordsAlgorithm64::new();
-            if let Some(corr12) = summary.corr12 {
-                compounded_correlation_length.update(corr12);
-            } else {
-                eprintln!("Index {} no correlation lenght availible!", index)
-            }
-
-            // We go through the the remaining results and compound them into the
-            // correlation lenght and correlation function summations
-            results
-                .drain_filter(|entry| {
-                    entry.temp == temp && entry.t == max_t && entry.comptype == comptype
-                    //&& entry.iterations == iterations
-                })
-                .for_each(|entry| {
-                    if let Some(corr12) = entry.corr12 {
-                        compounded_correlation_length.update(corr12);
-                    } else {
-                        eprintln!("Index {} no correlation lenght availible!", entry.index)
-                    }
-                    if let Some(entry_corr_fn) = get_correlation_fn(entry.index, corr_fn_path)
-                        .map_err(|err| {
-                            eprintln!("Index {} no correlation function: {}", summary.index, err)
-                        })
-                        .ok()
-                    {
-                        compounded_correlaton_function
-                            .iter_mut()
-                            .zip(entry_corr_fn)
-                            .for_each(|(comp_corr_fn, entry_corr_fn)| {
-                                comp_corr_fn.update(entry_corr_fn)
-                            })
-                    }
-                });
-
-            let mut corr_fn: Vec<f64> = compounded_correlaton_function
-                .iter()
-                .map(|kahan| kahan.get_mean())
-                .collect();
-
-            let mut corr_fn_err: Vec<f64> = compounded_correlaton_function
-                .iter()
-                .map(|welford| welford.get_standard_error())
-                .collect();
-
-            if SYMMETRIZE {
-                let mut new_corr_fn: Vec<f64> = Vec::new();
-                new_corr_fn.push(corr_fn[0]);
-                for i in 1..corr_fn.len() {
-                    new_corr_fn.push((corr_fn[i] + corr_fn[corr_fn.len() - i]) / 2.0)
-                }
-                corr_fn = new_corr_fn;
-
-                let mut new_corr_fn_err: Vec<f64> = Vec::new();
-                new_corr_fn_err.push(corr_fn_err[0]);
-                for i in 1..corr_fn_err.len() {
-                    new_corr_fn_err
-                        .push((corr_fn_err[i] + corr_fn_err[corr_fn_err.len() - i]) / 2.0)
-                }
-                corr_fn_err = new_corr_fn_err;
-            }
-
-            let path: &str =
-                &(comp_corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
-            if let Err(err) = corr_fn.overwrite_csv(path) {
-                eprintln!("Writing compounded correlation function: {}", err);
-            }
-
-            let path: &str = &(comp_corr_fn_path.to_owned()
+    let corr_fn_syms: Vec<(u64, Vec<Vec<f64>>)> = results
+        .into_iter()
+        .filter(|summary| summary.correlation_data)
+        .filter_map(|summary| {
+            // Reading the correlation functions
+            let path: &str = &(corr_fn_path_incomplete.to_owned()
                 + &"correlation_"
-                + &index.to_string()
-                + &"_err.csv");
-            if let Err(err) = corr_fn_err.overwrite_csv(path) {
-                eprintln!("Writing compounded correlation function errors: {}", err);
-            }
+                + &summary.index.to_string()
+                + &".csv");
+            let correlation_functions: Option<Vec<Vec<f64>>> =
+                Vec::<f64>::fetch_csv_data(path, false)
+                    .inspect_err(|err| {
+                        eprintln!("Fetching correlation functions {}: {}", path, err)
+                    })
+                    .ok();
+            correlation_functions
+                .map(|correlation_functions| (summary.index, correlation_functions))
+        })
+        .map(|(index, mut correlation_functions)| {
+            // Symmetrizing the correlation functions
+            correlation_functions.iter_mut().for_each(|corr_fn| {
+                symmetrize_single_correlation_function(corr_fn);
+            });
+            (index, correlation_functions)
+        })
+        .collect();
 
-            summary.comptype = comptype
-                .map(|text| text + &" " + &compounded_correlation_length.get_count().to_string());
-
-            let summary = summary.set_correlation_length(compounded_correlation_length.get_mean());
-            let summary = summary
-                .set_correlation_length_error(compounded_correlation_length.get_standard_error());
-
-            summaries.push(summary);
-        };
-    }
-
-    // Writing the compounded summary data
-    if let Err(err) = summaries.overwrite_csv(results_comp_path) {
-        eprint!("Writing compounded summaries: {}", err);
+    // Writing the symmetrized correlation functions
+    for (index, corr_fn_sym) in corr_fn_syms {
+        let path: &str = &(corr_fn_path_incomplete.to_owned()
+            + &"correlation_"
+            + &index.to_string()
+            + &"_sym.csv");
+        if let Err(err) = corr_fn_sym.overwrite_csv(path) {
+            eprintln!("Writing the symmetrized correlation function: {}", err);
+        }
     }
 }
 
-fn nonlin_fit(results_path: &str, corr_fn_path: &str, fit_path: &str) {
+fn symmetrize_single_correlation_function(corr_fn: &mut Vec<f64>) {
+    let copied = corr_fn.clone();
+    corr_fn
+        .iter_mut()
+        .skip(1)
+        .zip(copied.into_iter().rev())
+        .for_each(|(up, down)| *up = (*up + down) / 2.0);
+}
+
+#[test]
+fn test_symmetrize_single_correlation_function() {
+    let mut corr_fn: Vec<f64> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let corr_fn_sym: Vec<f64> = vec![1.0, 4.0, 4.0, 4.0, 4.0, 4.0];
+    symmetrize_single_correlation_function(&mut corr_fn);
+    assert_eq!(corr_fn, corr_fn_sym);
+}
+
+/// Fetchin the symmetrized correlation functions data for a given index
+fn fetch_correlation_functions_sym(
+    index: u64,
+    corr_fn_path_incomplete: &str,
+) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
+    let path: &str =
+        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_sym.csv");
+    let corr_fn: Result<Vec<Vec<f64>>, Box<dyn Error>> = Vec::<f64>::fetch_csv_data(path, false)
+        .map_err(|err| format!("Fetching correlation functions {}: {}", path, err).into());
+    corr_fn
+}
+
+/// This method calculates the statistics of the correlation functions of the simulations via binned bootstrapping resampling.
+fn calculate_correlation_function_statistics(
+    results_path: &str,
+    corr_fn_path_incomplete: &str,
+    bootstrapping_ensembles: u64,
+) {
+    // Reading the results data
+    let results = match ComputationSummary::fetch_csv_data(results_path, true) {
+        Ok(res) => res,
+        Err(err) => {
+            eprintln!("Reading results for binned resampling: {}", err);
+            return;
+        }
+    };
+
+    let bin_size: usize = 4;
+
+    let (corr_fn_results, corr_fn_errors): (Vec<(u64, Vec<f64>)>, Vec<(u64, Vec<f64>)>) = results
+        .par_iter()
+        .filter(|summary| summary.correlation_data)
+        // Fetching the correlation functions
+        .filter_map(|summary| {
+            fetch_correlation_functions_sym(summary.index, corr_fn_path_incomplete)
+                .inspect_err(|err| eprintln!("{}", err))
+                .ok()
+                .map(|corr_fns| (summary, corr_fns))
+        })
+        // Next we create a bootstrap dataset
+        .map(|(summary, corr_fns)| {
+            let mut rng = ThreadRng::default();
+
+            // Checking if the correlation function lenght corresponds to the lenght in the summary.
+            assert_eq!(summary.t, corr_fns[0].len());
+
+            let binned_corr_fns: Vec<&[Vec<f64>]> = corr_fns.chunks_exact(bin_size).collect();
+
+            // Quick check to see if we catch all correlation functions
+            let bin_samples_amount: usize = corr_fns.len() / bin_size;
+            assert_eq!(binned_corr_fns.len(), bin_samples_amount);
+
+            // Setting up the statistics collection
+            let mut statistics: Vec<WelfordsAlgorithm64> = Vec::with_capacity(MAX_T);
+            for _ in 0..summary.t {
+                statistics.push(WelfordsAlgorithm64::new());
+            }
+
+            // We repeat the resampling to build new ensembles by...
+            (0..bootstrapping_ensembles).into_iter().for_each(|_| {
+                let mut sample_statistics: Vec<WelfordsAlgorithm64> = Vec::with_capacity(MAX_T);
+                for _ in 0..summary.t {
+                    sample_statistics.push(WelfordsAlgorithm64::new());
+                }
+
+                // ...drawing a random sample with replacement for each original sample. We employ
+                // bins to combat the autocorrelation of the data.
+                (0..bin_samples_amount)
+                    .into_iter()
+                    .filter_map(|_| binned_corr_fns.choose(&mut rng))
+                    .cloned()
+                    .flatten()
+                    .for_each(|corr_fn| {
+                        sample_statistics
+                            .iter_mut()
+                            .zip(corr_fn.iter())
+                            .for_each(|(sample, value)| sample.update(*value))
+                    });
+
+                sample_statistics
+                    .into_iter()
+                    .map(|sample| sample.get_mean())
+                    .zip(statistics.iter_mut())
+                    .for_each(|(value, stat)| stat.update(value));
+            });
+
+            // For each ensemble we then do our analysis to get the real variance of the data.
+            let (means, sds): (Vec<f64>, Vec<f64>) = statistics
+                .iter()
+                .map(|stat| (stat.get_mean(), stat.get_sd_unbiased()))
+                .unzip();
+
+            ((summary.index, means), (summary.index, sds))
+        })
+        .collect::<Vec<((u64, Vec<f64>), (u64, Vec<f64>))>>()
+        .into_iter()
+        .unzip();
+
+    // Writing the mean correlation function
+    for (index, corr_fn_result) in corr_fn_results {
+        let path: &str = &(corr_fn_path_incomplete.to_owned()
+            + &"correlation_"
+            + &index.to_string()
+            + &"_res.csv");
+        if let Err(err) = corr_fn_result.overwrite_csv(path) {
+            eprintln!("Writing correlation function results: {}", err);
+        }
+    }
+
+    // Writing the correlation function err
+    for (index, corr_fn_error) in corr_fn_errors {
+        let path: &str = &(corr_fn_path_incomplete.to_owned()
+            + &"correlation_"
+            + &index.to_string()
+            + &"_err.csv");
+        if let Err(err) = corr_fn_error.overwrite_csv(path) {
+            eprintln!("Writing correlation function errors: {}", err);
+        }
+    }
+}
+
+/// Fetchin the correlation functions for a given index
+fn fetch_correlation_functions_results(
+    index: u64,
+    corr_fn_path_incomplete: &str,
+) -> Result<Vec<f64>, Box<dyn Error>> {
+    let path: &str =
+        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_res.csv");
+    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
+        .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fn
+}
+
+/// Fetchin the errors of the correlation functions for a given index
+fn fetch_correlation_functions_errors(
+    index: u64,
+    corr_fn_path_incomplete: &str,
+) -> Result<Vec<f64>, Box<dyn Error>> {
+    let path: &str =
+        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_err.csv");
+    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
+        .map_err(|err| format!("Fetching {}: {}", path, err).into());
+    corr_fn
+}
+
+fn nonlin_fit(results_path: &str, corr_fn_path_incomplete: &str, fit_path: &str) {
     // Read the result data
     let results: Vec<ComputationSummary> =
         match ComputationSummary::fetch_csv_data(results_path, true) {
             Ok(res) => res,
             Err(err) => {
-                eprint!("{}", err);
+                eprint!("Reading results for nonlinear fit: {}", err);
                 return;
             }
         };
 
     let fitted: Vec<FitResult> = results
         .into_iter()
-        .filter(|res| res.correlation_data)
-        .filter_map(|res| {
-            nonlin_regression(res.index, corr_fn_path)
+        .filter(|summary| summary.correlation_data)
+        .filter_map(|summary| {
+            fetch_correlation_functions_results(summary.index, corr_fn_path_incomplete)
+                .inspect_err(|err| eprintln!("Fitting: {}", err))
+                .ok()
+                .map(|x| (summary.index, x))
+        })
+        .filter_map(|(index, corr_fn)| {
+            nonlin_regression(index, corr_fn)
                 .map_err(|err| {
                     eprint!("{}", err);
                 })
@@ -222,22 +323,10 @@ fn nonlin_fit(results_path: &str, corr_fn_path: &str, fit_path: &str) {
     }
 }
 
-fn nonlin_regression(index: usize, corr_fn_path: &str) -> Result<FitResult, Box<dyn Error>> {
+fn nonlin_regression(index: u64, corr_fn: Vec<f64>) -> Result<FitResult, Box<dyn Error>> {
     match std::panic::catch_unwind(move || {
-        let mut y_values = get_correlation_fn(index, corr_fn_path).unwrap();
-        let n: usize = y_values.len();
-
-        if SYMMETRIZE {
-            let mut new_y_values: Vec<f64> = Vec::new();
-            new_y_values.push(y_values[0]);
-            for i in 1..n {
-                new_y_values.push((y_values[i] + y_values[n - i]) / 2.0)
-            }
-            assert_eq!(n, new_y_values.len());
-            y_values = new_y_values;
-        }
-
-        let n: f64 = n as f64;
+        let mut y_values: Vec<f64> = corr_fn;
+        let n: f64 = y_values.len() as f64;
 
         // Edit the data
         let Some(x_max): Option<f64> = y_values.clone().into_iter().reduce(f64::max) else {
@@ -337,7 +426,7 @@ fn second_moment(
         .filter_map(|summary| {
             correlation_lenght_calculation(
                 summary.index,
-                summary.t?,
+                summary.t,
                 corr_fn_path,
                 do_error_calculations,
             )
@@ -345,7 +434,6 @@ fn second_moment(
                 eprint!("{}", err);
             })
             .ok()
-            .inspect(|lenght| summary.corr12 = Some(lenght.corr12))
         })
         .collect();
 
@@ -360,13 +448,12 @@ fn second_moment(
 }
 
 fn correlation_lenght_calculation(
-    index: usize,
+    index: u64,
     max_t: usize,
     incomplete_path: &str,
     do_error_calculations: bool,
 ) -> Result<CorrelationLengths, Box<dyn Error>> {
-    let (corr_fn, corr_fn_err): (Vec<f64>, Option<Vec<f64>>) =
-        get_correlation_fn_with_err(index, incomplete_path)?;
+    let (corr_fn, corr_fn_err): (Vec<f64>, Option<Vec<f64>>) = { todo!() };
 
     let Some(x_max): Option<f64> = corr_fn.clone().into_iter().reduce(f64::max) else {
             return Err("Unable to determine the  maximum of the correlation function".into());

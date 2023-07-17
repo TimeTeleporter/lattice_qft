@@ -79,25 +79,6 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     write_to_csv(path, storage)?;
     Ok(())
 }
-
-pub fn get_correlation_fn(index: usize, corr_fn_path: &str) -> Result<Vec<f64>, Box<dyn Error>> {
-    let path: &str = &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &".csv");
-    let corr_fn: Result<Vec<f64>, Box<dyn Error>> = f64::fetch_csv_data(path, false)
-        .map_err(|err| format!("Fetching {}: {}", path, err).into());
-    corr_fn
-}
-
-pub fn get_correlation_fn_with_err(
-    index: usize,
-    corr_fn_path: &str,
-) -> Result<(Vec<f64>, Option<Vec<f64>>), Box<dyn Error>> {
-    let corr_fn: Vec<f64> = get_correlation_fn(index, corr_fn_path)?;
-    let path: &str =
-        &(corr_fn_path.to_owned() + &"correlation_" + &index.to_string() + &"_err.csv");
-    let corr_fn_err: Option<Vec<f64>> = f64::fetch_csv_data(path, false).ok();
-    Ok((corr_fn, corr_fn_err))
-}
-
 impl CsvData for ComputationSummary {}
 impl CsvData for FieldExport3d<f64> {}
 impl CsvData for f64 {}
@@ -120,7 +101,7 @@ impl<T: CsvData> CsvData for Vec<T> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FitResult {
-    index: usize,
+    index: u64,
     pub m: f64,
     pub n: f64,
     pub a: f64,
@@ -129,7 +110,7 @@ pub struct FitResult {
 }
 
 impl FitResult {
-    pub fn new(index: usize, m: f64, n: f64, a: f64, b: f64) -> FitResult {
+    pub fn new(index: u64, m: f64, n: f64, a: f64, b: f64) -> FitResult {
         FitResult {
             index,
             m,
@@ -145,7 +126,7 @@ impl CsvData for FitResult {}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CorrelationLengths {
-    index: usize,
+    index: u64,
     m12: f64,
     m23: f64,
     m34: f64,
@@ -173,7 +154,7 @@ pub struct CorrelationLengths {
 }
 
 impl CorrelationLengths {
-    pub fn new(index: usize, values: [f64; 6]) -> CorrelationLengths {
+    pub fn new(index: u64, values: [f64; 6]) -> CorrelationLengths {
         let [m12, m23, m34, m13, m24, m14] = values;
         let corrs: [f64; 6] = values.map(|x| 1.0 / x);
         let [corr12, corr23, corr34, corr13, corr24, corr14] = corrs;
@@ -220,24 +201,3 @@ impl CorrelationLengths {
 }
 
 impl CsvData for CorrelationLengths {}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OldComputationSummary {
-    pub index: usize,
-    pub d: Option<usize>,
-    pub size: Option<usize>,
-    pub x: Option<usize>,
-    pub y: Option<usize>,
-    pub t: Option<usize>,
-    pub temp: Option<f64>,
-    pub comptype: Option<String>,
-    pub comptime: Option<u64>,
-    pub action: Option<f64>,
-    pub energy_data: bool,
-    pub difference_data: bool,
-    pub correlation_data: bool,
-    pub corr12: Option<f64>,
-    pub corr12_err: Option<f64>,
-}
-
-impl CsvData for OldComputationSummary {}

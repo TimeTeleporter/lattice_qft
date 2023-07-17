@@ -20,7 +20,7 @@ fn main() {
         .map(|x| f64::cosh(M * (x - (MAX_T as f64) / 2.0)) * A + B)
         .collect();
 
-    let path: &str = &(lattice_qft::OTHER_PLOT_PATH_INCOMPLETE.to_owned() + &"dummy_corr_fn.csv");
+    let path: &str = &(lattice_qft::CORR_FN_PATH_INCOMPLETE.to_owned() + &"dummy_corr_fn.csv");
 
     if let Err(err) = corr_fn.clone().overwrite_csv(path) {
         eprint!("{}", err);

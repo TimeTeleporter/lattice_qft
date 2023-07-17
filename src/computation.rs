@@ -206,7 +206,6 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                 OutputDataType::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(crate::DIFFERENCE_PLOT_PATH_INCOMPLETE.to_owned()
-                            + &"difference_"
                             + &index.to_string()
                             + &"_"
                             + &direction.to_string()
@@ -220,7 +219,6 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                 OutputDataType::EnergyPlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(crate::ENERGY_PLOT_PATH_INCOMPLETE.to_owned()
-                            + &"energy_"
                             + &index.to_string()
                             + &"_"
                             + &direction.to_string()
