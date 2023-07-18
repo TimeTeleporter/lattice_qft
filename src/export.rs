@@ -128,25 +128,26 @@ impl CsvData for FitResult {}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CorrelationLengths {
-    index: u64,
-    m12: f64,
-    m23: f64,
-    m34: f64,
-    m13: f64,
-    m24: f64,
-    m14: f64,
+    pub index: u64,
+    pub bin_size: u64,
+    m12: Option<f64>,
+    m23: Option<f64>,
+    m34: Option<f64>,
+    m13: Option<f64>,
+    m24: Option<f64>,
+    m14: Option<f64>,
     m12_err: Option<f64>,
     m23_err: Option<f64>,
     m34_err: Option<f64>,
     m13_err: Option<f64>,
     m24_err: Option<f64>,
     m14_err: Option<f64>,
-    pub corr12: f64,
-    corr23: f64,
-    corr34: f64,
-    corr13: f64,
-    corr24: f64,
-    corr14: f64,
+    pub corr12: Option<f64>,
+    corr23: Option<f64>,
+    corr34: Option<f64>,
+    corr13: Option<f64>,
+    corr24: Option<f64>,
+    corr14: Option<f64>,
     pub corr12_err: Option<f64>,
     corr23_err: Option<f64>,
     corr34_err: Option<f64>,
@@ -156,49 +157,32 @@ pub struct CorrelationLengths {
 }
 
 impl CorrelationLengths {
-    pub fn new(index: u64, values: [f64; 6]) -> CorrelationLengths {
-        let [m12, m23, m34, m13, m24, m14] = values;
-        let corrs: [f64; 6] = values.map(|x| 1.0 / x);
-        let [corr12, corr23, corr34, corr13, corr24, corr14] = corrs;
+    pub fn new(index: u64, bin_size: u64, m12: f64) -> Self {
         CorrelationLengths {
             index,
-            m12,
-            m23,
-            m34,
-            m13,
-            m24,
-            m14,
-            corr12,
-            corr23,
-            corr34,
-            corr13,
-            corr24,
-            corr14,
-            ..CorrelationLengths::default()
+            bin_size,
+            m12: Some(m12),
+            corr12: Some(1.0 / m12),
+            ..Default::default()
         }
     }
 
-    pub fn set_errors(&mut self, errors: [Option<f64>; 6]) {
+    pub fn set_corr12_error(mut self, m12_err: f64) -> Self {
+        self.m12_err = Some(m12_err);
+        self.corr12_err = self.m12.map(|x| m12_err / (x * x));
+        self
+    }
+
+    pub fn set_other_values(mut self, values: [Option<f64>; 5]) -> Self {
+        [self.m23, self.m34, self.m13, self.m24, self.m14] = values;
         [
-            self.m12_err,
-            self.m23_err,
-            self.m34_err,
-            self.m13_err,
-            self.m24_err,
-            self.m14_err,
-        ] = errors;
-        let values = [self.m12, self.m23, self.m34, self.m13, self.m24, self.m14];
-        let corr_errors: [Option<f64>; 6] = errors
-            .zip(values)
-            .map(|(delta_x, x)| delta_x.map(|delta| delta / (x * x)));
-        [
-            self.corr12_err,
-            self.corr23_err,
-            self.corr34_err,
-            self.corr13_err,
-            self.corr24_err,
-            self.corr14_err,
-        ] = corr_errors;
+            self.corr23,
+            self.corr34,
+            self.corr13,
+            self.corr24,
+            self.corr14,
+        ] = values.map(|opt| opt.map(|x| 1.0 / x));
+        self
     }
 }
 

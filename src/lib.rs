@@ -20,7 +20,9 @@ pub const INVESTIGATE_ARY5: [f64; 17] = [
 /// The main simulation data
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const ACTION_DATA_PATH: &str = "./data/action.csv";
+
 pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/correlation_data/";
+pub const CORR_FN_STATS_PATH_INCOMPLETE: &str = "./data/correlation_stats/";
 
 pub const RESULTS_SECOND_MOMENT_PATH: &str = "./data/results_second_moment.csv";
 pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";

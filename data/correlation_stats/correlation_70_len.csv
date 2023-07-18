@@ -1,0 +1,7 @@
+index,bin_size,m12,m23,m34,m13,m24,m14,m12_err,m23_err,m34_err,m13_err,m24_err,m14_err,corr12,corr23,corr34,corr13,corr24,corr14,corr12_err,corr23_err,corr34_err,corr13_err,corr24_err,corr14_err
+70,1,NaN,,,,,,NaN,,,,,,NaN,,,,,,NaN,,,,,
+70,2,NaN,,,,,,NaN,,,,,,NaN,,,,,,NaN,,,,,
+70,4,NaN,,,,,,NaN,,,,,,NaN,,,,,,NaN,,,,,
+70,8,NaN,,,,,,NaN,,,,,,NaN,,,,,,NaN,,,,,
+70,16,94127753447524.88,,,,,,298391056397407.56,,,,,,1.062385920596191e-14,,,,,,3.3678319681257155e-14,,,,,
+70,32,NaN,,,,,,NaN,,,,,,NaN,,,,,,NaN,,,,,
