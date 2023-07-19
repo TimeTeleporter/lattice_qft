@@ -21,14 +21,15 @@ pub const INVESTIGATE_ARY5: [f64; 17] = [
 pub const RESULTS_PATH: &str = "./data/results.csv";
 pub const ACTION_DATA_PATH: &str = "./data/action.csv";
 
+// Correlation function and statistics
 pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/correlation_data/";
 pub const CORR_FN_STATS_PATH_INCOMPLETE: &str = "./data/correlation_stats/";
 
-pub const RESULTS_SECOND_MOMENT_PATH: &str = "./data/results_second_moment.csv";
-pub const RESULTS_COMP_PATH: &str = "./data/results_comp.csv";
-pub const RESULTS_COMP_FIT_PATH: &str = "./data/results_comp_fit.csv";
-pub const RESULTS_COMP_SECOND_MOMENT_PATH: &str = "./data/results_comp_second_moment.csv";
-pub const COMP_CORR_FN_PATH_INCOMPLETE: &str = "./data/comp_correlation_data/";
+// Compounded correlation functions
+pub const COMP_RESULTS_PATH: &str = "./data/results_comp.csv";
+pub const COMP_CORR_FN_STATS_PATH_INCOMPLETE: &str = "./data/comp_correlation_stats/";
+
+// Plots
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_";
 pub const ENERGY_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/energy_";
 
