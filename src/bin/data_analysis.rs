@@ -137,67 +137,75 @@ fn calculate_correlation_function_statistics_compounded(
                 })
                 .collect();
 
+            // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
             // We calculate the bootstrapping ensembles for each simulation and then combine them to extract the statistics.
-            let (corr_fn_stats, corr12_stats) = binned_local_corr_fns
-                .into_iter()
-                .map(|(binned_corr_fns, bin_samples_amount)| {
-                    let single_ensemble: Vec<(Vec<f64>, f64)> = (0..BOOTSTRAPPING_ENSEMBLES)
-                        .into_par_iter()
-                        .map(|_| {
-                            let mut rng = ThreadRng::default();
+            let bootstrapping_ensembles: Vec<(Vec<f64>, f64)> = (0..BOOTSTRAPPING_ENSEMBLES)
+                .into_par_iter()
+                .map(|_| {
+                    let mut rng = ThreadRng::default();
 
-                            let single_ensemble_corr_fn_stats: Vec<WelfordsAlgorithm64> = (0
-                                ..bin_samples_amount)
-                                .into_iter()
-                                .filter_map(|_| binned_corr_fns.choose(&mut rng))
-                                .cloned()
-                                .flatten()
-                                .fold(
-                                    vec![WelfordsAlgorithm64::new(); key_summary.t],
-                                    |mut accumulator, single_observation| {
-                                        accumulator
-                                            .iter_mut()
-                                            .zip(single_observation.into_iter())
-                                            .for_each(|(accu, value)| accu.update(*value));
-                                        accumulator
-                                    },
-                                );
-
-                            let single_ensemble_corr_fn_means: Vec<f64> =
-                                single_ensemble_corr_fn_stats
-                                    .into_iter()
-                                    .map(|corr_fn_value_stats| corr_fn_value_stats.get_mean())
-                                    .collect();
-
-                            let p1: f64 = 2.0 * std::f64::consts::PI / (key_summary.t as f64);
-
-                            let (single_ensemble_corr12, _): (f64, _) =
-                                calculate_correlation_length(
-                                    &single_ensemble_corr_fn_means,
-                                    p1,
-                                    p1 * 2.0,
-                                );
-
-                            (single_ensemble_corr_fn_means, single_ensemble_corr12)
-                        })
+                    let binned_local_resampled_corr_fns: Vec<&(Vec<&[Vec<f64>]>, usize)> = (0
+                        ..binned_local_corr_fns.len())
+                        .into_iter()
+                        .filter_map(|_| binned_local_corr_fns.choose(&mut rng))
                         .collect();
-                    single_ensemble
+
+                    let single_ensemble_corr_fn_stats: Vec<WelfordsAlgorithm64> =
+                        binned_local_resampled_corr_fns
+                            .iter()
+                            .map(|(binned_corr_fns, bin_samples_amount)| {
+                                let single_sim_resampled_corr_fns: Vec<&Vec<f64>> = (0
+                                    ..*bin_samples_amount)
+                                    .into_iter()
+                                    .filter_map(|_| binned_corr_fns.choose(&mut rng))
+                                    .cloned()
+                                    .flatten()
+                                    .collect();
+                                single_sim_resampled_corr_fns
+                            })
+                            .flatten()
+                            .fold(
+                                vec![WelfordsAlgorithm64::new(); key_summary.t],
+                                |mut accumulator, single_sim_resampled_corr_fn| {
+                                    accumulator
+                                        .iter_mut()
+                                        .zip(single_sim_resampled_corr_fn.into_iter())
+                                        .for_each(|(accu, value)| accu.update(*value));
+                                    accumulator
+                                },
+                            );
+
+                    let single_ensemble_corr_fn_means: Vec<f64> = single_ensemble_corr_fn_stats
+                        .into_iter()
+                        .map(|corr_fn_value_stats| corr_fn_value_stats.get_mean())
+                        .collect();
+
+                    let p1: f64 = 2.0 * std::f64::consts::PI / (key_summary.t as f64);
+
+                    let (single_ensemble_corr12, _): (f64, _) =
+                        calculate_correlation_length(&single_ensemble_corr_fn_means, p1, p1 * 2.0);
+
+                    (single_ensemble_corr_fn_means, single_ensemble_corr12)
                 })
-                .flatten()
-                .fold(
-                    (
-                        vec![WelfordsAlgorithm64::new(); key_summary.t],
-                        WelfordsAlgorithm64::new(),
-                    ),
-                    |(mut corr_fn_accu, mut corr_len_accu), (corr_fn, corr_len)| {
-                        corr_fn_accu
-                            .iter_mut()
-                            .zip(corr_fn.into_iter())
-                            .for_each(|(accu, value)| accu.update(value));
-                        corr_len_accu.update(corr_len);
-                        (corr_fn_accu, corr_len_accu)
-                    },
-                );
+                .collect();
+
+            let (corr_fn_stats, corr12_stats) = bootstrapping_ensembles.into_iter().fold(
+                (
+                    vec![WelfordsAlgorithm64::new(); key_summary.t],
+                    WelfordsAlgorithm64::new(),
+                ),
+                |(mut corr_fn_accu, mut corr_len_accu), (corr_fn, corr_len)| {
+                    corr_fn_accu
+                        .iter_mut()
+                        .zip(corr_fn.into_iter())
+                        .for_each(|(accu, value)| accu.update(value));
+                    corr_len_accu.update(corr_len);
+                    (corr_fn_accu, corr_len_accu)
+                },
+            );
+
+            // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
             let (corr_fn_means, corr_fn_sds) = corr_fn_stats
                 .into_iter()
