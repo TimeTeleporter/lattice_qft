@@ -114,6 +114,7 @@ fn calculate_correlation_function_statistics_compounded(
                 comp_results_path.is_some()
                     && summary.temp == key_summary.temp
                     && summary.t == key_summary.t
+                    && summary.iterations == key_summary.iterations
                 //&& summary.comptype == key_summary.comptype
             })
             .collect();
