@@ -11,7 +11,7 @@ use lattice_qft::{
     kahan::WelfordsAlgorithm64,
 };
 use nalgebra::DVector;
-use rand::{rngs::ThreadRng, seq::SliceRandom};
+use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 use rayon::prelude::*;
 use varpro::{
     prelude::*,
@@ -21,29 +21,41 @@ use varpro::{
 // Parameters
 const BIN_SIZES: [usize; 6] = [1, 2, 4, 8, 16, 32];
 const BOOTSTRAPPING_ENSEMBLES: u64 = 2000;
+const SEEDED: bool = true;
+
+// Analysis steps
+const SYMMETRIZE: bool = true;
+const CORR_FN_ANALYSIS: bool = false;
+const FITTING: bool = false;
+const COMP_CORR_FN_ANALYSIS: bool = true;
 
 fn main() {
     let time = Instant::now();
 
     // Symmetrize the correlation functions
-    symmetrize_correlation_functions(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::CORR_FN_PATH_INCOMPLETE,
-        lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
-    );
+    if SYMMETRIZE {
+        symmetrize_correlation_functions(
+            lattice_qft::RESULTS_PATH,
+            lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
+        );
+    }
 
     // Binned resampling with compounding
-    calculate_correlation_function_statistics_compounded(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
-        None,
-    );
+    if CORR_FN_ANALYSIS {
+        calculate_correlation_function_statistics_compounded(
+            lattice_qft::RESULTS_PATH,
+            lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
+            None,
+        );
+    }
 
     // Calculate the fits for each correlation function
-    nonlin_fit(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
-    );
+    if FITTING {
+        nonlin_fit(
+            lattice_qft::RESULTS_PATH,
+            lattice_qft::CORR_FN_STATS_PATH_INCOMPLETE,
+        );
+    }
 
     println!(
         "Correlation function analysis took {} secs",
@@ -51,17 +63,19 @@ fn main() {
     );
 
     // Binned resampling with compounding
-    calculate_correlation_function_statistics_compounded(
-        lattice_qft::RESULTS_PATH,
-        lattice_qft::COMP_CORR_FN_STATS_PATH_INCOMPLETE,
-        Some(lattice_qft::COMP_RESULTS_PATH),
-    );
+    if COMP_CORR_FN_ANALYSIS {
+        calculate_correlation_function_statistics_compounded(
+            lattice_qft::RESULTS_PATH,
+            lattice_qft::COMP_CORR_FN_STATS_PATH_INCOMPLETE,
+            Some(lattice_qft::COMP_RESULTS_PATH),
+        );
 
-    // Fit the compounded correlation functions
-    nonlin_fit(
-        lattice_qft::COMP_RESULTS_PATH,
-        lattice_qft::COMP_CORR_FN_STATS_PATH_INCOMPLETE,
-    );
+        // Fit the compounded correlation functions
+        nonlin_fit(
+            lattice_qft::COMP_RESULTS_PATH,
+            lattice_qft::COMP_CORR_FN_STATS_PATH_INCOMPLETE,
+        );
+    }
 
     println!(
         "Complete Analyis took {} secs",
@@ -114,10 +128,16 @@ fn calculate_correlation_function_statistics_compounded(
         let local_corr_fns: Vec<Vec<Vec<f64>>> = local_results
             .into_iter()
             .filter_map(|summary| {
-                fetch_correlation_functions_sym(summary.index)
-                    .inspect_err(|err| eprintln!("{}", err))
-                    .ok()
-                    .map(|corr_fns| corr_fns)
+                if SYMMETRIZE {
+                    fetch_correlation_functions_sym(summary.index)
+                } else if CORR_FN_ANALYSIS {
+                    fetch_correlation_functions(summary.index)
+                } else {
+                    Err("Unable to get correlation functions for analysis".into())
+                }
+                .inspect_err(|err| eprintln!("{}", err))
+                .ok()
+                .map(|corr_fns| corr_fns)
             })
             .collect();
 
@@ -142,8 +162,12 @@ fn calculate_correlation_function_statistics_compounded(
             // We calculate the bootstrapping ensembles for each simulation and then combine them to extract the statistics.
             let bootstrapping_ensembles: Vec<(Vec<f64>, f64)> = (0..BOOTSTRAPPING_ENSEMBLES)
                 .into_par_iter()
-                .map(|_| {
-                    let mut rng = ThreadRng::default();
+                .map(|seed| {
+                    let mut rng: StdRng = if SEEDED {
+                        StdRng::seed_from_u64(seed)
+                    } else {
+                        StdRng::from_entropy()
+                    };
 
                     let binned_local_resampled_corr_fns: Vec<&(Vec<&[Vec<f64>]>, usize)> = (0
                         ..binned_local_corr_fns.len())
@@ -296,11 +320,18 @@ fn calculate_correlation_function_statistics_compounded(
     }
 }
 
-fn symmetrize_correlation_functions(
-    results_path: &str,
-    corr_fn_path_incomplete: &str,
-    corr_fn_stats_path_incomplete: &str,
-) {
+/// Fetching the symmetrized correlation functions data for a given index
+fn fetch_correlation_functions(index: u64) -> Result<Vec<Vec<f64>>, Box<dyn Error>> {
+    let path: &str = &(lattice_qft::CORR_FN_PATH_INCOMPLETE.to_owned()
+        + &"correlation_"
+        + &index.to_string()
+        + &".csv");
+    let corr_fn: Result<Vec<Vec<f64>>, Box<dyn Error>> = Vec::<f64>::fetch_csv_data(path, false)
+        .map_err(|err| format!("Fetching correlation functions {}: {}", path, err).into());
+    corr_fn
+}
+
+fn symmetrize_correlation_functions(results_path: &str, corr_fn_stats_path_incomplete: &str) {
     // Reading the results data
     let results = match ComputationSummary::fetch_csv_data(results_path, true) {
         Ok(res) => res,
@@ -311,19 +342,13 @@ fn symmetrize_correlation_functions(
     };
 
     let corr_fn_syms: Vec<(u64, Vec<Vec<f64>>)> = results
-        .into_iter()
+        .into_par_iter()
         .filter(|summary| summary.correlation_data)
         .filter_map(|summary| {
             // Reading the correlation functions
-            let path: &str = &(corr_fn_path_incomplete.to_owned()
-                + &"correlation_"
-                + &summary.index.to_string()
-                + &".csv");
             let correlation_functions: Option<Vec<Vec<f64>>> =
-                Vec::<f64>::fetch_csv_data(path, false)
-                    .inspect_err(|err| {
-                        eprintln!("Fetching correlation functions {}: {}", path, err)
-                    })
+                fetch_correlation_functions(summary.index)
+                    .inspect_err(|err| eprintln!("{}", err))
                     .ok();
             correlation_functions
                 .map(|correlation_functions| (summary.index, correlation_functions))
@@ -437,20 +462,6 @@ fn nonlin_fit(results_path: &str, corr_fn_stats_path_incomplete: &str) {
             eprintln!("Writing fits: {}", err);
         }
     }
-}
-
-#[allow(dead_code)]
-/// Fetchin the correlation functions for a given index
-fn fetch_correlation_functions_fits(
-    index: u64,
-    corr_fn_path_incomplete: &str,
-) -> Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> {
-    let path: &str =
-        &(corr_fn_path_incomplete.to_owned() + &"correlation_" + &index.to_string() + &"_fits.csv");
-    let corr_fns: Result<Vec<(u64, Vec<f64>)>, Box<dyn Error>> =
-        <(u64, Vec<f64>) as CsvData>::fetch_csv_data(path, false)
-            .map_err(|err| format!("Fetching {}: {}", path, err).into());
-    corr_fns
 }
 
 fn nonlin_regression(
