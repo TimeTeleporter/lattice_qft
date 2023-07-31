@@ -5,9 +5,7 @@
 use rand::rngs::ThreadRng;
 
 use crate::{
-    computation::FieldExport3d,
-    fields::{Action, BondsFieldNew, Field, HeightVariable},
-    kahan::KahanSummation,
+    fields::{Action, HeightVariable},
     lattice::Lattice,
 };
 
@@ -26,7 +24,7 @@ pub trait Observe {
 /// contain the [FieldExport3d] data, that describes values on the lattice,
 /// such as energy or field strength.
 pub trait Plotting<T> {
-    fn plot(self) -> Vec<Vec<T>>;
+    fn plot(self) -> Vec<Vec<Vec<T>>>;
 }
 
 /// OutputData models the possible outputs that are able to be extracted from the computation.
@@ -54,7 +52,7 @@ where
     [(); D * 2_usize]:,
 {
     ActionObservable(ActionObservableNew),
-    DifferencePlot(DifferencePlotOutputData<'a, D, SIZE>),
+    DifferencePlot(DifferencePlotOutputData<D>),
     CorrelationData(CorrelationPlotOutputData<'a, D, SIZE>),
 }
 
@@ -70,9 +68,9 @@ where
         }
     }
 
-    pub fn new_difference_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
+    pub fn new_difference_plot() -> Self {
         OutputData {
-            data: OutputDataType::DifferencePlot(DifferencePlotOutputData::new(lattice)),
+            data: OutputDataType::DifferencePlot(DifferencePlotOutputData::new()),
             frequency: 1,
         }
     }
@@ -125,9 +123,7 @@ where
                 <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
             }
             OutputDataType::DifferencePlot(plt) => {
-                <DifferencePlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
-                    plt, field, rng,
-                )
+                <DifferencePlotOutputData<D> as UpdateOutputData<D, SIZE>>::update(plt, field, rng)
             }
             OutputDataType::CorrelationData(dat) => {
                 <CorrelationPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
@@ -175,46 +171,46 @@ impl Observe for ActionObservableNew {
 /// This struct implements the calculation of data that then can be used to
 /// plot the field strength of the lattice simulation.
 #[derive(Debug, Clone)]
-pub struct DifferencePlotOutputData<'a, const D: usize, const SIZE: usize>
+pub struct DifferencePlotOutputData<const D: usize>
 where
     [(); D * 2_usize]:,
 {
-    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
+    values: Vec<Vec<Vec<f64>>>,
 }
 
-impl<'a, const D: usize, const SIZE: usize> DifferencePlotOutputData<'a, D, SIZE>
+impl<const D: usize> DifferencePlotOutputData<D>
 where
     [(); D * 2_usize]:,
 {
-    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
+    pub fn new() -> Self {
         DifferencePlotOutputData {
-            bonds: BondsFieldNew::new(lattice),
+            values: vec![Vec::new(); D],
         }
     }
 }
 
-impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
-    for DifferencePlotOutputData<'a, D, SIZE>
+impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for DifferencePlotOutputData<D>
 where
     [(); D * 2_usize]:,
 {
     fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng) {
-        for index in 0..SIZE {
-            for direction in 0..D {
-                let diff = field.bond_difference(index, direction);
-                self.bonds.get_value_mut(index, direction).add(diff.into());
-            }
-        }
+        self.values
+            .iter_mut()
+            .enumerate()
+            .for_each(|(direction, data_ary)| {
+                data_ary.push(
+                    (0..SIZE)
+                        .map(|index| field.bond_difference(index, direction).into())
+                        .collect::<Vec<f64>>(),
+                );
+            });
     }
 }
 
-impl<'a, const SIZE: usize> Plotting<FieldExport3d<f64>> for DifferencePlotOutputData<'a, 3, SIZE> {
-    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
-        let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
-        for field in self.bonds.into_sub_fields().into_iter() {
-            ary.push(Field::<'a, f64, 3, SIZE>::from_field(field).into_export());
-        }
-        ary
+impl Plotting<f64> for DifferencePlotOutputData<3> {
+    fn plot(self) -> Vec<Vec<Vec<f64>>> {
+        assert_eq!(self.values.len(), 3);
+        self.values
     }
 }
 
@@ -288,8 +284,8 @@ where
 }
 
 impl<'a, const SIZE: usize> Plotting<f64> for CorrelationPlotOutputData<'a, 3, SIZE> {
-    fn plot(self) -> Vec<Vec<f64>> {
-        self.corr_fn
+    fn plot(self) -> Vec<Vec<Vec<f64>>> {
+        [self.corr_fn].to_vec()
     }
 }
 
@@ -302,5 +298,6 @@ fn test_observable_array() {
     let temp: f64 = 1.0;
     let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
     observables.push(OutputData::new_action_observable(temp));
-    observables.push(OutputData::new_difference_plot(&lattice));
+    observables.push(OutputData::new_difference_plot());
+    observables.push(OutputData::new_correlation_plot(&lattice, 10));
 }

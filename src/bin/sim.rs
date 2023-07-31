@@ -59,7 +59,7 @@ fn main() {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             //observables.push(OutputData::new_action_observable(temp).set_frequency(10));
             observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
-            observables.push(OutputData::new_difference_plot(&lattice));
+            observables.push(OutputData::new_difference_plot().set_frequency(10));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,

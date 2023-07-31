@@ -173,7 +173,7 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                         + &"correlation_"
                         + &index.to_string()
                         + &".csv");
-                    if let Err(err) = obs.plot().overwrite_csv(path) {
+                    if let Err(err) = obs.plot()[0].clone().overwrite_csv(path) {
                         eprint!("Writing correlation data: {}", err);
                     };
                     summary = summary.set_correlation_data();
@@ -631,32 +631,5 @@ impl ComputationSummary {
     pub fn set_correlation_data(mut self) -> Self {
         self.correlation_data = true;
         self
-    }
-}
-
-// - Field - Exporting --------------------------------------------------------
-
-#[derive(Serialize, Deserialize)]
-pub struct FieldExport3d<T>
-where
-    T: Serialize,
-{
-    x: usize,
-    y: usize,
-    t: usize,
-    val: T,
-}
-
-impl<'a, T, const SIZE: usize> Field<'a, T, 3, SIZE>
-where
-    T: Serialize,
-{
-    pub fn into_export(self) -> Vec<FieldExport3d<T>> {
-        let mut ary: Vec<FieldExport3d<T>> = Vec::new();
-        for (index, val) in self.values.into_iter().enumerate() {
-            let [x, y, t] = self.lattice.calc_coords_from_index(index).into_array();
-            ary.push(FieldExport3d { x, y, t, val })
-        }
-        ary
     }
 }

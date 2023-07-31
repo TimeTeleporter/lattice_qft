@@ -61,7 +61,6 @@ pub const COMP_CORR_FN_STATS_PATH_INCOMPLETE: &str = "./data/comp_correlation_st
 
 // Plots
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_";
-pub const ENERGY_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/energy_";
 
 pub mod algorithm;
 pub mod computation;

@@ -2,7 +2,7 @@ use std::{error::Error, fs::File};
 
 use serde::{Deserialize, Serialize};
 
-use crate::computation::{ComputationSummary, FieldExport3d};
+use crate::computation::ComputationSummary;
 
 pub trait CsvData
 where
@@ -80,7 +80,6 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 impl CsvData for ComputationSummary {}
-impl CsvData for FieldExport3d<f64> {}
 impl CsvData for f64 {}
 impl CsvData for (u64, Vec<f64>) {}
 
