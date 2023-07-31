@@ -173,7 +173,7 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                         + &"correlation_"
                         + &index.to_string()
                         + &".csv");
-                    if let Err(err) = obs.plot()[0].clone().overwrite_csv(path) {
+                    if let Err(err) = obs.plot().overwrite_csv(path) {
                         eprint!("Writing correlation data: {}", err);
                     };
                     summary = summary.set_correlation_data();

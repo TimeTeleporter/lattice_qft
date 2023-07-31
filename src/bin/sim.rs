@@ -14,7 +14,7 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const REPETITIONS: u64 = 3;
+const REPETITIONS: u64 = 1;
 const BURNIN: u64 = 1_000;
 const ITERATIONS: u64 = 409_600;
 
@@ -25,7 +25,7 @@ const THREADS: usize = 21;
 use lattice_qft::INVESTIGATE_ARY8 as TEMP_ARY;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 36;
+const CUBE: usize = 16;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -55,11 +55,11 @@ fn main() {
         println!("Starting rep {}", rep);
 
         // Define the computations
-        for temp in [0.2200; 20] {
+        for temp in [0.27; 1] {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             //observables.push(OutputData::new_action_observable(temp).set_frequency(10));
-            observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
-            observables.push(OutputData::new_difference_plot().set_frequency(10));
+            //observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
+            observables.push(OutputData::new_difference_plot(&lattice).set_frequency(10));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,

@@ -5362,3 +5362,4 @@ index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,
 5360,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1844,,false,false,false,true
 5361,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1849,,false,false,false,true
 5362,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1870,,false,false,false,true
+5363,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,47,,false,false,true,false

@@ -79,9 +79,26 @@ pub fn clean_csv(path: &str) -> Result<(), Box<dyn Error>> {
     write_to_csv(path, storage)?;
     Ok(())
 }
+
 impl CsvData for ComputationSummary {}
 impl CsvData for f64 {}
 impl CsvData for (u64, Vec<f64>) {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Plotdata3d {
+    x: usize,
+    y: usize,
+    t: usize,
+    value: f64,
+}
+
+impl Plotdata3d {
+    pub fn new(x: usize, y: usize, t: usize, value: f64) -> Self {
+        Plotdata3d { x, y, t, value }
+    }
+}
+
+impl CsvData for Plotdata3d {}
 
 impl<T: CsvData> CsvData for Vec<T> {
     fn read_write_csv(mut self, path: &str, has_headers: bool) -> Result<(), Box<dyn Error>> {

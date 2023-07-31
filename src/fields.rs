@@ -59,6 +59,12 @@ where
             lattice: field.lattice,
         }
     }
+
+    /// Convert a field of one type into a field of a different type losslessly.
+    pub fn from_values(lattice: &'a Lattice<D, SIZE>, values: Vec<T>) -> Self {
+        assert_eq!(values.len(), SIZE);
+        Field::<'a, T, D, SIZE> { values, lattice }
+    }
 }
 
 // - Field - Printing ---------------------------------------------------------
@@ -213,22 +219,25 @@ where
             field: Field::<'a, [T; D], D, SIZE> { values, lattice },
         }
     }
+}
 
-    pub fn into_sub_fields(self) -> Vec<Field<'a, T, D, SIZE>>
+impl<'a, T, const SIZE: usize> BondsFieldNew<'a, T, 3, SIZE> {
+    /// Produces a field for each direction
+    pub fn into_sub_fields(self) -> Vec<Field<'a, T, 3, SIZE>>
     where
         T: Default,
     {
-        let mut ary: Vec<Field<T, D, SIZE>> = Vec::new();
-        for _direction in 0..D {
-            let field: Field<T, D, SIZE> = Field::new(self.field.lattice);
-            ary.push(field);
-        }
-        for (index, entries) in self.field.values.into_iter().enumerate() {
-            for (direction, entry) in entries.into_iter().enumerate() {
-                ary[direction].values[index] = entry;
-            }
-        }
-        ary
+        let (first, (second, third)): (Vec<T>, (Vec<T>, Vec<T>)) = self
+            .field
+            .values
+            .into_iter()
+            .map(|[x, y, t]| (x, (y, t)))
+            .unzip();
+
+        [first, second, third]
+            .into_iter()
+            .map(|values| Field::<T, 3, SIZE>::from_values(self.field.lattice, values))
+            .collect::<Vec<Field<'a, T, 3, SIZE>>>()
     }
 }
 
