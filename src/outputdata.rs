@@ -6,8 +6,8 @@ use rand::rngs::ThreadRng;
 
 use crate::{
     computation::FieldExport3d,
-    fields::{Action, BondsFieldNew, Field, HeightVariable, WilsonField},
-    kahan::{KahanSummation, WelfordsAlgorithm64},
+    fields::{Action, BondsFieldNew, Field, HeightVariable},
+    kahan::KahanSummation,
     lattice::Lattice,
 };
 
@@ -54,9 +54,7 @@ where
     [(); D * 2_usize]:,
 {
     ActionObservable(ActionObservableNew),
-    EnergyPlot(EnergyPlotOutputData<'a, D, SIZE>),
     DifferencePlot(DifferencePlotOutputData<'a, D, SIZE>),
-    TestActionObservable(TestActionObservable),
     CorrelationData(CorrelationPlotOutputData<'a, D, SIZE>),
 }
 
@@ -72,23 +70,9 @@ where
         }
     }
 
-    pub fn new_energy_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
-        OutputData {
-            data: OutputDataType::EnergyPlot(EnergyPlotOutputData::new(lattice)),
-            frequency: 1,
-        }
-    }
-
     pub fn new_difference_plot(lattice: &'a Lattice<D, SIZE>) -> Self {
         OutputData {
             data: OutputDataType::DifferencePlot(DifferencePlotOutputData::new(lattice)),
-            frequency: 1,
-        }
-    }
-
-    pub fn new_test_action_observable(temp: f64) -> Self {
-        OutputData {
-            data: OutputDataType::TestActionObservable(TestActionObservable::new(temp)),
             frequency: 1,
         }
     }
@@ -140,14 +124,6 @@ where
             OutputDataType::ActionObservable(obs) => {
                 <ActionObservableNew as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
             }
-            OutputDataType::TestActionObservable(obs) => {
-                <TestActionObservable as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
-            }
-            OutputDataType::EnergyPlot(plt) => {
-                <EnergyPlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
-                    plt, field, rng,
-                )
-            }
             OutputDataType::DifferencePlot(plt) => {
                 <DifferencePlotOutputData<'a, D, SIZE> as UpdateOutputData<D, SIZE>>::update(
                     plt, field, rng,
@@ -193,106 +169,6 @@ where
 impl Observe for ActionObservableNew {
     fn results(self) -> Vec<f64> {
         self.values
-    }
-}
-
-/// The partition function is the sum over all Bolzmann weights. The observable
-/// is the sum over all weights (Bolzmann times observable), devided by the
-/// partition function.
-#[derive(Debug, Clone)]
-pub struct TestActionObservable {
-    partfn: WelfordsAlgorithm64,
-    obs: WelfordsAlgorithm64,
-    temp: f64,
-}
-
-impl TestActionObservable {
-    fn new(temp: f64) -> Self {
-        TestActionObservable {
-            partfn: WelfordsAlgorithm64::new(),
-            obs: WelfordsAlgorithm64::new(),
-            temp,
-        }
-    }
-
-    pub fn wilson_update<'a, T: HeightVariable<T>, const SIZE: usize>(
-        &mut self,
-        wilson: &'a WilsonField<T, SIZE>,
-    ) where
-        WilsonField<'a, T, SIZE>: Action<T, 3>,
-    {
-        let bolz: f64 = (-wilson.action_observable(self.temp)).exp();
-        self.obs
-            .update(wilson.field.action_observable(self.temp) * bolz);
-        self.partfn.update(bolz);
-    }
-}
-
-impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for TestActionObservable
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng)
-    where
-        [(); D * 2_usize]:,
-    {
-        let bolz: f64 = (-field.action_observable(self.temp)).exp();
-        self.obs.update(field.action_observable(self.temp) * bolz);
-        self.partfn.update(bolz);
-    }
-}
-
-impl Observe for TestActionObservable {
-    fn results(self) -> Vec<f64> {
-        [self.obs.get_mean() / self.partfn.get_mean()].into()
-    }
-}
-
-/// This struct implements the calculation of data that then can be used to
-/// plot the energy density of the lattice simulation.
-#[derive(Debug, Clone)]
-pub struct EnergyPlotOutputData<'a, const D: usize, const SIZE: usize>
-where
-    [(); D * 2_usize]:,
-{
-    bonds: BondsFieldNew<'a, KahanSummation<f64>, D, SIZE>,
-}
-
-impl<'a, const D: usize, const SIZE: usize> EnergyPlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    pub fn new(lattice: &'a Lattice<D, SIZE>) -> Self {
-        EnergyPlotOutputData {
-            bonds: BondsFieldNew::new(lattice),
-        }
-    }
-}
-
-impl<'a, const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE>
-    for EnergyPlotOutputData<'a, D, SIZE>
-where
-    [(); D * 2_usize]:,
-{
-    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng) {
-        for index in 0..SIZE {
-            for direction in 0..D {
-                let action = field.bond_action(index, direction);
-                self.bonds
-                    .get_value_mut(index, direction)
-                    .add(action.into());
-            }
-        }
-    }
-}
-
-impl<'a, const SIZE: usize> Plotting<FieldExport3d<f64>> for EnergyPlotOutputData<'a, 3, SIZE> {
-    fn plot(self) -> Vec<Vec<FieldExport3d<f64>>> {
-        let mut ary: Vec<Vec<FieldExport3d<f64>>> = Vec::new();
-        for field in self.bonds.into_sub_fields().into_iter() {
-            ary.push(Field::<'a, f64, 3, SIZE>::from_field(field).into_export());
-        }
-        ary
     }
 }
 
@@ -382,9 +258,9 @@ where
         let max_t: usize = self.lattice.size[T_DIM];
 
         // Preparing the correlation function
-        let mut correlation_function: Vec<KahanSummation<f64>> = Vec::with_capacity(max_t);
+        let mut correlation_function: Vec<f64> = Vec::with_capacity(max_t);
         for _ in 0..max_t {
-            correlation_function.push(KahanSummation::new());
+            correlation_function.push(0.0);
         }
 
         for _ in 0..self.repetitions {
@@ -403,15 +279,9 @@ where
                     % max_t;
                 let diff: T = x_value - field.get_value(index);
                 let squared: T = diff * diff;
-                correlation_function[t].add(squared.into());
+                correlation_function[t] = correlation_function[t] + squared.into();
             }
         }
-
-        // Converting into a Vec
-        let correlation_function: Vec<f64> = correlation_function
-            .into_iter()
-            .map(|x| x.get_sum())
-            .collect();
 
         self.corr_fn.push(correlation_function);
     }
@@ -432,6 +302,5 @@ fn test_observable_array() {
     let temp: f64 = 1.0;
     let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
     observables.push(OutputData::new_action_observable(temp));
-    observables.push(OutputData::new_energy_plot(&lattice));
     observables.push(OutputData::new_difference_plot(&lattice));
 }

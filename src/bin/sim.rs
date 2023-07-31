@@ -14,15 +14,18 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const REPETITIONS: u64 = 5;
+const REPETITIONS: u64 = 3;
 const BURNIN: u64 = 1_000;
-const ITERATIONS: u64 = 204_800;
+const ITERATIONS: u64 = 409_600;
+
+// Machine parameters
+const THREADS: usize = 21;
 
 #[allow(unused_imports)]
-use lattice_qft::INVESTIGATE_ARY5 as TEMP_ARY;
+use lattice_qft::INVESTIGATE_ARY8 as TEMP_ARY;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 24;
+const CUBE: usize = 36;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -39,7 +42,7 @@ const _HEIGHT: usize = MAX_T;
 fn main() {
     // Setting the global thread pool
     rayon::ThreadPoolBuilder::new()
-        .num_threads(21)
+        .num_threads(THREADS)
         .build_global()
         .unwrap();
 
@@ -50,10 +53,13 @@ fn main() {
         // Initialise the simulations
         let mut comps: Vec<Computation<3, SIZE>> = Vec::new();
         println!("Starting rep {}", rep);
-        for temp in [0.26; 20] {
+
+        // Define the computations
+        for temp in [0.2200; 20] {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             //observables.push(OutputData::new_action_observable(temp).set_frequency(10));
             observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
+            observables.push(OutputData::new_difference_plot(&lattice));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,
@@ -63,6 +69,7 @@ fn main() {
                 observables.clone(),
             ));
         }
+
         // Parallel over all temp data
         let data: Vec<Computation<3, SIZE>> = comps
             .clone()

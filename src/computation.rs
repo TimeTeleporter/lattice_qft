@@ -11,6 +11,8 @@ use crate::{
     outputdata::{Observe, OutputData, OutputDataType, Plotting, UpdateOutputData},
 };
 
+const BURNIN_ANNOUNCEMENT: bool = false;
+
 // - Computation --------------------------------------------------------------
 
 #[derive(Debug, Clone)]
@@ -73,26 +75,6 @@ where
             duration: None,
         })
     }
-
-    pub fn new_test(
-        lattice: &'a Lattice<D, SIZE>,
-        temp: f64,
-        range: i32,
-    ) -> Computation<'a, D, SIZE> {
-        // 16 ^ 7 = 268’435’456
-        let Some(permutations): Option<u64> = (range as u64)
-            .checked_pow(SIZE as u32 - 1) else { panic!("Permutations overflow.")};
-        let mut output: Vec<OutputData<D, SIZE>> = Vec::new();
-        output.push(OutputData::new_test_action_observable(temp));
-        Computation::Test(Test {
-            lattice,
-            temp,
-            range,
-            permutations,
-            output,
-            duration: None,
-        })
-    }
 }
 
 impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
@@ -112,29 +94,6 @@ impl<'a, const SIZE: usize> Computation<'a, 3, SIZE> {
             algorithm,
             burnin,
             iterations,
-            width,
-            height,
-            output,
-            duration: None,
-        })
-    }
-    pub fn new_wilson_test(
-        lattice: &'a Lattice<3, SIZE>,
-        temp: f64,
-        range: usize,
-        width: usize,
-        height: usize,
-    ) -> Computation<'a, 3, SIZE> {
-        // 16 ^ 7 = 268’435’456
-        let Some(permutations): Option<u64> = (range as u64)
-            .checked_pow(SIZE as u32 - 1) else { panic!("Permutations overflow.")};
-        let mut output: Vec<OutputData<'a, 3, SIZE>> = Vec::new();
-        output.push(OutputData::new_test_action_observable(temp));
-        Computation::WilsonTest(WilsonTest {
-            lattice,
-            temp,
-            range,
-            permutations,
             width,
             height,
             output,
@@ -196,13 +155,6 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                     }
                     summary = summary.set_action_data();
                 }
-                OutputDataType::TestActionObservable(obs) => {
-                    let data = (index, obs.results());
-                    if let Err(err) = data.read_write_csv(crate::ACTION_DATA_PATH, false) {
-                        eprint!("Writing test action data: {}", err);
-                    }
-                    summary = summary.set_action_data();
-                }
                 OutputDataType::DifferencePlot(obs) => {
                     for (direction, plot) in obs.plot().into_iter().enumerate() {
                         let path: &str = &(crate::DIFFERENCE_PLOT_PATH_INCOMPLETE.to_owned()
@@ -215,19 +167,6 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                         };
                     }
                     summary = summary.set_bonds_data();
-                }
-                OutputDataType::EnergyPlot(obs) => {
-                    for (direction, plot) in obs.plot().into_iter().enumerate() {
-                        let path: &str = &(crate::ENERGY_PLOT_PATH_INCOMPLETE.to_owned()
-                            + &index.to_string()
-                            + &"_"
-                            + &direction.to_string()
-                            + &".csv");
-                        if let Err(err) = plot.read_write_csv(path, true) {
-                            eprint!("Writing energy plot data: {}", err);
-                        };
-                    }
-                    summary = summary.set_energy_data();
                 }
                 OutputDataType::CorrelationData(obs) => {
                     let path: &str = &(crate::CORR_FN_PATH_INCOMPLETE.to_owned()
@@ -278,14 +217,16 @@ where
         // Burnin: compute an amount of sweeps to achieve equilibrium
         for step in 0..(self.burnin) {
             self.algorithm.field_sweep(&mut field, self.temp, &mut rng);
-            if step == 0 {
-                println!("{:.2} {: <12} Started", self.temp, "Burnin:");
-            } else if step == self.burnin / 4 {
-                println!("{:.2} {: <12} 25%", self.temp, "Burnin:");
-            } else if step == self.burnin / 2 {
-                println!("{:.2} {: <12} 50%", self.temp, "Burnin:");
-            } else if step == self.burnin / 4 * 3 {
-                println!("{:.2} {: <12} 75%", self.temp, "Burnin:");
+            if BURNIN_ANNOUNCEMENT {
+                if step == 0 {
+                    println!("{:.2} {: <12} Started", self.temp, "Burnin:");
+                } else if step == self.burnin / 4 {
+                    println!("{:.2} {: <12} 25%", self.temp, "Burnin:");
+                } else if step == self.burnin / 2 {
+                    println!("{:.2} {: <12} 50%", self.temp, "Burnin:");
+                } else if step == self.burnin / 4 * 3 {
+                    println!("{:.2} {: <12} 75%", self.temp, "Burnin:");
+                }
             }
             if step % 10 == 0 {
                 field.normalize_random();

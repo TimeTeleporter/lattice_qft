@@ -142,6 +142,7 @@ pub struct CorrelationLengths {
     m13_err: Option<f64>,
     m24_err: Option<f64>,
     m14_err: Option<f64>,
+    m12_sigma: Option<f64>,
     pub corr12: Option<f64>,
     corr23: Option<f64>,
     corr34: Option<f64>,
@@ -154,6 +155,7 @@ pub struct CorrelationLengths {
     corr13_err: Option<f64>,
     corr24_err: Option<f64>,
     corr14_err: Option<f64>,
+    corr12_sigma: Option<f64>,
 }
 
 impl CorrelationLengths {
@@ -170,6 +172,12 @@ impl CorrelationLengths {
     pub fn set_corr12_error(mut self, m12_err: f64) -> Self {
         self.m12_err = Some(m12_err);
         self.corr12_err = self.m12.map(|x| m12_err / (x * x));
+        self
+    }
+
+    pub fn set_corr12_sigma(mut self, m12_sigma: f64) -> Self {
+        self.m12_sigma = Some(m12_sigma);
+        self.corr12_sigma = self.m12.map(|x| m12_sigma / (x * x));
         self
     }
 
