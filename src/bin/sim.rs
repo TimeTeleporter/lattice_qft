@@ -22,7 +22,7 @@ const ITERATIONS: u64 = 409_600;
 const THREADS: usize = 21;
 
 #[allow(unused_imports)]
-use lattice_qft::INVESTIGATE_ARY8 as TEMP_ARY;
+use lattice_qft::INVESTIGATE_ARY9 as TEMP_ARY;
 
 // Lattice sizes (16, 24, 36, 54)
 const CUBE: usize = 16;
@@ -32,9 +32,10 @@ const MAX_T: usize = CUBE;
 const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 // The measurements for the wilson loop
+
 const _RANGE: usize = CUBE;
-const _WIDTH: usize = MAX_X / 3;
-const _HEIGHT: usize = MAX_T;
+const WIDTH: usize = MAX_X / 3;
+const HEIGHT: usize = MAX_T;
 
 /// We initialize a 2 by 2 by 2 lattice, on which all possible configurations
 /// with values from 0 to 8 are known. Then we run a metropolis simulation
@@ -55,17 +56,28 @@ fn main() {
         println!("Starting rep {}", rep);
 
         // Define the computations
-        for temp in [0.27; 1] {
+        for temp in TEMP_ARY {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             //observables.push(OutputData::new_action_observable(temp).set_frequency(10));
             //observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
-            observables.push(OutputData::new_difference_plot(&lattice).set_frequency(10));
+            //observables.push(OutputData::new_difference_plot(&lattice).set_frequency(10));
+            observables.push(OutputData::new_energy_observable(temp).set_frequency(10));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,
                 AlgorithmType::new_metropolis(),
                 BURNIN,
                 ITERATIONS,
+                observables.clone(),
+            ));
+            comps.push(Computation::new_wilson_sim(
+                &lattice,
+                temp,
+                AlgorithmType::new_metropolis(),
+                BURNIN,
+                ITERATIONS,
+                WIDTH,
+                HEIGHT,
                 observables.clone(),
             ));
         }

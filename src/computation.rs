@@ -149,8 +149,10 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
         for output in outputs.into_iter() {
             match output.data {
                 OutputDataType::ActionObservable(obs) => {
-                    let data = (index, obs.results());
-                    if let Err(err) = data.read_write_csv(crate::ACTION_DATA_PATH, false) {
+                    let path: &str = &(crate::ACTION_DATA_PATH_INCOMPLETE.to_owned()
+                        + &index.to_string()
+                        + &".csv");
+                    if let Err(err) = obs.results().read_write_csv(path, false) {
                         eprint!("Writing action data: {}", err);
                     }
                     summary = summary.set_action_data();
@@ -177,6 +179,15 @@ pub fn parse_simulation_results<const SIZE: usize>(data: Vec<Computation<3, SIZE
                         eprint!("Writing correlation data: {}", err);
                     };
                     summary = summary.set_correlation_data();
+                }
+                OutputDataType::EnergyObservable(obs) => {
+                    let path: &str = &(crate::ENERGY_DATA_PATH_INCOMPLETE.to_owned()
+                        + &index.to_string()
+                        + &".csv");
+                    if let Err(err) = obs.results().read_write_csv(path, false) {
+                        eprint!("Writing energy data: {}", err);
+                    }
+                    summary = summary.set_energy_data();
                 }
             }
         }

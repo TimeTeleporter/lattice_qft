@@ -5363,3 +5363,26 @@ index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,
 5361,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1849,,false,false,false,true
 5362,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1870,,false,false,false,true
 5363,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,47,,false,false,true,false
+5364,3,46656,36,36,36,0.27,Metropolis Simulation,1000,409600,546,,false,false,true,false
+5365,3,46656,36,36,36,0.27,12x36 Wilson Metropolis Simulation,1000,409600,,,false,false,true,false
+5366,3,4096,16,16,16,0.27,5x16 Wilson Metropolis Simulation,1000,409600,,,false,false,true,false
+5367,3,4096,16,16,16,0.2,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5368,3,4096,16,16,16,0.2,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5369,3,4096,16,16,16,0.21,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5370,3,4096,16,16,16,0.21,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5371,3,4096,16,16,16,0.22,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5372,3,4096,16,16,16,0.22,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5373,3,4096,16,16,16,0.23,Metropolis Simulation,1000,409600,81,,false,true,false,false
+5374,3,4096,16,16,16,0.23,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5375,3,4096,16,16,16,0.24,Metropolis Simulation,1000,409600,85,,false,true,false,false
+5376,3,4096,16,16,16,0.24,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5377,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,81,,false,true,false,false
+5378,3,4096,16,16,16,0.25,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5379,3,4096,16,16,16,0.26,Metropolis Simulation,1000,409600,85,,false,true,false,false
+5380,3,4096,16,16,16,0.26,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5381,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,85,,false,true,false,false
+5382,3,4096,16,16,16,0.27,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5383,3,4096,16,16,16,0.28,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5384,3,4096,16,16,16,0.28,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5385,3,4096,16,16,16,0.29,Metropolis Simulation,1000,409600,80,,false,true,false,false
+5386,3,4096,16,16,16,0.29,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false

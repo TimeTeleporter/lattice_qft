@@ -652,14 +652,24 @@ pub trait Action<T: HeightVariable<T>, const D: usize> {
     /// Calculates the square sum over all lattice bond differences
     fn integer_action(&self) -> T;
 
+    fn integer_energy(&self) -> T;
+
     /// Calculates the square sum over all lattice bond differences and yields it as a float
     fn float_action(&self) -> f64 {
         <T as Into<f64>>::into(self.integer_action())
     }
 
+    fn float_energy(&self) -> f64 {
+        <T as Into<f64>>::into(self.integer_energy())
+    }
+
     /// Calculates the action of the lattice with the coupling constant.
     fn action_observable(&self, temp: f64) -> f64 {
         temp * self.float_action()
+    }
+
+    fn energy_observable(&self, temp: f64) -> f64 {
+        temp * self.float_energy()
     }
 
     /// Calculates the action of a indexed lattice site.
@@ -708,6 +718,17 @@ where
         sum
     }
 
+    fn integer_energy(&self) -> T {
+        (0..SIZE)
+            .map(|index| {
+                (0..(D - 1))
+                    .map(|direction| self.bond_action(index, direction))
+                    .fold(T::default(), |acc, x| acc + x)
+                    - self.bond_action(index, D - 1)
+            })
+            .fold(T::default(), |acc, x| acc + x)
+    }
+
     fn local_action(&self, index: usize) -> T {
         self.assumed_local_action(index, self.values[index])
     }
@@ -751,6 +772,18 @@ where
             }
         }
         sum
+    }
+
+    fn integer_energy(&self) -> T {
+        const D: usize = 3;
+        (0..SIZE)
+            .map(|index| {
+                (0..(D - 1))
+                    .map(|direction| self.bond_action(index, direction))
+                    .fold(T::default(), |acc, x| acc + x)
+                    - self.bond_action(index, D - 1)
+            })
+            .fold(T::default(), |acc, x| acc + x)
     }
 
     fn local_action(&self, index: usize) -> T {

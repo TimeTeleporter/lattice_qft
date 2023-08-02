@@ -56,6 +56,7 @@ where
     ActionObservable(ActionObservableNew),
     DifferencePlot(DifferencePlotOutputData<'a, D, SIZE>),
     CorrelationData(CorrelationPlotOutputData<'a, D, SIZE>),
+    EnergyObservable(EnergyObservable),
 }
 
 // Implementing the constructors
@@ -83,6 +84,13 @@ where
                 lattice,
                 repetitions,
             )),
+            frequency: 1,
+        }
+    }
+
+    pub fn new_energy_observable(temp: f64) -> Self {
+        OutputData {
+            data: OutputDataType::EnergyObservable(EnergyObservable::new(temp)),
             frequency: 1,
         }
     }
@@ -134,7 +142,44 @@ where
                     dat, field, rng,
                 )
             }
+            OutputDataType::EnergyObservable(obs) => {
+                <EnergyObservable as UpdateOutputData<D, SIZE>>::update(obs, field, rng)
+            }
         }
+    }
+}
+
+/// This struct implements the action as a observable of the lattice simulation
+#[derive(Debug, Clone)]
+pub struct EnergyObservable {
+    values: Vec<f64>,
+    temp: f64,
+}
+
+impl EnergyObservable {
+    fn new(temp: f64) -> Self {
+        EnergyObservable {
+            values: Vec::new(),
+            temp,
+        }
+    }
+}
+
+impl<const D: usize, const SIZE: usize> UpdateOutputData<D, SIZE> for EnergyObservable
+where
+    [(); D * 2_usize]:,
+{
+    fn update<T: HeightVariable<T>, A: Action<T, D>>(&mut self, field: &A, _rng: &mut ThreadRng)
+    where
+        [(); D * 2_usize]:,
+    {
+        self.values.push(field.energy_observable(self.temp))
+    }
+}
+
+impl Observe for EnergyObservable {
+    fn results(self) -> Vec<f64> {
+        self.values
     }
 }
 

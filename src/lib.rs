@@ -47,9 +47,10 @@ pub const INVESTIGATE_ARY8: [f64; 20] = [
     0.54, 0.56, 0.58, 0.6,
 ];
 
+pub const INVESTIGATE_ARY9: [f64; 10] = [0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29];
+
 /// The main simulation data
 pub const RESULTS_PATH: &str = "./data/results.csv";
-pub const ACTION_DATA_PATH: &str = "./data/action.csv";
 
 // Correlation function and statistics
 pub const CORR_FN_PATH_INCOMPLETE: &str = "./data/correlation_data/";
@@ -61,6 +62,10 @@ pub const COMP_CORR_FN_STATS_PATH_INCOMPLETE: &str = "./data/comp_correlation_st
 
 // Plots
 pub const DIFFERENCE_PLOT_PATH_INCOMPLETE: &str = "./data/plot_data/difference_";
+
+// Action and energy
+pub const ACTION_DATA_PATH_INCOMPLETE: &str = "./data/action_data/action_";
+pub const ENERGY_DATA_PATH_INCOMPLETE: &str = "./data/energy_data/energy_";
 
 pub mod algorithm;
 pub mod computation;
