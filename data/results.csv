@@ -5386,3 +5386,833 @@ index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,
 5384,3,4096,16,16,16,0.28,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
 5385,3,4096,16,16,16,0.29,Metropolis Simulation,1000,409600,80,,false,true,false,false
 5386,3,4096,16,16,16,0.29,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5387,3,4096,16,16,16,0.2,Metropolis Simulation,1000,409600,88,,false,true,false,false
+5388,3,4096,16,16,16,0.2,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5389,3,4096,16,16,16,0.21,Metropolis Simulation,1000,409600,85,,false,true,false,false
+5390,3,4096,16,16,16,0.21,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5391,3,4096,16,16,16,0.22,Metropolis Simulation,1000,409600,87,,false,true,false,false
+5392,3,4096,16,16,16,0.22,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5393,3,4096,16,16,16,0.23,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5394,3,4096,16,16,16,0.23,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5395,3,4096,16,16,16,0.24,Metropolis Simulation,1000,409600,89,,false,true,false,false
+5396,3,4096,16,16,16,0.24,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5397,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5398,3,4096,16,16,16,0.25,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5399,3,4096,16,16,16,0.26,Metropolis Simulation,1000,409600,89,,false,true,false,false
+5400,3,4096,16,16,16,0.26,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5401,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5402,3,4096,16,16,16,0.27,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5403,3,4096,16,16,16,0.28,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5404,3,4096,16,16,16,0.28,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5405,3,4096,16,16,16,0.29,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5406,3,4096,16,16,16,0.29,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5407,3,4096,16,16,16,0.2,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5408,3,4096,16,16,16,0.2,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5409,3,4096,16,16,16,0.21,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5410,3,4096,16,16,16,0.21,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5411,3,4096,16,16,16,0.22,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5412,3,4096,16,16,16,0.22,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5413,3,4096,16,16,16,0.23,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5414,3,4096,16,16,16,0.23,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5415,3,4096,16,16,16,0.24,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5416,3,4096,16,16,16,0.24,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5417,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,83,,false,true,false,false
+5418,3,4096,16,16,16,0.25,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5419,3,4096,16,16,16,0.26,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5420,3,4096,16,16,16,0.26,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5421,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5422,3,4096,16,16,16,0.27,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5423,3,4096,16,16,16,0.28,Metropolis Simulation,1000,409600,82,,false,true,false,false
+5424,3,4096,16,16,16,0.28,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5425,3,4096,16,16,16,0.29,Metropolis Simulation,1000,409600,81,,false,true,false,false
+5426,3,4096,16,16,16,0.29,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5427,3,46656,36,36,36,0.2,Metropolis Simulation,1000,409600,970,,false,true,false,false
+5428,3,46656,36,36,36,0.2,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5429,3,46656,36,36,36,0.21,Metropolis Simulation,1000,409600,969,,false,true,false,false
+5430,3,46656,36,36,36,0.21,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5431,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,961,,false,true,false,false
+5432,3,46656,36,36,36,0.22,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5433,3,46656,36,36,36,0.23,Metropolis Simulation,1000,409600,961,,false,true,false,false
+5434,3,46656,36,36,36,0.23,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5435,3,46656,36,36,36,0.24,Metropolis Simulation,1000,409600,958,,false,true,false,false
+5436,3,46656,36,36,36,0.24,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5437,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,956,,false,true,false,false
+5438,3,46656,36,36,36,0.25,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5439,3,46656,36,36,36,0.26,Metropolis Simulation,1000,409600,953,,false,true,false,false
+5440,3,46656,36,36,36,0.26,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5441,3,46656,36,36,36,0.27,Metropolis Simulation,1000,409600,945,,false,true,false,false
+5442,3,46656,36,36,36,0.27,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5443,3,46656,36,36,36,0.28,Metropolis Simulation,1000,409600,947,,false,true,false,false
+5444,3,46656,36,36,36,0.28,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5445,3,46656,36,36,36,0.29,Metropolis Simulation,1000,409600,939,,false,true,false,false
+5446,3,46656,36,36,36,0.29,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5447,3,46656,36,36,36,0.2,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5448,3,46656,36,36,36,0.2,Metropolis Simulation,1000,409600,1941,,false,true,false,true
+5449,3,46656,36,36,36,0.21,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5450,3,46656,36,36,36,0.21,Metropolis Simulation,1000,409600,1941,,false,true,false,true
+5451,3,46656,36,36,36,0.22,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5452,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,1935,,false,true,false,true
+5453,3,46656,36,36,36,0.23,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5454,3,46656,36,36,36,0.23,Metropolis Simulation,1000,409600,1935,,false,true,false,true
+5455,3,46656,36,36,36,0.24,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5456,3,46656,36,36,36,0.24,Metropolis Simulation,1000,409600,1946,,false,true,false,true
+5457,3,46656,36,36,36,0.25,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5458,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1935,,false,true,false,true
+5459,3,46656,36,36,36,0.26,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5460,3,46656,36,36,36,0.26,Metropolis Simulation,1000,409600,1958,,false,true,false,true
+5461,3,46656,36,36,36,0.27,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5462,3,46656,36,36,36,0.27,Metropolis Simulation,1000,409600,1938,,false,true,false,true
+5463,3,46656,36,36,36,0.28,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5464,3,46656,36,36,36,0.28,Metropolis Simulation,1000,409600,1921,,false,true,false,true
+5465,3,46656,36,36,36,0.29,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5466,3,46656,36,36,36,0.29,Metropolis Simulation,1000,409600,1949,,false,true,false,true
+5467,3,4096,16,16,16,0.25,1x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5468,3,4096,16,16,16,0.25,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5469,3,4096,16,16,16,0.25,3x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5470,3,4096,16,16,16,0.25,4x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5471,3,4096,16,16,16,0.25,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5472,3,4096,16,16,16,0.25,6x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5473,3,4096,16,16,16,0.25,7x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5474,3,4096,16,16,16,0.25,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5475,3,4096,16,16,16,0.25,9x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5476,3,4096,16,16,16,0.25,10x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5477,3,4096,16,16,16,0.25,11x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5478,3,4096,16,16,16,0.25,12x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5479,3,4096,16,16,16,0.25,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5480,3,4096,16,16,16,0.25,14x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5481,3,4096,16,16,16,0.25,1x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5482,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5483,3,4096,16,16,16,0.25,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5484,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5485,3,4096,16,16,16,0.25,3x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5486,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5487,3,4096,16,16,16,0.25,4x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5488,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5489,3,4096,16,16,16,0.25,5x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5490,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,75,,false,true,false,false
+5491,3,4096,16,16,16,0.25,6x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5492,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5493,3,4096,16,16,16,0.25,7x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5494,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,75,,false,true,false,false
+5495,3,4096,16,16,16,0.25,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5496,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5497,3,4096,16,16,16,0.25,9x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5498,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5499,3,4096,16,16,16,0.25,10x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5500,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5501,3,4096,16,16,16,0.25,11x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5502,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5503,3,4096,16,16,16,0.25,12x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5504,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,75,,false,true,false,false
+5505,3,4096,16,16,16,0.25,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5506,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,84,,false,true,false,false
+5507,3,4096,16,16,16,0.25,14x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5508,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,75,,false,true,false,false
+5509,3,46656,36,36,36,0.25,1x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5510,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,962,,false,true,false,false
+5511,3,46656,36,36,36,0.25,2x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5512,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,961,,false,true,false,false
+5513,3,46656,36,36,36,0.25,3x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5514,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,999,,false,true,false,false
+5515,3,46656,36,36,36,0.25,4x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5516,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,949,,false,true,false,false
+5517,3,46656,36,36,36,0.25,5x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5518,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,971,,false,true,false,false
+5519,3,46656,36,36,36,0.25,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5520,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,836,,false,true,false,false
+5521,3,46656,36,36,36,0.25,7x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5522,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,834,,false,true,false,false
+5523,3,46656,36,36,36,0.25,8x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5524,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,835,,false,true,false,false
+5525,3,46656,36,36,36,0.25,9x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5526,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,964,,false,true,false,false
+5527,3,46656,36,36,36,0.25,10x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5528,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,956,,false,true,false,false
+5529,3,46656,36,36,36,0.25,11x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5530,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,957,,false,true,false,false
+5531,3,46656,36,36,36,0.25,12x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5532,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,949,,false,true,false,false
+5533,3,46656,36,36,36,0.25,13x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5534,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,958,,false,true,false,false
+5535,3,46656,36,36,36,0.25,14x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5536,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,947,,false,true,false,false
+5537,3,46656,36,36,36,0.25,15x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5538,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,953,,false,true,false,false
+5539,3,46656,36,36,36,0.25,16x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5540,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,972,,false,true,false,false
+5541,3,46656,36,36,36,0.25,17x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5542,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1001,,false,true,false,false
+5543,3,46656,36,36,36,0.25,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5544,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1011,,false,true,false,false
+5545,3,46656,36,36,36,0.25,19x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5546,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,870,,false,true,false,false
+5547,3,46656,36,36,36,0.25,20x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5548,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,955,,false,true,false,false
+5549,3,46656,36,36,36,0.25,21x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5550,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,949,,false,true,false,false
+5551,3,46656,36,36,36,0.25,22x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5552,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1011,,false,true,false,false
+5553,3,46656,36,36,36,0.25,23x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5554,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,997,,false,true,false,false
+5555,3,46656,36,36,36,0.25,24x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5556,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,952,,false,true,false,false
+5557,3,46656,36,36,36,0.25,25x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5558,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,954,,false,true,false,false
+5559,3,46656,36,36,36,0.25,26x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5560,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,959,,false,true,false,false
+5561,3,46656,36,36,36,0.25,27x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5562,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,961,,false,true,false,false
+5563,3,46656,36,36,36,0.25,28x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5564,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1007,,false,true,false,false
+5565,3,46656,36,36,36,0.25,29x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5566,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,1009,,false,true,false,false
+5567,3,46656,36,36,36,0.25,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5568,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,984,,false,true,false,false
+5569,3,46656,36,36,36,0.25,31x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5570,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,946,,false,true,false,false
+5571,3,46656,36,36,36,0.25,32x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5572,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,941,,false,true,false,false
+5573,3,46656,36,36,36,0.25,33x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5574,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,949,,false,true,false,false
+5575,3,46656,36,36,36,0.25,34x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5576,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,998,,false,true,false,false
+5577,3,157464,54,54,54,0.25,1x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5578,3,157464,54,54,54,0.25,3x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5579,3,157464,54,54,54,0.25,5x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5580,3,157464,54,54,54,0.25,7x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5581,3,157464,54,54,54,0.25,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5582,3,157464,54,54,54,0.25,11x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5583,3,157464,54,54,54,0.25,13x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5584,3,157464,54,54,54,0.25,15x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5585,3,157464,54,54,54,0.25,17x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5586,3,157464,54,54,54,0.25,19x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5587,3,157464,54,54,54,0.25,21x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5588,3,157464,54,54,54,0.25,23x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5589,3,157464,54,54,54,0.25,25x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5590,3,157464,54,54,54,0.25,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5591,3,157464,54,54,54,0.25,29x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5592,3,157464,54,54,54,0.25,31x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5593,3,157464,54,54,54,0.25,33x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5594,3,157464,54,54,54,0.25,35x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5595,3,157464,54,54,54,0.25,37x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5596,3,157464,54,54,54,0.25,39x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5597,3,157464,54,54,54,0.25,41x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5598,3,157464,54,54,54,0.25,43x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5599,3,157464,54,54,54,0.25,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5600,3,157464,54,54,54,0.25,47x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5601,3,157464,54,54,54,0.25,49x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5602,3,157464,54,54,54,0.25,51x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+5603,3,157464,54,54,54,0.25,Metropolis Simulation,1000,409600,2134,,false,true,false,false
+5604,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6520,,false,false,false,true
+5605,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6514,,false,false,false,true
+5606,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6515,,false,false,false,true
+5607,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6513,,false,false,false,true
+5608,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6522,,false,false,false,true
+5609,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6515,,false,false,false,true
+5610,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6521,,false,false,false,true
+5611,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6537,,false,false,false,true
+5612,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6517,,false,false,false,true
+5613,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6516,,false,false,false,true
+5614,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6513,,false,false,false,true
+5615,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6512,,false,false,false,true
+5616,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,6505,,false,false,false,true
+5617,3,157464,54,54,54,0.2225,Metropolis Simulation,1000,409600,6499,,false,false,false,true
+5618,3,157464,54,54,54,0.225,Metropolis Simulation,1000,409600,6499,,false,false,false,true
+5619,3,157464,54,54,54,0.2275,Metropolis Simulation,1000,409600,6503,,false,false,false,true
+5620,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,6509,,false,false,false,true
+5621,3,157464,54,54,54,0.2325,Metropolis Simulation,1000,409600,6498,,false,false,false,true
+5622,3,157464,54,54,54,0.235,Metropolis Simulation,1000,409600,6499,,false,false,false,true
+5623,3,157464,54,54,54,0.2375,Metropolis Simulation,1000,409600,6515,,false,false,false,true
+5624,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,6487,,false,false,false,true
+5625,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6497,,false,false,false,true
+5626,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6510,,false,false,false,true
+5627,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6499,,false,false,false,true
+5628,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6506,,false,false,false,true
+5629,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6518,,false,false,false,true
+5630,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6496,,false,false,false,true
+5631,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6505,,false,false,false,true
+5632,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6718,,false,false,false,true
+5633,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6520,,false,false,false,true
+5634,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6504,,false,false,false,true
+5635,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6504,,false,false,false,true
+5636,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6489,,false,false,false,true
+5637,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,6520,,false,false,false,true
+5638,3,157464,54,54,54,0.2225,Metropolis Simulation,1000,409600,6488,,false,false,false,true
+5639,3,157464,54,54,54,0.225,Metropolis Simulation,1000,409600,6500,,false,false,false,true
+5640,3,157464,54,54,54,0.2275,Metropolis Simulation,1000,409600,6495,,false,false,false,true
+5641,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,6494,,false,false,false,true
+5642,3,157464,54,54,54,0.2325,Metropolis Simulation,1000,409600,6494,,false,false,false,true
+5643,3,157464,54,54,54,0.235,Metropolis Simulation,1000,409600,6476,,false,false,false,true
+5644,3,157464,54,54,54,0.2375,Metropolis Simulation,1000,409600,6497,,false,false,false,true
+5645,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,6483,,false,false,false,true
+5646,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6462,,false,false,false,true
+5647,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6560,,false,false,false,true
+5648,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6555,,false,false,false,true
+5649,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6555,,false,false,false,true
+5650,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6465,,false,false,false,true
+5651,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6471,,false,false,false,true
+5652,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6557,,false,false,false,true
+5653,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6562,,false,false,false,true
+5654,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,6455,,false,false,false,true
+5655,3,157464,54,54,54,0.2225,Metropolis Simulation,1000,409600,6454,,false,false,false,true
+5656,3,157464,54,54,54,0.225,Metropolis Simulation,1000,409600,6545,,false,false,false,true
+5657,3,157464,54,54,54,0.2275,Metropolis Simulation,1000,409600,6482,,false,false,false,true
+5658,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,6544,,false,false,false,true
+5659,3,157464,54,54,54,0.2325,Metropolis Simulation,1000,409600,6496,,false,false,false,true
+5660,3,157464,54,54,54,0.235,Metropolis Simulation,1000,409600,6498,,false,false,false,true
+5661,3,157464,54,54,54,0.2375,Metropolis Simulation,1000,409600,6440,,false,false,false,true
+5662,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,6535,,false,false,false,true
+5663,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6292,,false,false,false,true
+5664,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6370,,false,false,false,true
+5665,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6366,,false,false,false,true
+5666,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6331,,false,false,false,true
+5667,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6291,,false,false,false,true
+5668,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6288,,false,false,false,true
+5669,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6369,,false,false,false,true
+5670,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6375,,false,false,false,true
+5671,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,6283,,false,false,false,true
+5672,3,157464,54,54,54,0.2225,Metropolis Simulation,1000,409600,6368,,false,false,false,true
+5673,3,157464,54,54,54,0.225,Metropolis Simulation,1000,409600,6365,,false,false,false,true
+5674,3,157464,54,54,54,0.2275,Metropolis Simulation,1000,409600,6278,,false,false,false,true
+5675,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,6282,,false,false,false,true
+5676,3,157464,54,54,54,0.2325,Metropolis Simulation,1000,409600,6363,,false,false,false,true
+5677,3,157464,54,54,54,0.235,Metropolis Simulation,1000,409600,6276,,false,false,false,true
+5678,3,157464,54,54,54,0.2375,Metropolis Simulation,1000,409600,6371,,false,false,false,true
+5679,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,6310,,false,false,false,true
+5680,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6131,,false,false,false,true
+5681,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6203,,false,false,false,true
+5682,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6205,,false,false,false,true
+5683,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6150,,false,false,false,true
+5684,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,6135,,false,false,false,true
+5685,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6173,,false,false,false,true
+5686,3,157464,54,54,54,0.215,Metropolis Simulation,1000,409600,6203,,false,false,false,true
+5687,3,157464,54,54,54,0.2175,Metropolis Simulation,1000,409600,6204,,false,false,false,true
+5688,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,6122,,false,false,false,true
+5689,3,157464,54,54,54,0.2225,Metropolis Simulation,1000,409600,6202,,false,false,false,true
+5690,3,157464,54,54,54,0.225,Metropolis Simulation,1000,409600,6125,,false,false,false,true
+5691,3,157464,54,54,54,0.2275,Metropolis Simulation,1000,409600,6132,,false,false,false,true
+5692,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,6198,,false,false,false,true
+5693,3,157464,54,54,54,0.2325,Metropolis Simulation,1000,409600,6112,,false,false,false,true
+5694,3,157464,54,54,54,0.235,Metropolis Simulation,1000,409600,6209,,false,false,false,true
+5695,3,157464,54,54,54,0.2375,Metropolis Simulation,1000,409600,6150,,false,false,false,true
+5696,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,6196,,false,false,false,true
+5697,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6444,,false,false,false,true
+5698,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6465,,false,false,false,true
+5699,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6451,,false,false,false,true
+5700,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6449,,false,false,false,true
+5701,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6447,,false,false,false,true
+5702,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6445,,false,false,false,true
+5703,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6452,,false,false,false,true
+5704,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6444,,false,false,false,true
+5705,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6448,,false,false,false,true
+5706,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6448,,false,false,false,true
+5707,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6448,,false,false,false,true
+5708,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6449,,false,false,false,true
+5709,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6457,,false,false,false,true
+5710,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6445,,false,false,false,true
+5711,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6450,,false,false,false,true
+5712,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6466,,false,false,false,true
+5713,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6450,,false,false,false,true
+5714,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6449,,false,false,false,true
+5715,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6465,,false,false,false,true
+5716,3,157464,54,54,54,0.2125,Metropolis Simulation,1000,409600,6444,,false,false,false,true
+5717,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5718,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5719,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5720,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5721,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5722,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5723,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5724,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5725,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5726,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5727,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1899,,false,false,false,true
+5728,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5729,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5730,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5731,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5732,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5733,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5734,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5735,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5736,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5737,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5738,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5739,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5740,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5741,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1906,,false,false,false,true
+5742,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5743,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5744,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5745,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5746,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5747,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5748,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5749,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5750,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1908,,false,false,false,true
+5751,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5752,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1907,,false,false,false,true
+5753,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5754,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5755,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1915,,false,false,false,true
+5756,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5757,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5758,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5759,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5760,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5761,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5762,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5763,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5764,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1906,,false,false,false,true
+5765,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1914,,false,false,false,true
+5766,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5767,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1900,,false,false,false,true
+5768,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5769,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5770,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5771,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5772,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5773,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5774,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5775,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5776,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5777,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5778,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5779,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5780,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5781,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5782,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5783,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5784,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5785,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5786,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1901,,false,false,false,true
+5787,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5788,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5789,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5790,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1907,,false,false,false,true
+5791,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1899,,false,false,false,true
+5792,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1903,,false,false,false,true
+5793,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5794,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1905,,false,false,false,true
+5795,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1904,,false,false,false,true
+5796,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1902,,false,false,false,true
+5797,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1894,,false,false,false,true
+5798,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1894,,false,false,false,true
+5799,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1894,,false,false,false,true
+5800,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1898,,false,false,false,true
+5801,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1897,,false,false,false,true
+5802,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5803,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1896,,false,false,false,true
+5804,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1896,,false,false,false,true
+5805,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1896,,false,false,false,true
+5806,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1897,,false,false,false,true
+5807,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5808,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5809,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1897,,false,false,false,true
+5810,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1900,,false,false,false,true
+5811,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5812,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1896,,false,false,false,true
+5813,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5814,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1897,,false,false,false,true
+5815,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1895,,false,false,false,true
+5816,3,46656,36,36,36,0.2225,Metropolis Simulation,1000,409600,1898,,false,false,false,true
+5817,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5818,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5819,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5820,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5821,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5822,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5823,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5824,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5825,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+5826,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5827,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5828,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+5829,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5830,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5831,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+5832,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+5833,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+5834,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5835,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5836,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5837,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5838,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5839,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5840,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5841,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5842,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5843,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5844,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5845,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5846,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5847,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5848,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5849,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5850,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5851,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5852,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5853,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5854,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5855,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5856,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5857,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5858,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5859,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5860,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5861,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5862,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+5863,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5864,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5865,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5866,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5867,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5868,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5869,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5870,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5871,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5872,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5873,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5874,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5875,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5876,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+5877,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5878,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5879,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5880,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5881,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5882,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5883,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5884,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5885,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5886,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5887,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5888,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5889,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5890,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5891,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5892,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5893,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5894,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5895,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5896,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5897,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5898,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5899,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5900,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5901,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5902,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5903,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5904,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5905,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5906,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5907,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5908,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5909,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5910,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5911,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5912,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5913,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5914,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5915,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5916,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+5917,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5918,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5919,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5920,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5921,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5922,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5923,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5924,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5925,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5926,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5927,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5928,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5929,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5930,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5931,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5932,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5933,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5934,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5935,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,574,,false,false,false,true
+5936,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5937,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5938,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5939,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5940,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5941,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5942,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5943,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5944,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5945,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5946,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5947,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5948,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5949,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5950,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5951,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5952,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5953,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5954,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5955,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5956,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,573,,false,false,false,true
+5957,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5958,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5959,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5960,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5961,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5962,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5963,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5964,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5965,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5966,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5967,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5968,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5969,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5970,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5971,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5972,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5973,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5974,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5975,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5976,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5977,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5978,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5979,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5980,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5981,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5982,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5983,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5984,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5985,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5986,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5987,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+5988,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5989,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5990,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5991,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5992,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+5993,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5994,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5995,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5996,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,570,,false,false,false,true
+5997,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5998,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+5999,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,573,,false,false,false,true
+6000,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,574,,false,false,false,true
+6001,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6002,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6003,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6004,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6005,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6006,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6007,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6008,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6009,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,574,,false,false,false,true
+6010,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6011,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6012,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6013,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6014,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6015,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,572,,false,false,false,true
+6016,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,571,,false,false,false,true
+6017,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6018,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6019,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6020,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6021,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6022,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6023,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6024,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6025,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6026,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+6027,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6028,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6029,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6030,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+6031,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6032,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6033,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6034,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,569,,false,false,false,true
+6035,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,569,,false,false,false,true
+6036,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6037,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6038,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6039,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6040,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6041,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6042,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6043,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,564,,false,false,false,true
+6044,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6045,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,566,,false,false,false,true
+6046,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6047,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6048,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6049,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6050,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6051,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6052,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6053,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,567,,false,false,false,true
+6054,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6055,3,13824,24,24,24,0.2275,Metropolis Simulation,1000,409600,568,,false,false,false,true
+6056,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,565,,false,false,false,true
+6057,3,4096,16,16,16,0.2,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6058,3,4096,16,16,16,0.2,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6059,3,4096,16,16,16,0.2,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6060,3,4096,16,16,16,0.2,Metropolis Simulation,1000,409600,63,,false,true,false,false
+6061,3,4096,16,16,16,0.21,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6062,3,4096,16,16,16,0.21,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6063,3,4096,16,16,16,0.21,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6064,3,4096,16,16,16,0.21,Metropolis Simulation,1000,409600,66,,false,true,false,false
+6065,3,4096,16,16,16,0.22,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6066,3,4096,16,16,16,0.22,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6067,3,4096,16,16,16,0.22,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6068,3,4096,16,16,16,0.22,Metropolis Simulation,1000,409600,66,,false,true,false,false
+6069,3,4096,16,16,16,0.23,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6070,3,4096,16,16,16,0.23,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6071,3,4096,16,16,16,0.23,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6072,3,4096,16,16,16,0.23,Metropolis Simulation,1000,409600,66,,false,true,false,false
+6073,3,4096,16,16,16,0.24,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6074,3,4096,16,16,16,0.24,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6075,3,4096,16,16,16,0.24,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6076,3,4096,16,16,16,0.24,Metropolis Simulation,1000,409600,61,,false,true,false,false
+6077,3,4096,16,16,16,0.25,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6078,3,4096,16,16,16,0.25,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6079,3,4096,16,16,16,0.25,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6080,3,4096,16,16,16,0.25,Metropolis Simulation,1000,409600,66,,false,true,false,false
+6081,3,4096,16,16,16,0.26,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6082,3,4096,16,16,16,0.26,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6083,3,4096,16,16,16,0.26,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6084,3,4096,16,16,16,0.26,Metropolis Simulation,1000,409600,64,,false,true,false,false
+6085,3,4096,16,16,16,0.27,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6086,3,4096,16,16,16,0.27,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6087,3,4096,16,16,16,0.27,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6088,3,4096,16,16,16,0.27,Metropolis Simulation,1000,409600,65,,false,true,false,false
+6089,3,4096,16,16,16,0.28,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6090,3,4096,16,16,16,0.28,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6091,3,4096,16,16,16,0.28,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6092,3,4096,16,16,16,0.28,Metropolis Simulation,1000,409600,64,,false,true,false,false
+6093,3,4096,16,16,16,0.29,2x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6094,3,4096,16,16,16,0.29,8x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6095,3,4096,16,16,16,0.29,13x16 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6096,3,4096,16,16,16,0.29,Metropolis Simulation,1000,409600,61,,false,true,false,false
+6097,3,13824,24,24,24,0.2,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6098,3,13824,24,24,24,0.2,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6099,3,13824,24,24,24,0.2,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6100,3,13824,24,24,24,0.2,Metropolis Simulation,1000,409600,227,,false,true,false,false
+6101,3,13824,24,24,24,0.21,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6102,3,13824,24,24,24,0.21,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6103,3,13824,24,24,24,0.21,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6104,3,13824,24,24,24,0.21,Metropolis Simulation,1000,409600,226,,false,true,false,false
+6105,3,13824,24,24,24,0.22,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6106,3,13824,24,24,24,0.22,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6107,3,13824,24,24,24,0.22,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6108,3,13824,24,24,24,0.22,Metropolis Simulation,1000,409600,225,,false,true,false,false
+6109,3,13824,24,24,24,0.23,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6110,3,13824,24,24,24,0.23,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6111,3,13824,24,24,24,0.23,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6112,3,13824,24,24,24,0.23,Metropolis Simulation,1000,409600,224,,false,true,false,false
+6113,3,13824,24,24,24,0.24,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6114,3,13824,24,24,24,0.24,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6115,3,13824,24,24,24,0.24,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6116,3,13824,24,24,24,0.24,Metropolis Simulation,1000,409600,211,,false,true,false,false
+6117,3,13824,24,24,24,0.25,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6118,3,13824,24,24,24,0.25,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6119,3,13824,24,24,24,0.25,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6120,3,13824,24,24,24,0.25,Metropolis Simulation,1000,409600,225,,false,true,false,false
+6121,3,13824,24,24,24,0.26,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6122,3,13824,24,24,24,0.26,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6123,3,13824,24,24,24,0.26,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6124,3,13824,24,24,24,0.26,Metropolis Simulation,1000,409600,222,,false,true,false,false
+6125,3,13824,24,24,24,0.27,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6126,3,13824,24,24,24,0.27,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6127,3,13824,24,24,24,0.27,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6128,3,13824,24,24,24,0.27,Metropolis Simulation,1000,409600,209,,false,true,false,false
+6129,3,13824,24,24,24,0.28,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6130,3,13824,24,24,24,0.28,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6131,3,13824,24,24,24,0.28,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6132,3,13824,24,24,24,0.28,Metropolis Simulation,1000,409600,220,,false,true,false,false
+6133,3,13824,24,24,24,0.29,4x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6134,3,13824,24,24,24,0.29,12x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6135,3,13824,24,24,24,0.29,20x24 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6136,3,13824,24,24,24,0.29,Metropolis Simulation,1000,409600,208,,false,true,false,false
+6137,3,46656,36,36,36,0.2,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6138,3,46656,36,36,36,0.2,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6139,3,46656,36,36,36,0.2,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6140,3,46656,36,36,36,0.2,Metropolis Simulation,1000,409600,765,,false,true,false,false
+6141,3,46656,36,36,36,0.21,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6142,3,46656,36,36,36,0.21,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6143,3,46656,36,36,36,0.21,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6144,3,46656,36,36,36,0.21,Metropolis Simulation,1000,409600,761,,false,true,false,false
+6145,3,46656,36,36,36,0.22,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6146,3,46656,36,36,36,0.22,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6147,3,46656,36,36,36,0.22,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6148,3,46656,36,36,36,0.22,Metropolis Simulation,1000,409600,753,,false,true,false,false
+6149,3,46656,36,36,36,0.23,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6150,3,46656,36,36,36,0.23,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6151,3,46656,36,36,36,0.23,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6152,3,46656,36,36,36,0.23,Metropolis Simulation,1000,409600,752,,false,true,false,false
+6153,3,46656,36,36,36,0.24,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6154,3,46656,36,36,36,0.24,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6155,3,46656,36,36,36,0.24,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6156,3,46656,36,36,36,0.24,Metropolis Simulation,1000,409600,751,,false,true,false,false
+6157,3,46656,36,36,36,0.25,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6158,3,46656,36,36,36,0.25,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6159,3,46656,36,36,36,0.25,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6160,3,46656,36,36,36,0.25,Metropolis Simulation,1000,409600,702,,false,true,false,false
+6161,3,46656,36,36,36,0.26,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6162,3,46656,36,36,36,0.26,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6163,3,46656,36,36,36,0.26,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6164,3,46656,36,36,36,0.26,Metropolis Simulation,1000,409600,698,,false,true,false,false
+6165,3,46656,36,36,36,0.27,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6166,3,46656,36,36,36,0.27,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6167,3,46656,36,36,36,0.27,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6168,3,46656,36,36,36,0.27,Metropolis Simulation,1000,409600,702,,false,true,false,false
+6169,3,46656,36,36,36,0.28,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6170,3,46656,36,36,36,0.28,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6171,3,46656,36,36,36,0.28,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6172,3,46656,36,36,36,0.28,Metropolis Simulation,1000,409600,734,,false,true,false,false
+6173,3,46656,36,36,36,0.29,6x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6174,3,46656,36,36,36,0.29,18x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6175,3,46656,36,36,36,0.29,30x36 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6176,3,46656,36,36,36,0.29,Metropolis Simulation,1000,409600,690,,false,true,false,false
+6177,3,157464,54,54,54,0.2,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6178,3,157464,54,54,54,0.2,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6179,3,157464,54,54,54,0.2,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6180,3,157464,54,54,54,0.2,Metropolis Simulation,1000,409600,2729,,false,true,false,false
+6181,3,157464,54,54,54,0.21,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6182,3,157464,54,54,54,0.21,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6183,3,157464,54,54,54,0.21,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6184,3,157464,54,54,54,0.21,Metropolis Simulation,1000,409600,2546,,false,true,false,false
+6185,3,157464,54,54,54,0.22,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6186,3,157464,54,54,54,0.22,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6187,3,157464,54,54,54,0.22,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6188,3,157464,54,54,54,0.22,Metropolis Simulation,1000,409600,2698,,false,true,false,false
+6189,3,157464,54,54,54,0.23,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6190,3,157464,54,54,54,0.23,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6191,3,157464,54,54,54,0.23,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6192,3,157464,54,54,54,0.23,Metropolis Simulation,1000,409600,2573,,false,true,false,false
+6193,3,157464,54,54,54,0.24,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6194,3,157464,54,54,54,0.24,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6195,3,157464,54,54,54,0.24,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6196,3,157464,54,54,54,0.24,Metropolis Simulation,1000,409600,2523,,false,true,false,false
+6197,3,157464,54,54,54,0.25,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6198,3,157464,54,54,54,0.25,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6199,3,157464,54,54,54,0.25,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6200,3,157464,54,54,54,0.25,Metropolis Simulation,1000,409600,2634,,false,true,false,false
+6201,3,157464,54,54,54,0.26,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6202,3,157464,54,54,54,0.26,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6203,3,157464,54,54,54,0.26,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6204,3,157464,54,54,54,0.26,Metropolis Simulation,1000,409600,2487,,false,true,false,false
+6205,3,157464,54,54,54,0.27,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6206,3,157464,54,54,54,0.27,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6207,3,157464,54,54,54,0.27,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6208,3,157464,54,54,54,0.27,Metropolis Simulation,1000,409600,2507,,false,true,false,false
+6209,3,157464,54,54,54,0.28,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6210,3,157464,54,54,54,0.28,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6211,3,157464,54,54,54,0.28,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6212,3,157464,54,54,54,0.28,Metropolis Simulation,1000,409600,2474,,false,true,false,false
+6213,3,157464,54,54,54,0.29,9x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6214,3,157464,54,54,54,0.29,27x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6215,3,157464,54,54,54,0.29,45x54 Wilson Metropolis Simulation,1000,409600,,,false,true,false,false
+6216,3,157464,54,54,54,0.29,Metropolis Simulation,1000,409600,2488,,false,true,false,false

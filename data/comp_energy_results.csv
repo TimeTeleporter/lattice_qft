@@ -1,0 +1,244 @@
+index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,action_data,energy_data,difference_data,correlation_data
+5367,3,4096,16,16,16,0.2,4 Metropolis Simulations,1000,409600,82,,false,true,false,false
+5368,3,4096,16,16,16,0.2,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5369,3,4096,16,16,16,0.21,4 Metropolis Simulations,1000,409600,82,,false,true,false,false
+5370,3,4096,16,16,16,0.21,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5371,3,4096,16,16,16,0.22,4 Metropolis Simulations,1000,409600,82,,false,true,false,false
+5372,3,4096,16,16,16,0.22,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5373,3,4096,16,16,16,0.23,4 Metropolis Simulations,1000,409600,81,,false,true,false,false
+5374,3,4096,16,16,16,0.23,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5375,3,4096,16,16,16,0.24,4 Metropolis Simulations,1000,409600,85,,false,true,false,false
+5376,3,4096,16,16,16,0.24,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5377,3,4096,16,16,16,0.25,18 Metropolis Simulations,1000,409600,81,,false,true,false,false
+5378,3,4096,16,16,16,0.25,4 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5379,3,4096,16,16,16,0.26,4 Metropolis Simulations,1000,409600,85,,false,true,false,false
+5380,3,4096,16,16,16,0.26,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5381,3,4096,16,16,16,0.27,4 Metropolis Simulations,1000,409600,85,,false,true,false,false
+5382,3,4096,16,16,16,0.27,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5383,3,4096,16,16,16,0.28,4 Metropolis Simulations,1000,409600,82,,false,true,false,false
+5384,3,4096,16,16,16,0.28,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5385,3,4096,16,16,16,0.29,4 Metropolis Simulations,1000,409600,80,,false,true,false,false
+5386,3,4096,16,16,16,0.29,2 5x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5408,3,4096,16,16,16,0.2,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5410,3,4096,16,16,16,0.21,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5412,3,4096,16,16,16,0.22,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5414,3,4096,16,16,16,0.23,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5416,3,4096,16,16,16,0.24,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5418,3,4096,16,16,16,0.25,4 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5420,3,4096,16,16,16,0.26,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5422,3,4096,16,16,16,0.27,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5424,3,4096,16,16,16,0.28,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5426,3,4096,16,16,16,0.29,2 8x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5427,3,46656,36,36,36,0.2,3 Metropolis Simulations,1000,409600,970,,false,true,false,false
+5428,3,46656,36,36,36,0.2,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5429,3,46656,36,36,36,0.21,3 Metropolis Simulations,1000,409600,969,,false,true,false,false
+5430,3,46656,36,36,36,0.21,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5431,3,46656,36,36,36,0.22,3 Metropolis Simulations,1000,409600,961,,false,true,false,false
+5432,3,46656,36,36,36,0.22,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5433,3,46656,36,36,36,0.23,3 Metropolis Simulations,1000,409600,961,,false,true,false,false
+5434,3,46656,36,36,36,0.23,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5435,3,46656,36,36,36,0.24,3 Metropolis Simulations,1000,409600,958,,false,true,false,false
+5436,3,46656,36,36,36,0.24,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5437,3,46656,36,36,36,0.25,37 Metropolis Simulations,1000,409600,956,,false,true,false,false
+5438,3,46656,36,36,36,0.25,3 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5439,3,46656,36,36,36,0.26,3 Metropolis Simulations,1000,409600,953,,false,true,false,false
+5440,3,46656,36,36,36,0.26,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5441,3,46656,36,36,36,0.27,3 Metropolis Simulations,1000,409600,945,,false,true,false,false
+5442,3,46656,36,36,36,0.27,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5443,3,46656,36,36,36,0.28,3 Metropolis Simulations,1000,409600,947,,false,true,false,false
+5444,3,46656,36,36,36,0.28,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5445,3,46656,36,36,36,0.29,3 Metropolis Simulations,1000,409600,939,,false,true,false,false
+5446,3,46656,36,36,36,0.29,2 18x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5447,3,46656,36,36,36,0.2,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5449,3,46656,36,36,36,0.21,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5451,3,46656,36,36,36,0.22,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5453,3,46656,36,36,36,0.23,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5455,3,46656,36,36,36,0.24,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5457,3,46656,36,36,36,0.25,2 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5459,3,46656,36,36,36,0.26,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5461,3,46656,36,36,36,0.27,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5463,3,46656,36,36,36,0.28,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5465,3,46656,36,36,36,0.29,1 12x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5467,3,4096,16,16,16,0.25,2 1x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5468,3,4096,16,16,16,0.25,3 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5469,3,4096,16,16,16,0.25,2 3x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5470,3,4096,16,16,16,0.25,2 4x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5472,3,4096,16,16,16,0.25,2 6x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5473,3,4096,16,16,16,0.25,2 7x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5475,3,4096,16,16,16,0.25,2 9x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5476,3,4096,16,16,16,0.25,2 10x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5477,3,4096,16,16,16,0.25,2 11x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5478,3,4096,16,16,16,0.25,2 12x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5479,3,4096,16,16,16,0.25,3 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5480,3,4096,16,16,16,0.25,2 14x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5509,3,46656,36,36,36,0.25,1 1x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5511,3,46656,36,36,36,0.25,1 2x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5513,3,46656,36,36,36,0.25,1 3x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5515,3,46656,36,36,36,0.25,1 4x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5517,3,46656,36,36,36,0.25,1 5x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5519,3,46656,36,36,36,0.25,2 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5521,3,46656,36,36,36,0.25,1 7x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5523,3,46656,36,36,36,0.25,1 8x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5525,3,46656,36,36,36,0.25,1 9x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5527,3,46656,36,36,36,0.25,1 10x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5529,3,46656,36,36,36,0.25,1 11x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5533,3,46656,36,36,36,0.25,1 13x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5535,3,46656,36,36,36,0.25,1 14x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5537,3,46656,36,36,36,0.25,1 15x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5539,3,46656,36,36,36,0.25,1 16x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5541,3,46656,36,36,36,0.25,1 17x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5545,3,46656,36,36,36,0.25,1 19x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5547,3,46656,36,36,36,0.25,1 20x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5549,3,46656,36,36,36,0.25,1 21x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5551,3,46656,36,36,36,0.25,1 22x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5553,3,46656,36,36,36,0.25,1 23x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5555,3,46656,36,36,36,0.25,1 24x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5557,3,46656,36,36,36,0.25,1 25x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5559,3,46656,36,36,36,0.25,1 26x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5561,3,46656,36,36,36,0.25,1 27x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5563,3,46656,36,36,36,0.25,1 28x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5565,3,46656,36,36,36,0.25,1 29x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5567,3,46656,36,36,36,0.25,2 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5569,3,46656,36,36,36,0.25,1 31x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5571,3,46656,36,36,36,0.25,1 32x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5573,3,46656,36,36,36,0.25,1 33x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5575,3,46656,36,36,36,0.25,1 34x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5577,3,157464,54,54,54,0.25,1 1x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5578,3,157464,54,54,54,0.25,1 3x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5579,3,157464,54,54,54,0.25,1 5x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5580,3,157464,54,54,54,0.25,1 7x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5581,3,157464,54,54,54,0.25,2 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5582,3,157464,54,54,54,0.25,1 11x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5583,3,157464,54,54,54,0.25,1 13x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5584,3,157464,54,54,54,0.25,1 15x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5585,3,157464,54,54,54,0.25,1 17x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5586,3,157464,54,54,54,0.25,1 19x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5587,3,157464,54,54,54,0.25,1 21x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5588,3,157464,54,54,54,0.25,1 23x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5589,3,157464,54,54,54,0.25,1 25x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5590,3,157464,54,54,54,0.25,2 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5591,3,157464,54,54,54,0.25,1 29x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5592,3,157464,54,54,54,0.25,1 31x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5593,3,157464,54,54,54,0.25,1 33x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5594,3,157464,54,54,54,0.25,1 35x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5595,3,157464,54,54,54,0.25,1 37x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5596,3,157464,54,54,54,0.25,1 39x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5597,3,157464,54,54,54,0.25,1 41x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5598,3,157464,54,54,54,0.25,1 43x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5599,3,157464,54,54,54,0.25,2 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5600,3,157464,54,54,54,0.25,1 47x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5601,3,157464,54,54,54,0.25,1 49x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5602,3,157464,54,54,54,0.25,1 51x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+5603,3,157464,54,54,54,0.25,2 Metropolis Simulations,1000,409600,2134,,false,true,false,false
+6057,3,4096,16,16,16,0.2,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6059,3,4096,16,16,16,0.2,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6061,3,4096,16,16,16,0.21,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6063,3,4096,16,16,16,0.21,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6065,3,4096,16,16,16,0.22,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6067,3,4096,16,16,16,0.22,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6069,3,4096,16,16,16,0.23,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6071,3,4096,16,16,16,0.23,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6073,3,4096,16,16,16,0.24,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6075,3,4096,16,16,16,0.24,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6081,3,4096,16,16,16,0.26,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6083,3,4096,16,16,16,0.26,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6085,3,4096,16,16,16,0.27,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6087,3,4096,16,16,16,0.27,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6089,3,4096,16,16,16,0.28,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6091,3,4096,16,16,16,0.28,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6093,3,4096,16,16,16,0.29,1 2x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6095,3,4096,16,16,16,0.29,1 13x16 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6097,3,13824,24,24,24,0.2,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6098,3,13824,24,24,24,0.2,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6099,3,13824,24,24,24,0.2,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6100,3,13824,24,24,24,0.2,1 Metropolis Simulations,1000,409600,227,,false,true,false,false
+6101,3,13824,24,24,24,0.21,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6102,3,13824,24,24,24,0.21,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6103,3,13824,24,24,24,0.21,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6104,3,13824,24,24,24,0.21,1 Metropolis Simulations,1000,409600,226,,false,true,false,false
+6105,3,13824,24,24,24,0.22,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6106,3,13824,24,24,24,0.22,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6107,3,13824,24,24,24,0.22,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6108,3,13824,24,24,24,0.22,1 Metropolis Simulations,1000,409600,225,,false,true,false,false
+6109,3,13824,24,24,24,0.23,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6110,3,13824,24,24,24,0.23,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6111,3,13824,24,24,24,0.23,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6112,3,13824,24,24,24,0.23,1 Metropolis Simulations,1000,409600,224,,false,true,false,false
+6113,3,13824,24,24,24,0.24,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6114,3,13824,24,24,24,0.24,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6115,3,13824,24,24,24,0.24,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6116,3,13824,24,24,24,0.24,1 Metropolis Simulations,1000,409600,211,,false,true,false,false
+6117,3,13824,24,24,24,0.25,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6118,3,13824,24,24,24,0.25,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6119,3,13824,24,24,24,0.25,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6120,3,13824,24,24,24,0.25,1 Metropolis Simulations,1000,409600,225,,false,true,false,false
+6121,3,13824,24,24,24,0.26,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6122,3,13824,24,24,24,0.26,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6123,3,13824,24,24,24,0.26,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6124,3,13824,24,24,24,0.26,1 Metropolis Simulations,1000,409600,222,,false,true,false,false
+6125,3,13824,24,24,24,0.27,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6126,3,13824,24,24,24,0.27,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6127,3,13824,24,24,24,0.27,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6128,3,13824,24,24,24,0.27,1 Metropolis Simulations,1000,409600,209,,false,true,false,false
+6129,3,13824,24,24,24,0.28,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6130,3,13824,24,24,24,0.28,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6131,3,13824,24,24,24,0.28,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6132,3,13824,24,24,24,0.28,1 Metropolis Simulations,1000,409600,220,,false,true,false,false
+6133,3,13824,24,24,24,0.29,1 4x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6134,3,13824,24,24,24,0.29,1 12x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6135,3,13824,24,24,24,0.29,1 20x24 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6136,3,13824,24,24,24,0.29,1 Metropolis Simulations,1000,409600,208,,false,true,false,false
+6137,3,46656,36,36,36,0.2,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6139,3,46656,36,36,36,0.2,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6141,3,46656,36,36,36,0.21,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6143,3,46656,36,36,36,0.21,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6145,3,46656,36,36,36,0.22,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6147,3,46656,36,36,36,0.22,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6149,3,46656,36,36,36,0.23,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6151,3,46656,36,36,36,0.23,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6153,3,46656,36,36,36,0.24,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6155,3,46656,36,36,36,0.24,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6161,3,46656,36,36,36,0.26,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6163,3,46656,36,36,36,0.26,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6165,3,46656,36,36,36,0.27,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6167,3,46656,36,36,36,0.27,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6169,3,46656,36,36,36,0.28,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6171,3,46656,36,36,36,0.28,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6173,3,46656,36,36,36,0.29,1 6x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6175,3,46656,36,36,36,0.29,1 30x36 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6177,3,157464,54,54,54,0.2,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6178,3,157464,54,54,54,0.2,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6179,3,157464,54,54,54,0.2,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6180,3,157464,54,54,54,0.2,1 Metropolis Simulations,1000,409600,2729,,false,true,false,false
+6181,3,157464,54,54,54,0.21,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6182,3,157464,54,54,54,0.21,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6183,3,157464,54,54,54,0.21,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6184,3,157464,54,54,54,0.21,1 Metropolis Simulations,1000,409600,2546,,false,true,false,false
+6185,3,157464,54,54,54,0.22,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6186,3,157464,54,54,54,0.22,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6187,3,157464,54,54,54,0.22,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6188,3,157464,54,54,54,0.22,1 Metropolis Simulations,1000,409600,2698,,false,true,false,false
+6189,3,157464,54,54,54,0.23,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6190,3,157464,54,54,54,0.23,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6191,3,157464,54,54,54,0.23,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6192,3,157464,54,54,54,0.23,1 Metropolis Simulations,1000,409600,2573,,false,true,false,false
+6193,3,157464,54,54,54,0.24,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6194,3,157464,54,54,54,0.24,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6195,3,157464,54,54,54,0.24,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6196,3,157464,54,54,54,0.24,1 Metropolis Simulations,1000,409600,2523,,false,true,false,false
+6201,3,157464,54,54,54,0.26,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6202,3,157464,54,54,54,0.26,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6203,3,157464,54,54,54,0.26,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6204,3,157464,54,54,54,0.26,1 Metropolis Simulations,1000,409600,2487,,false,true,false,false
+6205,3,157464,54,54,54,0.27,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6206,3,157464,54,54,54,0.27,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6207,3,157464,54,54,54,0.27,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6208,3,157464,54,54,54,0.27,1 Metropolis Simulations,1000,409600,2507,,false,true,false,false
+6209,3,157464,54,54,54,0.28,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6210,3,157464,54,54,54,0.28,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6211,3,157464,54,54,54,0.28,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6212,3,157464,54,54,54,0.28,1 Metropolis Simulations,1000,409600,2474,,false,true,false,false
+6213,3,157464,54,54,54,0.29,1 9x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6214,3,157464,54,54,54,0.29,1 27x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6215,3,157464,54,54,54,0.29,1 45x54 Wilson Metropolis Simulations,1000,409600,,,false,true,false,false
+6216,3,157464,54,54,54,0.29,1 Metropolis Simulations,1000,409600,2488,,false,true,false,false

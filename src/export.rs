@@ -211,3 +211,47 @@ impl CorrelationLengths {
 }
 
 impl CsvData for CorrelationLengths {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EnergyData {
+    index: u64,
+    pub bin_size: u64,
+    pub energy: f64,
+    energy_err: f64,
+}
+
+impl EnergyData {
+    pub fn new(index: u64, bin_size: u64, energy: f64, energy_err: f64) -> Self {
+        EnergyData {
+            index,
+            bin_size,
+            energy,
+            energy_err,
+        }
+    }
+}
+
+impl CsvData for EnergyData {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StringTension {
+    index: u64,
+    temp: f64,
+    size: usize,
+    bin_size: u64,
+    string_tension: f64,
+}
+
+impl StringTension {
+    pub fn new(index: u64, temp: f64, size: usize, bin_size: u64, string_tension: f64) -> Self {
+        StringTension {
+            index,
+            temp,
+            size,
+            bin_size,
+            string_tension,
+        }
+    }
+}
+
+impl CsvData for StringTension {}
