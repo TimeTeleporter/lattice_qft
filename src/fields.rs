@@ -655,9 +655,7 @@ pub trait Action<T: HeightVariable<T>, const D: usize> {
     fn integer_energy(&self) -> T;
 
     /// Calculates the square sum over all lattice bond differences and yields it as a float
-    fn float_action(&self) -> f64 {
-        <T as Into<f64>>::into(self.integer_action())
-    }
+    fn float_action(&self) -> f64;
 
     fn float_energy(&self) -> f64 {
         <T as Into<f64>>::into(self.integer_energy())
@@ -718,6 +716,15 @@ where
         sum
     }
 
+    fn float_action(&self) -> f64 {
+        (0..SIZE)
+            .into_iter()
+            .map(|index| (0..D).into_iter().map(move |direction| (index, direction)))
+            .flatten()
+            .map(|(index, direction)| self.bond_action(index, direction).into())
+            .sum()
+    }
+
     fn integer_energy(&self) -> T {
         (0..SIZE)
             .map(|index| {
@@ -772,6 +779,15 @@ where
             }
         }
         sum
+    }
+
+    fn float_action(&self) -> f64 {
+        (0..SIZE)
+            .into_iter()
+            .map(|index| (0..3).into_iter().map(move |direction| (index, direction)))
+            .flatten()
+            .map(|(index, direction)| self.bond_action(index, direction).into())
+            .sum()
     }
 
     fn integer_energy(&self) -> T {

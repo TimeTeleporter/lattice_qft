@@ -92,11 +92,12 @@ fn string_tension_fit(
                     .map(|(width, energy)| (*width as f64, energy.energy))
                     .unzip();
 
-                let string_tension: f64 = match regression(x_values, y_values) {
+                let [string_tension, gamma, offset]: [f64; 3] = match regression(x_values, y_values)
+                {
                     Ok(val) => val,
                     Err(err) => {
                         eprintln!("String tension calc: {}", err);
-                        0.0
+                        [0.0, 0.0, 0.0]
                     }
                 };
 
@@ -106,6 +107,8 @@ fn string_tension_fit(
                     key_summary.t,
                     bin_size as u64,
                     string_tension,
+                    gamma,
+                    offset,
                 )
             })
             .collect();
@@ -118,15 +121,18 @@ fn string_tension_fit(
     }
 }
 
-fn regression(x_values: Vec<f64>, y_values: Vec<f64>) -> Result<f64, Box<dyn Error>> {
+fn regression(x_values: Vec<f64>, y_values: Vec<f64>) -> Result<[f64; 3], Box<dyn Error>> {
     let x = DVector::from_vec(x_values);
     let y = DVector::from_vec(y_values);
 
     let x_1 = x.clone();
-    let x_2 = x.map(|x| x.powi(-2));
+    //let x_2 = x.map(|x| x.powi(-2));
     let x_3 = x.map(|_| 1.0);
 
-    let mat = DMatrix::from_columns(&[x_1, x_2, x_3]);
+    let mat = DMatrix::from_columns(&[
+        x_1, //x_2,
+        x_3,
+    ]);
 
     let res = (mat.transpose() * mat.clone())
         .try_inverse()
@@ -134,9 +140,9 @@ fn regression(x_values: Vec<f64>, y_values: Vec<f64>) -> Result<f64, Box<dyn Err
         * mat.transpose()
         * y;
 
-    assert_eq!(res.len(), 3);
+    assert_eq!(res.len(), 2);
 
-    Ok(res[0])
+    Ok([res[0], 0.0, res[1]])
 }
 
 fn binning_resampling(

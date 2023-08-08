@@ -19,13 +19,13 @@ const BURNIN: u64 = 1_000;
 const ITERATIONS: u64 = 409_600;
 
 // Machine parameters
-const THREADS: usize = 21;
+const THREADS: usize = 23;
 
 #[allow(unused_imports)]
-use lattice_qft::INVESTIGATE_ARY9 as TEMP_ARY;
+use lattice_qft::INVESTIGATE_ARY10_54 as TEMP_ARY;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 54;
+const CUBE: usize = 16;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -57,11 +57,11 @@ fn main() {
             let mut observables: Vec<OutputData<3, SIZE>> = Vec::new();
             //observables.push(OutputData::new_action_observable(temp).set_frequency(10));
             //observables.push(OutputData::new_difference_plot(&lattice).set_frequency(10));
-
+            /*
             observables.push(OutputData::new_energy_observable(temp).set_frequency(10));
             (1..=5)
                 .into_iter()
-                .filter(|x| x % 2 == 1)
+                .filter(|x| x % 2 == 0)
                 .for_each(|width| {
                     comps.push(Computation::new_wilson_sim(
                         &lattice,
@@ -74,7 +74,7 @@ fn main() {
                         observables.clone(),
                     ));
                 });
-
+            */
             //observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
             comps.push(Computation::new_simulation(
                 &lattice,

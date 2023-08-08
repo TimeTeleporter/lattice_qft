@@ -54,6 +54,11 @@ pub const INVESTIGATE_ARY10_36: [f64; 17] = [
     0.2325, 0.235, 0.2375, 0.24,
 ];
 
+pub const INVESTIGATE_ARY10_54: [f64; 22] = [
+    0.21, 0.2125, 0.215, 0.2175, 0.22, 0.2225, 0.225, 0.2275, 0.23, 0.2325, 0.235, 0.21, 0.2125,
+    0.215, 0.2175, 0.22, 0.2225, 0.225, 0.2275, 0.23, 0.2325, 0.235,
+];
+
 /// The main simulation data
 pub const RESULTS_PATH: &str = "./data/results.csv";
 

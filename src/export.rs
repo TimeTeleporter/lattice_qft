@@ -240,16 +240,28 @@ pub struct StringTension {
     size: usize,
     bin_size: u64,
     string_tension: f64,
+    gamma: f64,
+    offset: f64,
 }
 
 impl StringTension {
-    pub fn new(index: u64, temp: f64, size: usize, bin_size: u64, string_tension: f64) -> Self {
+    pub fn new(
+        index: u64,
+        temp: f64,
+        size: usize,
+        bin_size: u64,
+        string_tension: f64,
+        gamma: f64,
+        offset: f64,
+    ) -> Self {
         StringTension {
             index,
             temp,
             size,
             bin_size,
             string_tension,
+            gamma,
+            offset,
         }
     }
 }
