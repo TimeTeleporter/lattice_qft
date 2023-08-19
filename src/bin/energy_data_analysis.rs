@@ -86,20 +86,20 @@ fn string_tension_fit(
         let mut local_string_tension_results: Vec<StringTension> = BIN_SIZES
             .into_par_iter()
             .map(|bin_size| {
-                let (x_values, y_values): (Vec<f64>, Vec<f64>) = local_results
+                let (x_values, (y_values, y_err)): (Vec<f64>, (Vec<f64>, Vec<f64>)) = local_results
                     .iter()
                     .filter(|(_, energy)| energy.bin_size == bin_size as u64)
-                    .map(|(width, energy)| (*width as f64, energy.energy))
+                    .map(|(width, energy)| (*width as f64, (energy.energy, energy.energy_err)))
                     .unzip();
 
-                let [string_tension, gamma, offset]: [f64; 3] = match regression(x_values, y_values)
-                {
-                    Ok(val) => val,
-                    Err(err) => {
-                        eprintln!("String tension calc: {}", err);
-                        [0.0, 0.0, 0.0]
-                    }
-                };
+                let [string_tension, gamma, offset, string_tension_err]: [f64; 4] =
+                    match regression(x_values, y_values, y_err) {
+                        Ok(val) => val,
+                        Err(err) => {
+                            eprintln!("String tension calc: {}", err);
+                            [0.0; 4]
+                        }
+                    };
 
                 StringTension::new(
                     key_summary.index,
@@ -109,6 +109,7 @@ fn string_tension_fit(
                     string_tension,
                     gamma,
                     offset,
+                    string_tension_err,
                 )
             })
             .collect();
@@ -121,9 +122,16 @@ fn string_tension_fit(
     }
 }
 
-fn regression(x_values: Vec<f64>, y_values: Vec<f64>) -> Result<[f64; 3], Box<dyn Error>> {
+fn regression(
+    x_values: Vec<f64>,
+    y_values: Vec<f64>,
+    y_err: Vec<f64>,
+) -> Result<[f64; 4], Box<dyn Error>> {
     let x = DVector::from_vec(x_values);
     let y = DVector::from_vec(y_values);
+    let weight = DMatrix::from_diagonal(&DVector::from_vec(y_err))
+        .try_inverse()
+        .ok_or::<Box<dyn Error>>("Inverse failed".into())?;
 
     let x_1 = x.clone();
     //let x_2 = x.map(|x| x.powi(-2));
@@ -134,15 +142,21 @@ fn regression(x_values: Vec<f64>, y_values: Vec<f64>) -> Result<[f64; 3], Box<dy
         x_3,
     ]);
 
-    let res = (mat.transpose() * mat.clone())
+    let res = (mat.transpose() * &weight * &mat)
         .try_inverse()
         .ok_or::<Box<dyn Error>>("Inverse failed".into())?
         * mat.transpose()
+        * &weight
         * y;
+
+    let res_err = (mat.transpose() * &weight * &mat)
+        .try_inverse()
+        .ok_or::<Box<dyn Error>>("Inverse failed".into())?
+        .diagonal();
 
     assert_eq!(res.len(), 2);
 
-    Ok([res[0], 0.0, res[1]])
+    Ok([res[0], 0.0, res[1], res_err[0]])
 }
 
 fn binning_resampling(

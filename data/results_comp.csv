@@ -56,8 +56,8 @@ index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,
 397,3,46656,36,36,36,0.27,11 Metropolis Simulations,1000,409600,2189,,false,false,false,true
 398,3,46656,36,36,36,0.28,11 Metropolis Simulations,1000,409600,2194,,false,false,false,true
 570,3,157464,54,54,54,0.21,30 Metropolis Simulations,1000,409600,11867,,false,false,false,true
-571,3,157464,54,54,54,0.22,23 Metropolis Simulations,1000,409600,11862,,false,false,false,true
-572,3,157464,54,54,54,0.225,23 Metropolis Simulations,1000,409600,11841,,false,false,false,true
+571,3,157464,54,54,54,0.22,35 Metropolis Simulations,1000,409600,11862,,false,false,false,true
+572,3,157464,54,54,54,0.225,35 Metropolis Simulations,1000,409600,11841,,false,false,false,true
 573,3,157464,54,54,54,0.23,23 Metropolis Simulations,1000,409600,11887,,false,false,false,true
 574,3,157464,54,54,54,0.2325,23 Metropolis Simulations,1000,409600,11849,,false,false,false,true
 575,3,157464,54,54,54,0.235,23 Metropolis Simulations,1000,409600,11836,,false,false,false,true
@@ -126,8 +126,8 @@ index,d,size,x,y,t,temp,comptype,burnin,iterations,duration,algorithm_statistic,
 5142,3,13824,24,24,24,0.6,1 Metropolis Simulations,1000,409600,529,,false,false,false,true
 5448,3,46656,36,36,36,0.2,1 Metropolis Simulations,1000,409600,1941,,false,false,false,true
 5466,3,46656,36,36,36,0.29,1 Metropolis Simulations,1000,409600,1949,,false,false,false,true
-5605,3,157464,54,54,54,0.2125,40 Metropolis Simulations,1000,409600,6514,,false,false,false,true
-5606,3,157464,54,54,54,0.215,20 Metropolis Simulations,1000,409600,6515,,false,false,false,true
-5607,3,157464,54,54,54,0.2175,20 Metropolis Simulations,1000,409600,6513,,false,false,false,true
-5617,3,157464,54,54,54,0.2225,13 Metropolis Simulations,1000,409600,6499,,false,false,false,true
-5619,3,157464,54,54,54,0.2275,13 Metropolis Simulations,1000,409600,6503,,false,false,false,true
+5605,3,157464,54,54,54,0.2125,52 Metropolis Simulations,1000,409600,6514,,false,false,false,true
+5606,3,157464,54,54,54,0.215,32 Metropolis Simulations,1000,409600,6515,,false,false,false,true
+5607,3,157464,54,54,54,0.2175,32 Metropolis Simulations,1000,409600,6513,,false,false,false,true
+5617,3,157464,54,54,54,0.2225,25 Metropolis Simulations,1000,409600,6499,,false,false,false,true
+5619,3,157464,54,54,54,0.2275,25 Metropolis Simulations,1000,409600,6503,,false,false,false,true

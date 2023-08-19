@@ -14,7 +14,7 @@ use lattice_qft::{
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 // Simulation parameters
-const REPETITIONS: u64 = 1;
+const REPETITIONS: u64 = 2;
 const BURNIN: u64 = 1_000;
 const ITERATIONS: u64 = 409_600;
 
@@ -25,7 +25,7 @@ const THREADS: usize = 23;
 use lattice_qft::INVESTIGATE_ARY10_54 as TEMP_ARY;
 
 // Lattice sizes (16, 24, 36, 54)
-const CUBE: usize = 16;
+const CUBE: usize = 54;
 const MAX_X: usize = CUBE;
 const MAX_Y: usize = CUBE;
 const MAX_T: usize = CUBE;
@@ -35,7 +35,7 @@ const SIZE: usize = MAX_X * MAX_Y * MAX_T;
 
 const _RANGE: usize = CUBE;
 const _WIDTH: usize = MAX_X - 1;
-const HEIGHT: usize = MAX_T;
+const _HEIGHT: usize = MAX_T;
 
 fn main() {
     // Setting the global thread pool
@@ -75,7 +75,7 @@ fn main() {
                     ));
                 });
             */
-            //observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
+            observables.push(OutputData::new_correlation_plot(&lattice, 100).set_frequency(10));
             comps.push(Computation::new_simulation(
                 &lattice,
                 temp,

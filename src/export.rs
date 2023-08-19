@@ -217,7 +217,7 @@ pub struct EnergyData {
     index: u64,
     pub bin_size: u64,
     pub energy: f64,
-    energy_err: f64,
+    pub energy_err: f64,
 }
 
 impl EnergyData {
@@ -242,6 +242,7 @@ pub struct StringTension {
     string_tension: f64,
     gamma: f64,
     offset: f64,
+    error: f64,
 }
 
 impl StringTension {
@@ -253,6 +254,7 @@ impl StringTension {
         string_tension: f64,
         gamma: f64,
         offset: f64,
+        error: f64,
     ) -> Self {
         StringTension {
             index,
@@ -262,6 +264,7 @@ impl StringTension {
             string_tension,
             gamma,
             offset,
+            error,
         }
     }
 }

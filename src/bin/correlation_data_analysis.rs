@@ -19,8 +19,8 @@ use varpro::{
 };
 
 // Parameters
-const BIN_SIZES: [usize; 6] = [1, 2, 4, 8, 16, 32];
-const BOOTSTRAPPING_ENSEMBLES: u64 = 100;
+const BIN_SIZES: [usize; 2] = [1, 8];
+const BOOTSTRAPPING_ENSEMBLES: u64 = 1000;
 const SEEDED: bool = true;
 
 // Analysis steps
